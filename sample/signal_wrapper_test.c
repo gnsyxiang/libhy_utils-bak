@@ -18,6 +18,9 @@
  *     last modified: 13/09 2019 11:20
  */
 #include <stdio.h>
+#include <unistd.h>
+
+#include "signal_wrapper.h"
 
 int main(int argc, const char *argv[])
 {

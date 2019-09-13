@@ -1,14 +1,38 @@
 
+# ignore pattern files
+*~
+*.scan
+*.log
+*.status
+*.deps
+*.libs
+*.o
+*.lo
+*.la
 
 # ignore dir
 node_modules/
+autom4te.cache/
 
 # ignore files
-autoscan.log
-configure.scan
 res/script/version.num
-m4/version.m4
-m4/version_age.m4
-m4/version_major.m4
-m4/version_revision.m4
+Makefile.in
+Makefile
+aclocal.m4
+ar-lib
+compile
+config.guess
+config.h.in
+config.sub
+configure
+depcomp
+install-sh
+ltmain.sh
+missing
+config.h
+libtool
+stamp-h1
+
+# ignore exec files
+signal_wrapper
 

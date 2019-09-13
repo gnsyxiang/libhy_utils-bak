@@ -12,4 +12,12 @@ get_version_num()
   cd -  >/dev/null 2>&1
 }
 
+# use autotools to configure
+autotools_configure()
+{
+  autoreconf -fvi -Im4
+}
+
 get_version_num
+
+autotools_configure
