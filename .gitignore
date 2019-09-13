@@ -6,4 +6,9 @@ node_modules/
 # ignore files
 autoscan.log
 configure.scan
+res/script/version.num
+m4/version.m4
+m4/version_age.m4
+m4/version_major.m4
+m4/version_revision.m4
 
