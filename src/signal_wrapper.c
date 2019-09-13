@@ -91,6 +91,8 @@ static void _sig_handler(int signo)
 
     _dump_backtrace();
     _dump_maps(signo);
+
+    SignalHandleFinal();
 }
 
 void SignalHandleInit(const char * const app_name)
