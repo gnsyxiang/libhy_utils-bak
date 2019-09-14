@@ -29,6 +29,7 @@
 #include <semaphore.h>
 
 #include "thread_wrapper.h"
+#include "utils.h"
 
 #include "uart_wrapper.h"
 
@@ -287,19 +288,6 @@ static int _init_uart(uart_state_t *uart_state, UartConfig_t *uart_config)
     return 0;
 }
 
-#ifdef UART_DEBUG
-//FIXME 放到utils.c文件中
-static void _uart_dump_data(char *buf, size_t len)
-{
-    int i;
-    printf("len: %d ---->> ", len);
-    for (i = 0; i < len; i++) {
-        printf("%02x ", (unsigned char )buf[i]);
-    }
-    printf("\n");
-}
-#endif
-
 static void *_uart_read_loop(void *args)
 {
     uart_state_t *uart_state = (uart_state_t *)args;
@@ -309,7 +297,7 @@ static void *_uart_read_loop(void *args)
     while (uart_state->is_running) {
         ret = read(uart_state->fd, buf, UART_READ_VMIN_LEN);
 #ifdef UART_DEBUG
-        _uart_dump_data(buf, ret);
+        DumpHexData(buf, ret);
 #endif
         if (uart_state->read_cb) {
             uart_state->read_cb(buf, ret);
@@ -393,6 +381,7 @@ void UartFinal(void *handle)
     close(uart_state->fd);
 
     free(handle);
+    uart_log("close uart successful \n");
 }
 
 int UartWrite(void *handle, void *buf, size_t len)

@@ -20,21 +20,13 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "uart_wrapper.h"
+#include "utils.h"
 
-static void _uart_dump_data(char *buf, size_t len)
-{
-    int i;
-    printf("len: %d ---->> ", len);
-    for (i = 0; i < len; i++) {
-        printf("%02x ", (unsigned char )buf[i]);
-    }
-    printf("\n");
-}
+#include "uart_wrapper.h"
 
 static void _uart_read_cb(char *buf, size_t len)
 {
-    _uart_dump_data(buf, len);
+    DumpHexData(buf, len);
 }
 
 int main(int argc, const char *argv[])
