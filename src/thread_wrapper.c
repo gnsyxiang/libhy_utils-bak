@@ -39,7 +39,6 @@ static void _create_thread_common(ThreadParam_t *thread_param, pthread_attr_t *a
     assert(!error);
 }
 
-// void create_a_attached_thread(pthread_t *id, thread_loop_t thread_loop, void *args)
 void CreateAttachedThread(ThreadParam_t *thread_param)
 {
 	pthread_attr_t attr;
