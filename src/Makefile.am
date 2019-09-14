@@ -1,6 +1,7 @@
 lib_LTLIBRARIES = libutils.la
 
-libutils_la_SOURCES = signal_wrapper.c thread_wrapper.c uart_wrapper.c
+libutils_la_SOURCES  = signal_wrapper.c thread_wrapper.c ringbuf.c
+libutils_la_SOURCES += uart_wrapper.c
 
 libutils_la_LDFLAGS = -fPIC -version-info @current@:@revision@:@age@
 
