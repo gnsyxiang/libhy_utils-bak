@@ -24,6 +24,9 @@
 extern "C" {
 #endif
 
+#define USING_LIST      // 保证一帧数据完整发出
+// #define USING_RINGBUF   // 减少多次开辟释放空间的消耗
+
 typedef enum {
     UART_NUM_1,
     UART_NUM_2,
@@ -89,7 +92,6 @@ typedef struct {
 
     UartRead_cb_t       read_cb;
 } UartConfig_t;
-
 
 /**
  * @brief 

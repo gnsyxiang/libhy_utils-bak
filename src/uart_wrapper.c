@@ -26,24 +26,154 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <semaphore.h>
 
 #include "thread_wrapper.h"
 
 #include "uart_wrapper.h"
 
-#define UART_DEBUG
-#define UART_READ_VMIN_LEN (16)
+#ifdef USING_LIST
+#include "list.h"
+#endif
+
+#ifdef USING_RINGBUF
+#include "ringbuf.h"
+#endif
+
+// #define UART_DEBUG
+#define UART_READ_VMIN_LEN      (16)
+#define UART_READ_VTIME_100MS   (10)
+                                
 #define uart_log(fmt, ...) \
     printf("<%s:%d, result: %s> " fmt, \
-            __func__, __LINE__, strerror(errno), ##__VA_ARGS__);
+           __func__, __LINE__, strerror(errno), ##__VA_ARGS__);
 
 typedef struct {
     int             fd;
     UartRead_cb_t   read_cb;
-} UartState_t;
-#define UART_STATE_LEN (sizeof(UartState_t))
 
-static int _set_param(UartState_t *uart_state, UartConfig_t *uart_config)
+    int is_running;
+    pthread_mutex_t mutex;
+
+    sem_t sem_write;
+    sem_t sem_read_thread_exit;
+    sem_t sem_write_thread_exit;
+
+#ifdef USING_LIST
+    struct list_head list;
+#endif
+
+#ifdef USING_RINGBUF
+#endif
+} uart_state_t;
+#define UART_STATE_LEN (sizeof(uart_state_t))
+
+//FIXME 放到file_wrapper.h文件中
+ssize_t file_write(int fd, const void *buf, size_t len)
+{
+    int ret;
+    size_t nleft;
+    const char *ptr;
+
+    ptr = buf;
+    nleft = len;
+
+    while (nleft > 0) {
+        if ((ret = write(fd, ptr, nleft)) <= 0) {
+            if (ret < 0 && errno == EINTR) {
+                ret = 0;
+            }
+            else {
+                return -1;
+            }
+        }
+
+        nleft -= ret;
+        ptr   += ret;
+    }
+
+    return len;
+}
+
+#ifdef USING_LIST
+typedef struct {
+    char *buf;
+    size_t len;
+    struct list_head list;
+} frame_t;
+#define FRAME_LEN (sizeof(frame_t))
+
+static frame_t *_frame_init(void *buf, size_t len)
+{
+    frame_t *frame = calloc(1, FRAME_LEN);
+    if (!frame) {
+        uart_log("calloc faild \n");
+        return NULL;
+    }
+
+    frame->buf = calloc(1, len);
+    if (!frame->buf) {
+        uart_log("calloc faild \n");
+        return NULL;
+    }
+
+    memcpy(frame->buf, buf, len);
+    frame->len = len;
+
+    return frame;
+}
+
+static void _frame_final(frame_t *frame)
+{
+    free(frame->buf);
+    free(frame);
+}
+
+static int _uart_write_common(void *handle, void *buf, size_t len)
+{
+    uart_state_t *uart_state = handle;
+    frame_t *frame;
+
+    if ((frame = _frame_init(buf, len)) == NULL) {
+        printf("_frame_init faild \n");
+        return -1;
+    }
+
+    pthread_mutex_lock(&uart_state->mutex);
+    list_add_tail(&frame->list, &uart_state->list);
+    pthread_mutex_unlock(&uart_state->mutex);
+
+    sem_post(&uart_state->sem_write);
+
+    return len;
+}
+
+static void *_uart_write_loop(void *args)
+{
+    uart_state_t *uart_state = args;
+    frame_t *pos, *n;
+    while (uart_state->is_running) {
+        sem_wait(&uart_state->sem_write);
+
+        pthread_mutex_lock(&uart_state->mutex);
+        list_for_each_entry_safe(pos, n, &uart_state->list, list) {
+            if (-1 == file_write(uart_state->fd, pos->buf, pos->len)) {
+                printf("uart write internel faild \n");
+                continue;
+            }
+            list_del(&pos->list);
+            _frame_final(pos);
+            break;
+        }
+        pthread_mutex_unlock(&uart_state->mutex);
+    }
+
+    sem_post(&uart_state->sem_write_thread_exit);
+    return NULL;
+}
+#endif
+
+static int _set_param(uart_state_t *uart_state, UartConfig_t *uart_config)
 {
     int fd = uart_state->fd;
     struct termios options;
@@ -112,7 +242,7 @@ static int _set_param(UartState_t *uart_state, UartConfig_t *uart_config)
     }
 
 	// read阻塞条件: wait time and minmum number of "bytes"
-	options.c_cc[VTIME]= 0;                     // wait for 0.1s
+	options.c_cc[VTIME]= UART_READ_VTIME_100MS; // wait for 0.1s
     options.c_cc[VMIN]= UART_READ_VMIN_LEN;     // read at least 1 byte
 
     // TCIFLUSH刷清输入队列
@@ -130,7 +260,7 @@ static int _set_param(UartState_t *uart_state, UartConfig_t *uart_config)
 	return 0;
 }
 
-static int _init_uart(UartState_t *uart_state, UartConfig_t *uart_config)
+static int _init_uart(uart_state_t *uart_state, UartConfig_t *uart_config)
 {
     char *uart_num_2_name[UART_NUM_MAX] = {
         "/dev/ttyUSB7",
@@ -158,6 +288,7 @@ static int _init_uart(UartState_t *uart_state, UartConfig_t *uart_config)
 }
 
 #ifdef UART_DEBUG
+//FIXME 放到utils.c文件中
 static void _uart_dump_data(char *buf, size_t len)
 {
     int i;
@@ -169,21 +300,13 @@ static void _uart_dump_data(char *buf, size_t len)
 }
 #endif
 
-static void *_uart_write_loop(void *args)
-{
-    while (1) {
-        sleep(1);
-    }
-    return NULL;
-}
-
 static void *_uart_read_loop(void *args)
 {
-    UartState_t *uart_state = (UartState_t *)args;
+    uart_state_t *uart_state = (uart_state_t *)args;
     char buf[UART_READ_VMIN_LEN];
     int ret;
 
-    while (1) {
+    while (uart_state->is_running) {
         ret = read(uart_state->fd, buf, UART_READ_VMIN_LEN);
 #ifdef UART_DEBUG
         _uart_dump_data(buf, ret);
@@ -192,6 +315,8 @@ static void *_uart_read_loop(void *args)
             uart_state->read_cb(buf, ret);
         }
     }
+
+    sem_post(&uart_state->sem_read_thread_exit);
     return NULL;
 }
 
@@ -211,7 +336,7 @@ void *UartInit(UartConfig_t *uart_config)
         return NULL;
     }
 
-    UartState_t *uart_state = calloc(1, UART_STATE_LEN);
+    uart_state_t *uart_state = calloc(1, UART_STATE_LEN);
     if (!uart_state) {
         uart_log("calloc faild \n");
         return NULL;
@@ -225,51 +350,59 @@ void *UartInit(UartConfig_t *uart_config)
 
     uart_state->read_cb = uart_config->read_cb;
 
+    sem_init(&uart_state->sem_write_thread_exit, 0, 0);
+    sem_init(&uart_state->sem_read_thread_exit, 0, 0);
+    sem_init(&uart_state->sem_write, 0, 0);
+
+    pthread_mutex_init(&uart_state->mutex, NULL);
+
+#ifdef USING_LIST
+    INIT_LIST_HEAD(&uart_state->list);
+#endif
+
+    uart_state->is_running   = 1;
+
     _create_thread(_uart_write_loop, uart_state);
     _create_thread(_uart_read_loop, uart_state);
 
     return (uart_state);
 }
 
-void UartFinal(void *handle)
+static void _wait_and_destroy_sem(uart_state_t *uart_state)
 {
-    free(handle);
+    uart_state->is_running = 0;
+
+    sem_wait(&uart_state->sem_read_thread_exit);
+    sem_destroy(&uart_state->sem_read_thread_exit);
+
+    sem_post(&uart_state->sem_write);
+    sem_wait(&uart_state->sem_write_thread_exit);
+    sem_destroy(&uart_state->sem_write_thread_exit);
+
+    sem_destroy(&uart_state->sem_write);
 }
 
-size_t file_write(int fd, const void *buf, size_t len)
+void UartFinal(void *handle)
 {
-    int ret;
-    size_t nleft;
-    const char *ptr;
+    uart_state_t *uart_state = handle;
 
-    ptr = buf;
-    nleft = len;
+    _wait_and_destroy_sem(uart_state);
 
-    while (nleft > 0) {
-        if ((ret = write(fd, ptr, nleft)) <= 0) {
-            if (ret < 0 && errno == EINTR) {
-                ret = 0;
-            }
-            else {
-                return -1;
-            }
-        }
+    pthread_mutex_destroy(&uart_state->mutex);
 
-        nleft -= ret;
-        ptr   += ret;
-    }
+    close(uart_state->fd);
 
-    return len;
+    free(handle);
 }
 
 int UartWrite(void *handle, void *buf, size_t len)
 {
-    if (!handle || !buf) {
+    if (!handle || !buf || len <= 0) {
         uart_log("the param is NULL \n");
         return -1;
     }
-    int fd = ((UartState_t*)handle)->fd;
 
-    file_write(fd, buf, len);
-    return 0;
+#ifdef USING_LIST
+    return _uart_write_common(handle, buf, len);
+#endif
 }

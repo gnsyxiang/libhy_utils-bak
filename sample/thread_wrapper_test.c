@@ -23,9 +23,10 @@
 #include "thread_wrapper.h"
 #include "signal_wrapper.h"
 
+int cnt = 6;
 static void *_test_thread_loop(void *args)
 {
-    while (1) {
+    while (cnt != 1) {
         sleep(1);
         printf("hello test \n");
     }
@@ -43,7 +44,7 @@ int main(int argc, const char *argv[])
 
     CreateAttachedThread(&thread_param);
 
-    while (1) {
+    while (cnt-- >= 0) {
         sleep(1);
         printf("hello main \n");
     }
