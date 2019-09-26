@@ -29,45 +29,33 @@
 #include "signal_wrapper.h"
 #undef BASE_LIB_UTILS_SRC_SIGNAL_WRAPPER_GB
 
-#define BACKTRACE_SIZE  (16)
-#define CMD_LEN         (256)
-
 static char *g_app_name;
-static char *g_signal_str[] = {
-    [1] = "SIGHUP",       [2] = "SIGINT",       [3] = "SIGQUIT",      [4] = "SIGILL",
-    [5] = "SIGTRAP",      [6] = "SIGABRT",      [7] = "",             [8] = "SIGFPE",
-    [9] = "SIGKILL",      [10] = "SIGUBS",      [11] = "SIGSEGV",     [12] = "SIGSYS",
-    [13] = "SIGPIPE",     [14] = "SIGALRM",     [15] = "SIGTERM",     [16] = "SIGUSR1",
-    [17] = "SIGUSR2",     [18] = "SIGCHLD",     [19] = "SIGPWR",      [20] = "SIGWINCH",
-    [21] = "SIGURG",      [22] = "SIGPOLL",     [23] = "SIGSTOP",     [24] = "SIGTSTP",
-    [25] = "SIGCONT",     [26] = "SIGTTIN",     [27] = "SIGTTOU",     [28] = "SIGVTALRM",
-    [29] = "SIGPROF",     [30] = "SIGXCPU",     [31] = "SIGXFSZ",
-};
 
 static void _dump_backtrace(void)
 {
-    int i = 0;
+#define BACKTRACE_SIZE  (16)
     int size = 0;
     char **strings = NULL;
     void *array[BACKTRACE_SIZE];
 
     printf("Call Trace:\n");
-#ifndef NO_backtrace
     size = backtrace(array, BACKTRACE_SIZE);
     strings = backtrace_symbols(array, size);
-#endif
-    if (strings) {
-        for (i = 0; i < size; i++) {
-            printf("  [%02d] %s\n", i, strings[i]);
-        }
-        free(strings);
-    } else {
+    if (!strings) {
         printf("not found\n\n");
+        exit(EXIT_FAILURE);
     }
+
+    int i = 0;
+    for (i = 0; i < size; i++) {
+      printf("  [%02d] %s\n", i, strings[i]);
+    }
+    free(strings);
 }
 
 static void _dump_maps(int signo)
 {
+#define CMD_LEN         (256)
     char cmd[CMD_LEN] = {0};
 
     if (signo == SIGINT || signo == SIGUSR1 || signo == SIGUSR2) {
@@ -86,8 +74,19 @@ static void _dump_maps(int signo)
 
 static void _sig_handler(int signo)
 {
+    char *signal_str[] = {
+        [ 1] = "SIGHUP",      [ 2] = "SIGINT",      [ 3] = "SIGQUIT",     [ 4] = "SIGILL",
+        [ 5] = "SIGTRAP",     [ 6] = "SIGABRT",     [ 7] = "",            [ 8] = "SIGFPE",
+        [ 9] = "SIGKILL",     [10] = "SIGUBS",      [11] = "SIGSEGV",     [12] = "SIGSYS",
+        [13] = "SIGPIPE",     [14] = "SIGALRM",     [15] = "SIGTERM",     [16] = "SIGUSR1",
+        [17] = "SIGUSR2",     [18] = "SIGCHLD",     [19] = "SIGPWR",      [20] = "SIGWINCH",
+        [21] = "SIGURG",      [22] = "SIGPOLL",     [23] = "SIGSTOP",     [24] = "SIGTSTP",
+        [25] = "SIGCONT",     [26] = "SIGTTIN",     [27] = "SIGTTOU",     [28] = "SIGVTALRM",
+        [29] = "SIGPROF",     [30] = "SIGXCPU",     [31] = "SIGXFSZ",
+    };
+
     printf("\n\n[%s] %s(%d) crashed by signal %s.\n",
-           __func__, g_app_name, getpid(), g_signal_str[signo]);
+           __func__, g_app_name, getpid(), signal_str[signo]);
 
     _dump_backtrace();
     _dump_maps(signo);

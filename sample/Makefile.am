@@ -12,5 +12,5 @@ uart_wrapper_LDADD   = ../src/.libs/libutils.a
 uart_wrapper_LDADD  += -lpthread
 
 AM_CFLAGS  = -I$(top_srcdir)/inc
-AM_CFLAGS += -W -Wall -Werror
+AM_CFLAGS += -W -Wall -Werror -rdynamic
 AM_CFLAGS += -Wno-error=unused-parameter
