@@ -24,7 +24,7 @@
 extern "C" {
 #endif
 
-#ifndef LIBUTILS_SRC_SIGNAL_WRAPPER_GB
+#ifndef LIBUTILS_INC_SIGNAL_WRAPPER_GB
 #define SIGNAL_WRAPPER_EX extern
 #else
 #define SIGNAL_WRAPPER_EX

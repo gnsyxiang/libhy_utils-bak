@@ -25,11 +25,11 @@
 #include <signal.h>
 #include <execinfo.h>
 
-#include "common.h"
+#include "utils.h"
 
-#define LIBUTILS_SRC_SIGNAL_WRAPPER_GB
+#define LIBUTILS_INC_SIGNAL_WRAPPER_GB
 #include "signal_wrapper.h"
-#undef LIBUTILS_SRC_SIGNAL_WRAPPER_GB
+#undef LIBUTILS_INC_SIGNAL_WRAPPER_GB
 
 static char *g_app_name;
 
@@ -123,3 +123,4 @@ void SignalHandleFinal(void)
 {
     free(g_app_name);
 }
+

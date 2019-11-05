@@ -1,5 +1,15 @@
 # basic header file
-include_HEADERS  = signal_wrapper.h thread_wrapper.h list.h ringbuf.h tiny_things.h utils.h
+basic_inc = common.h \
+			utils.h \
+			signal_wrapper.h \
+			thread_wrapper.h \
+			list.h \
+			ringbuf.h \
+			data_buf.h
 
-include_HEADERS += uart_wrapper.h
+# uart header files
+uart_inc = uart_wrapper.h
+
+include_HEADERS = $(basic_inc) \
+				  $(uart_inc)
 

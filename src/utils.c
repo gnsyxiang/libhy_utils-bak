@@ -19,12 +19,14 @@
  */
 #include <stdio.h>
 
+#define LIBUTILS_INC_UTILS_GB
+#include "utils.h"
+#undef LIBUTILS_INC_UTILS_GB
+
 void DumpHexData(char *buf, size_t len)
 {
-    int i;
-    printf("len: %d ---->> ", len);
-    for (i = 0; i < len; i++) {
-        printf("%02x ", (unsigned char )buf[i]);
+    for (size_t i = 0; i < len; i++) {
+        printf("%02x ", buf[i]);
     }
     printf("\n");
 }

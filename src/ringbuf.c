@@ -23,7 +23,8 @@
 #include <pthread.h>
 #include <errno.h>
 
-#include "tiny_things.h"
+#include "utils.h"
+
 #include "ringbuf.h"
 
 #define rb_log(fmt, ...) \

@@ -41,7 +41,7 @@
 #include "ringbuf.h"
 #endif
 
-// #define UART_DEBUG
+#define UART_DEBUG
 #define UART_READ_VMIN_LEN      (16)
 #define UART_READ_VTIME_100MS   (10)
                                 

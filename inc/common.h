@@ -24,10 +24,6 @@
 extern "C" {
 #endif
 
-#define ARRAY_LEN(arr)      (sizeof(arr))
-#define ARRAY_ITEM_LEN(arr) (sizeof(arr[0]))
-#define ARRAY_CNT(arr)      (int)(ARRAY_LEN(arr) / ARRAY_ITEM_LEN(arr))
-
 #ifdef __cplusplus
 }
 #endif

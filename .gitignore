@@ -9,11 +9,13 @@
 *.o
 *.lo
 *.la
+cscope*
 
 # ignore dir
 node_modules/
 autom4te.cache/
 .SpaceVim.d/
+build/
 
 # ignore files
 res/script/version.num
@@ -34,6 +36,7 @@ config.h
 libtool
 stamp-h1
 .clang
+tags
 
 # ignore exec files
 signal_wrapper
