@@ -45,6 +45,7 @@ int DataBufPeekRead(void *handle, void *buf, int len);
 
 int DataBufIsFull(void *handle);
 int DataBufIsEmpty(void *handle);
+int DataBufGetSize(void *handle);
 
 void DataBufDump(void *handle);
 

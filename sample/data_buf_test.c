@@ -20,27 +20,59 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "utils.h"
 #include "data_buf.h"
 
 #define TEST_DATA_BUF_SIZE (8)
 
-int main(int argc, const char *argv[])
+void write_databuf(void *handle)
 {
-    DataBufConfig_t databuf_config;
-    databuf_config.ability = DATABUF_ABILITY_DISCARD_DATA;
-    databuf_config.size    = TEST_DATA_BUF_SIZE;
-
-    void *handle = DataBufInit(&databuf_config);
-
     int ret;
-    char *buf = "123456789";
+    char *buf = "1234567";
     int len = strlen(buf);
     ret = DataBufWrite(handle, buf, len);
     printf("ret: %d \n", ret);
 
+    printf("----1----size: %d \n", DataBufGetSize(handle));
     DataBufDump(handle);
+}
 
-// int DataBufRead(void *handle, void *buf, int len);
+void read_databuf(void *handle)
+{
+    printf("\n\n-----size: %d \n", DataBufGetSize(handle));
+
+    char read_buf[TEST_DATA_BUF_SIZE] = {0};
+    int ret = DataBufRead(handle, read_buf, 3);
+
+    DumpHexData(read_buf, ret);
+    DataBufDump(handle);
+}
+
+void peek_read_databuf(void *handle)
+{
+    printf("\n\n-----size: %d \n", DataBufGetSize(handle));
+
+    char read_buf[TEST_DATA_BUF_SIZE] = {0};
+    int ret = DataBufPeekRead(handle, read_buf, 3);
+
+    DumpHexData(read_buf, ret);
+    DataBufDump(handle);
+}
+
+int main(int argc, const char *argv[])
+{
+    DataBufConfig_t databuf_config;
+    databuf_config.m_ability = DATABUF_ABILITY_DISCARD_DATA;
+    databuf_config.m_size    = TEST_DATA_BUF_SIZE;
+
+    void *handle = DataBufInit(&databuf_config);
+
+    write_databuf(handle);
+
+    // peek_read_databuf(handle);
+    // peek_read_databuf(handle);
+    read_databuf(handle);
+    read_databuf(handle);
 
     DataBufFinal(handle);
     

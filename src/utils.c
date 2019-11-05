@@ -23,9 +23,10 @@
 #include "utils.h"
 #undef LIBUTILS_INC_UTILS_GB
 
-void DumpHexData(char *buf, size_t len)
+void DumpHexData(char *buf, int len)
 {
-    for (size_t i = 0; i < len; i++) {
+    printf("len[%d]: ", len);
+    for (int i = 0; i < len; i++) {
         printf("%02x ", buf[i]);
     }
     printf("\n");

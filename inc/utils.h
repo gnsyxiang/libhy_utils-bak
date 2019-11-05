@@ -30,8 +30,6 @@ extern "C" {
 #define LIBUTILS_INC_UTILS_EX
 #endif
 
-#include <sys/types.h>
-
 #define BYTE_ALIGN(len, align)  (((len) + (align) - 1) & ~((align) - 1))
 #define ALIGN4(len)             BYTE_ALIGN(len, 4)
 #define ALIGN3(len)             BYTE_ALIGN(len, 3)
@@ -43,7 +41,7 @@ extern "C" {
 
 #define DATA_TYPE_LEN(type)     (sizeof(type))
 
-LIBUTILS_INC_UTILS_EX void DumpHexData(char *buf, size_t len);
+LIBUTILS_INC_UTILS_EX void DumpHexData(char *buf, int len);
 
 #ifdef __cplusplus
 }
