@@ -24,17 +24,23 @@
 extern "C" {
 #endif
 
+#ifndef LIBUTILS_SRC_SIGNAL_WRAPPER_GB
+#define SIGNAL_WRAPPER_EX extern
+#else
+#define SIGNAL_WRAPPER_EX
+#endif
+
 /**
  * @brief 
  *
  * @param app_name
  */
-void SignalHandleInit(const char * const app_name);
+SIGNAL_WRAPPER_EX void SignalHandleInit(const char * const app_name);
 
 /**
  * @brief 
  */
-void SignalHandleFinal(void);
+SIGNAL_WRAPPER_EX void SignalHandleFinal(void);
 
 #ifdef __cplusplus
 }

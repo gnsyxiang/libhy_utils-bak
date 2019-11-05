@@ -13,6 +13,7 @@
 # ignore dir
 node_modules/
 autom4te.cache/
+.SpaceVim.d/
 
 # ignore files
 res/script/version.num
@@ -32,7 +33,10 @@ missing
 config.h
 libtool
 stamp-h1
+.clang
 
 # ignore exec files
 signal_wrapper
+sample/thread_wrapper
+sample/uart_wrapper
 

@@ -25,9 +25,11 @@
 #include <signal.h>
 #include <execinfo.h>
 
-#define BASE_LIB_UTILS_SRC_SIGNAL_WRAPPER_GB
+#include "common.h"
+
+#define LIBUTILS_SRC_SIGNAL_WRAPPER_GB
 #include "signal_wrapper.h"
-#undef BASE_LIB_UTILS_SRC_SIGNAL_WRAPPER_GB
+#undef LIBUTILS_SRC_SIGNAL_WRAPPER_GB
 
 static char *g_app_name;
 
@@ -103,7 +105,6 @@ void SignalHandleInit(const char * const app_name)
         SIGUSR1, SIGUSR2, 
         SIGPIPE,
     };
-#define SIG_NUM_CNT (sizeof(sig_num)/sizeof(sig_num[0]))
 
     g_app_name = strdup(app_name);
 
@@ -113,7 +114,7 @@ void SignalHandleInit(const char * const app_name)
     act.sa_handler = _sig_handler;
 
     int i;
-    for (i = 0; i < SIG_NUM_CNT; i++) {
+    for (i = 0; i < ARRAY_CNT(sig_num); i++) {
         sigaction(sig_num[i], &act, NULL);
     }
 }
