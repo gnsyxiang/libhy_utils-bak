@@ -26,6 +26,12 @@ extern "C" {
 
 #include <pthread.h>
 
+#ifndef LIBUTILS_INC_THREAD_WRAPPER_GB
+#define THREAD_WRAPPER_EX extern
+#else
+#define THREAD_WRAPPER_EX
+#endif
+
 typedef void *(*ThreadLoop_t)(void *args);
 
 typedef struct {
@@ -33,10 +39,9 @@ typedef struct {
     ThreadLoop_t    thread_loop;
     void            *args;
 } ThreadParam_t;
-#define THREAD_PARAM_LEN (sizeof(ThreadParam_t))
 
-void CreateAttachedThread(ThreadParam_t *thread_param);
-void CreateLowPriorityAttachedThread(ThreadParam_t *thread_param);
+THREAD_WRAPPER_EX void Thread_CreateDetachedThread(ThreadParam_t *thread_param);
+THREAD_WRAPPER_EX void Thread_CreateLowPriorityDetachedThread(ThreadParam_t *thread_param);
 
 #ifdef __cplusplus
 }

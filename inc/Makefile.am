@@ -6,7 +6,9 @@ basic_inc = common.h \
 			list.h \
 			ringbuf.h \
 			data_buf.h \
-			time_wrapper.h
+			time_wrapper.h \
+			core_dump.h
+
 
 # uart header files
 uart_inc = uart_wrapper.h

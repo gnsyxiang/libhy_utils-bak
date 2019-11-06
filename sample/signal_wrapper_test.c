@@ -24,13 +24,14 @@
 
 int main(int argc, const char *argv[])
 {
-  SignalHandleInit(argv[0]);
+    SignalHandleInit(argv[0]);
 
-  while (1) {
-    sleep(1);
-  }
+    while (1) {
+        sleep(1);
+    }
 
-  SignalHandleFinal();
-  
-  return 0;
+    SignalHandleFinal();
+
+    return 0;
 }
+

@@ -16,7 +16,8 @@ basic_src = signal_wrapper.c \
 			ringbuf.c \
 			utils.c \
 			data_buf.c \
-			time_wrapper.c
+			time_wrapper.c \
+			core_dump.c
 
 # uart src files
 uart_src = uart_wrapper.c

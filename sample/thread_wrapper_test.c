@@ -19,9 +19,11 @@
  */
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 
 #include "thread_wrapper.h"
 #include "signal_wrapper.h"
+#include "utils.h"
 
 int cnt = 6;
 static void *_test_thread_loop(void *args)
@@ -38,11 +40,10 @@ int main(int argc, const char *argv[])
     SignalHandleInit(argv[0]);
 
     ThreadParam_t thread_param;
-    thread_param.id = NULL;
+    memset(&thread_param, '\0', DATA_TYPE_LEN(thread_param));
     thread_param.thread_loop = _test_thread_loop;
-    thread_param.args = NULL;
 
-    CreateAttachedThread(&thread_param);
+    Thread_CreateDetachedThread(&thread_param);
 
     while (cnt-- >= 0) {
         sleep(1);
