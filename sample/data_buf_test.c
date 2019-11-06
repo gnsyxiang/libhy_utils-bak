@@ -19,62 +19,96 @@
  */
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "utils.h"
 #include "data_buf.h"
+#include "thread_wrapper.h"
+#include "signal_wrapper.h"
+#include "core_dump.h"
 
-#define TEST_DATA_BUF_SIZE (8)
-
-void write_databuf(void *handle)
+static void _read_databuf_common(void *handle, int peek_flag)
 {
+#define READ_BUF_LEN (3)
     int ret;
-    char *buf = "1234567";
+    char read_buf[READ_BUF_LEN] = {0};
+    if (peek_flag == 1) {
+        ret = DataBufPeekRead(handle, read_buf, READ_BUF_LEN);
+    } else {
+        ret = DataBufRead(handle, read_buf, READ_BUF_LEN);
+    }
+
+    printf("\nread %d data to databuf --->> ", ret);
+    DumpHexData(read_buf, ret);
+}
+
+#define _read_databuf(handle)      _read_databuf_common(handle, 0)
+#define _peek_read_databuf(handle) _read_databuf_common(handle, 1)
+
+static void *_read_databuf_loop(void *args)
+{
+    while (1) {
+        sleep(1);
+        _read_databuf(args);
+    }
+    return NULL;
+}
+
+static void _write_databuf(void *handle)
+{
+    char *buf = "123456789";
     int len = strlen(buf);
-    ret = DataBufWrite(handle, buf, len);
-    printf("ret: %d \n", ret);
+    int ret = DataBufWrite(handle, buf, len);
 
-    printf("----1----size: %d \n", DataBufGetSize(handle));
-    DataBufDump(handle);
+    printf("\nwrite %d data to databuf --->> ", ret);
+    DumpHexData(buf, len);
 }
 
-void read_databuf(void *handle)
+static void *_write_databuf_loop(void *args)
 {
-    printf("\n\n-----size: %d \n", DataBufGetSize(handle));
-
-    char read_buf[TEST_DATA_BUF_SIZE] = {0};
-    int ret = DataBufRead(handle, read_buf, 3);
-
-    DumpHexData(read_buf, ret);
-    DataBufDump(handle);
-}
-
-void peek_read_databuf(void *handle)
-{
-    printf("\n\n-----size: %d \n", DataBufGetSize(handle));
-
-    char read_buf[TEST_DATA_BUF_SIZE] = {0};
-    int ret = DataBufPeekRead(handle, read_buf, 3);
-
-    DumpHexData(read_buf, ret);
-    DataBufDump(handle);
+    while (1) {
+        _write_databuf(args);
+        sleep(1);
+    }
+    return NULL;
 }
 
 int main(int argc, const char *argv[])
 {
+#define TEST_DATA_BUF_SIZE  (32)
+#define THREAD_TEST_CNT     (10)
+
+    SignalHandleInit(argv[0]);
+    Core_OpenDump();
+
     DataBufConfig_t databuf_config;
-    databuf_config.m_ability = DATABUF_ABILITY_DISCARD_DATA;
+    databuf_config.m_ability = DATABUF_ABILITY_THREAD_SAFETY;
     databuf_config.m_size    = TEST_DATA_BUF_SIZE;
 
     void *handle = DataBufInit(&databuf_config);
 
-    write_databuf(handle);
+    ThreadParam_t thread_param;
+    memset(&thread_param, '\0', DATA_TYPE_LEN(thread_param));
+    thread_param.thread_loop = _write_databuf_loop;
+    thread_param.args        = handle;
 
-    // peek_read_databuf(handle);
-    // peek_read_databuf(handle);
-    read_databuf(handle);
-    read_databuf(handle);
+    for (int i = 0; i < THREAD_TEST_CNT; i++) {
+        Thread_CreateDetachedThread(&thread_param);
+    }
+
+    thread_param.thread_loop = _read_databuf_loop;
+
+    for (int i = 0; i < THREAD_TEST_CNT; i++) {
+        Thread_CreateDetachedThread(&thread_param);
+    }
+
+    while (1) {
+        sleep(1);
+    }
 
     DataBufFinal(handle);
+    SignalHandleFinal();
     
     return 0;
 }
+

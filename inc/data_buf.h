@@ -25,10 +25,8 @@ extern "C" {
 #endif
 
 typedef enum {
-    DATABUF_ABILITY_WRITE         = (1 << 0),
-    DATABUF_ABILITY_READ          = (1 << 1),
-    DATABUF_ABILITY_DISCARD_DATA  = (1 << 2),
-    DATABUF_ABILITY_THREAD_SAFETY = (1 << 3),
+    DATABUF_ABILITY_BLOCK         = (1 << 0),
+    DATABUF_ABILITY_THREAD_SAFETY = (1 << 1),
 } DataBufAbility_t;
 
 typedef struct {
@@ -46,6 +44,7 @@ int DataBufPeekRead(void *handle, void *buf, int len);
 int DataBufIsFull(void *handle);
 int DataBufIsEmpty(void *handle);
 int DataBufGetSize(void *handle);
+int DataBufGetRemainSize(void *handle);
 
 void DataBufDump(void *handle);
 

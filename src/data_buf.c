@@ -21,10 +21,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <pthread.h>
+#include<limits.h>
 
 #include "data_buf.h"
 #include "utils.h"
+#include "time_wrapper.h"
 
+// #define DATABUF_DEBUG
 #define databuf_log(fmt, ...) \
     printf("<%s:%d, result: %s> " fmt, \
            __func__, __LINE__, strerror(errno), ##__VA_ARGS__);
@@ -35,22 +39,32 @@ enum {
 };
 
 typedef struct {
+    pthread_mutex_t m_mutex;
+    pthread_cond_t  m_read_cond;
+    pthread_cond_t  m_write_cond;
+
+    int m_read_cnt;
+    int m_write_cnt;
+} ThreadSafety_t;
+
+typedef struct {
     int m_head;
     int m_tail;
     int m_remain_size;
     int m_is_init;
 
     DataBufConfig_t m_config;
+    ThreadSafety_t m_thread;
 
     char buf[0];
 } databuf_t;
 
-static void _databuf_dump_print_hex(int start, int end, char *buf)
-{
-    for (int i = start; i < end; i++) {
-        printf("%02x ", buf[i]);
-    }
-}
+#define _databuf_dump_print_hex(start, end, buf)    \
+    do {                                            \
+        for (int i = start; i < end; i++) {         \
+            printf("%c ", buf[i]);                \
+        }                                           \
+    } while(0)
 
 static void _databuf_dump_print(int start, int end, char *buf, int size)
 {
@@ -65,11 +79,17 @@ static void _databuf_dump_print(int start, int end, char *buf, int size)
 
 static void _databuf_dump(databuf_t *databuf)
 {
+    if (databuf->m_config.m_ability == DATABUF_ABILITY_THREAD_SAFETY) {
+        pthread_mutex_lock(&databuf->m_thread.m_mutex);
+    }
     if (databuf->m_head == databuf->m_tail && databuf->m_remain_size != 0) {
         databuf_log("the databuf is empty \n");
         return;
     }
     _databuf_dump_print(databuf->m_head, databuf->m_tail, databuf->buf, databuf->m_config.m_size);
+    if (databuf->m_config.m_ability == DATABUF_ABILITY_THREAD_SAFETY) {
+        pthread_mutex_unlock(&databuf->m_thread.m_mutex);
+    }
 }
 
 void DataBufDump(void *handle)
@@ -87,9 +107,24 @@ static inline void _databuf_config_init(databuf_t *databuf, int size, DataBufAbi
     databuf->m_config.m_ability = ability;
 }
 
+static inline void _thread_safety_init(databuf_t *databuf)
+{
+    pthread_mutex_init(&databuf->m_thread.m_mutex, NULL);
+    pthread_cond_init (&databuf->m_thread.m_read_cond, NULL);
+    pthread_cond_init (&databuf->m_thread.m_write_cond, NULL);
+}
+
+static inline void _thread_safety_final(databuf_t *databuf)
+{
+    pthread_mutex_destroy(&databuf->m_thread.m_mutex);
+    pthread_cond_destroy (&databuf->m_thread.m_read_cond);
+    pthread_cond_destroy (&databuf->m_thread.m_write_cond);
+}
+
 static inline databuf_t *_databuf_init(DataBufConfig_t *config)
 {
     int size = ALIGN4(config->m_size);
+    databuf_log("the size is: %d \n", size);
     databuf_t *databuf = calloc(1, DATA_TYPE_LEN(databuf_t) + size);
     if (!databuf) {
         databuf_log("calloc faild \n");
@@ -101,6 +136,7 @@ static inline databuf_t *_databuf_init(DataBufConfig_t *config)
     databuf->m_head        = 0;
 
     _databuf_config_init(databuf, size, config->m_ability);
+    _thread_safety_init(databuf);
 
     databuf->m_is_init = 1;
 
@@ -110,6 +146,10 @@ static inline databuf_t *_databuf_init(DataBufConfig_t *config)
 static inline void _databuf_final(databuf_t *databuf)
 {
     databuf->m_is_init = 0;
+
+    pthread_mutex_lock(&databuf->m_thread.m_mutex);
+    _thread_safety_final(databuf);
+    pthread_mutex_unlock(&databuf->m_thread.m_mutex);
 
     free(databuf);
 }
@@ -166,8 +206,39 @@ int DataBufGetSize(void *handle)
     return (databuf->m_config.m_size - databuf->m_remain_size);
 }
 
+int DataBufGetRemainSize(void *handle)
+{
+    if (!handle) {
+        databuf_log("the handle is NULL\n");
+        return -1;
+    }
+    databuf_t *databuf = handle;
+    return (databuf->m_remain_size);
+}
+
 static int _databuf_write(databuf_t *databuf, void *buf, int len)
 {
+    if (databuf->m_config.m_ability == DATABUF_ABILITY_THREAD_SAFETY) {
+        pthread_mutex_lock(&databuf->m_thread.m_mutex);
+        /* the databuf can't save the current data */
+        while (len > databuf->m_remain_size) {
+            struct timespec ts = Time_GetCurDelayMs(INT_MAX);
+            int ret;
+
+            databuf->m_thread.m_write_cnt++;
+            /* receive the signal and return 0 */
+            ret = pthread_cond_timedwait(&databuf->m_thread.m_read_cond, \
+                                         &databuf->m_thread.m_mutex, \
+                                         &ts);
+            databuf->m_thread.m_write_cnt--;
+
+            /* if timed out, discard this data */
+            if (ret) {
+                pthread_mutex_unlock(&databuf->m_thread.m_mutex);
+                return -ret;
+            }
+        }
+    }
     int m_tail = databuf->m_tail;
 
     if (m_tail + len <= databuf->m_config.m_size) {
@@ -180,7 +251,23 @@ static int _databuf_write(databuf_t *databuf, void *buf, int len)
 
     databuf->m_tail        += len;
     databuf->m_tail        %= databuf->m_config.m_size;
+    //FIXME 出现负数
     databuf->m_remain_size -= len;
+
+#ifdef DATABUF_DEBUG
+    printf("databuf write dump: ");
+    _databuf_dump_print(databuf->m_head, \
+                        databuf->m_tail, \
+                        databuf->buf, \
+                        databuf->m_config.m_size);
+#endif
+
+    if (databuf->m_config.m_ability == DATABUF_ABILITY_THREAD_SAFETY) {
+        if (databuf->m_thread.m_read_cnt) {
+            pthread_cond_broadcast(&databuf->m_thread.m_write_cond);
+        }
+        pthread_mutex_unlock(&databuf->m_thread.m_mutex);
+    }
 
     return len;
 }
@@ -205,6 +292,26 @@ int DataBufWrite(void *handle, void *buf, int len)
 
 static int _databuf_read(databuf_t *databuf, void *buf, int len, int peek_flag)
 {
+    if (databuf->m_config.m_ability == DATABUF_ABILITY_THREAD_SAFETY) {
+        pthread_mutex_lock(&databuf->m_thread.m_mutex);
+        while (databuf->m_config.m_size - databuf->m_remain_size < len) {
+            struct timespec ts = Time_GetCurDelayMs(INT_MAX);
+            int ret;
+
+            databuf->m_thread.m_read_cnt++;
+            /* receive the signal and return 0 */
+            ret = pthread_cond_timedwait(&databuf->m_thread.m_write_cond, \
+                                         &databuf->m_thread.m_mutex, \
+                                         &ts);
+            databuf->m_thread.m_read_cnt--;
+
+            /* if timed out, discard this data */
+            if (ret) {
+                pthread_mutex_unlock(&databuf->m_thread.m_mutex);
+                return -ret;
+            }
+        }
+    }
     int head = databuf->m_head;
     
     if (head + len < databuf->m_config.m_size) {
@@ -219,6 +326,21 @@ static int _databuf_read(databuf_t *databuf, void *buf, int len, int peek_flag)
         databuf->m_head        += len;
         databuf->m_head        %= databuf->m_config.m_size;
         databuf->m_remain_size += len;
+    }
+
+#ifdef DATABUF_DEBUG
+    printf("databuf read dump: ");
+    _databuf_dump_print(databuf->m_head, \
+                        databuf->m_tail, \
+                        databuf->buf, \
+                        databuf->m_config.m_size);
+#endif
+
+    if (databuf->m_config.m_ability == DATABUF_ABILITY_THREAD_SAFETY) {
+        if (databuf->m_thread.m_write_cnt) {
+            pthread_cond_broadcast(&databuf->m_thread.m_read_cond);
+        }
+        pthread_mutex_unlock(&databuf->m_thread.m_mutex);
     }
 
     return len;
