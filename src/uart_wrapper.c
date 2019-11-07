@@ -314,7 +314,7 @@ static inline void _create_thread(ThreadLoop_t thread_loop, void *args)
     thread_param.id          = NULL;
     thread_param.thread_loop = thread_loop;
     thread_param.args        = args;
-    CreateAttachedThread(&thread_param);
+    Thread_CreateDetachedThread(&thread_param);
 }
 
 void *UartInit(UartConfig_t *uart_config)

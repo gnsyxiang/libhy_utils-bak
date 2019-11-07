@@ -19,5 +19,6 @@ uart_wrapper_LDADD   = ../src/.libs/libutils.a \
 					   -lpthread
 
 data_buf_test_SOURCES = data_buf_test.c
-data_buf_test_LDADD   = ../src/.libs/libutils.a
+data_buf_test_LDADD   = ../src/.libs/libutils.a \
+						-lpthread
 
