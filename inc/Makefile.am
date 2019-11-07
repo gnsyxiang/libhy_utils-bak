@@ -4,8 +4,7 @@ basic_inc = common.h \
 			signal_wrapper.h \
 			thread_wrapper.h \
 			list.h \
-			ringbuf.h \
-			data_buf.h \
+			databuf.h \
 			time_wrapper.h \
 			core_dump.h \
 			bitmap_wrapper.h

@@ -13,9 +13,8 @@ libutils_la_LDFLAGS = -fPIC \
 # basic src file
 basic_src = signal_wrapper.c \
 			thread_wrapper.c \
-			ringbuf.c \
 			utils.c \
-			data_buf.c \
+			databuf.c \
 			time_wrapper.c \
 			core_dump.c \
 			bitmap_wrapper.c

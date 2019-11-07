@@ -24,7 +24,7 @@
 #include <pthread.h>
 #include<limits.h>
 
-#include "data_buf.h"
+#include "databuf.h"
 #include "utils.h"
 #include "time_wrapper.h"
 #include "bitmap_wrapper.h"
