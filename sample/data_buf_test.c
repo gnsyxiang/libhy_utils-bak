@@ -27,9 +27,10 @@
 #include "signal_wrapper.h"
 #include "core_dump.h"
 
+#define READ_BUF_LEN (3)
+
 static void _read_databuf_common(void *handle, int peek_flag)
 {
-#define READ_BUF_LEN (3)
     int ret;
     char read_buf[READ_BUF_LEN] = {0};
     if (peek_flag == 1) {
@@ -38,7 +39,7 @@ static void _read_databuf_common(void *handle, int peek_flag)
         ret = DataBufRead(handle, read_buf, READ_BUF_LEN);
     }
 
-    printf("\nread %d data to databuf --->> ", ret);
+    printf("read %d:  --->> ", ret);
     DumpHexData(read_buf, ret);
 }
 
@@ -49,7 +50,13 @@ static void *_read_databuf_loop(void *args)
 {
     while (1) {
         sleep(1);
+#if 0
         _read_databuf(args);
+#else
+        _peek_read_databuf(args);
+        // char buf[READ_BUF_LEN] = {0};
+        // DataBufRemoveData(args, buf, READ_BUF_LEN);
+#endif
     }
     return NULL;
 }
@@ -60,7 +67,7 @@ static void _write_databuf(void *handle)
     int len = strlen(buf);
     int ret = DataBufWrite(handle, buf, len);
 
-    printf("\nwrite %d data to databuf --->> ", ret);
+    printf("write %d:  ============>> ", ret);
     DumpHexData(buf, len);
 }
 
@@ -104,6 +111,7 @@ int main(int argc, const char *argv[])
 
     while (1) {
         sleep(1);
+        DataBufDump(handle);
     }
 
     DataBufFinal(handle);

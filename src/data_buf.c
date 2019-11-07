@@ -27,6 +27,7 @@
 #include "data_buf.h"
 #include "utils.h"
 #include "time_wrapper.h"
+#include "bitmap_wrapper.h"
 
 // #define DATABUF_DEBUG
 #define databuf_log(fmt, ...) \
@@ -34,8 +35,9 @@
            __func__, __LINE__, strerror(errno), ##__VA_ARGS__);
 
 enum {
-    READ_DATA,
-    PEEK_READ_DATA,
+    READ_DATA               = BITMAP_SET_BIT(0),
+    READ_DATA_PEEK          = BITMAP_SET_BIT(1),
+    READ_DATA_PEEK_REMOVE   = BITMAP_SET_BIT(2),
 };
 
 typedef struct {
@@ -62,7 +64,7 @@ typedef struct {
 #define _databuf_dump_print_hex(start, end, buf)    \
     do {                                            \
         for (int i = start; i < end; i++) {         \
-            printf("%c ", buf[i]);                \
+            printf("%02x ", buf[i]);                \
         }                                           \
     } while(0)
 
@@ -86,7 +88,10 @@ static void _databuf_dump(databuf_t *databuf)
         databuf_log("the databuf is empty \n");
         return;
     }
-    _databuf_dump_print(databuf->m_head, databuf->m_tail, databuf->buf, databuf->m_config.m_size);
+    _databuf_dump_print(databuf->m_head, \
+                        databuf->m_tail, \
+                        databuf->buf, \
+                        databuf->m_config.m_size);
     if (databuf->m_config.m_ability == DATABUF_ABILITY_THREAD_SAFETY) {
         pthread_mutex_unlock(&databuf->m_thread.m_mutex);
     }
@@ -101,10 +106,19 @@ void DataBufDump(void *handle)
     _databuf_dump((databuf_t *)handle);
 }
 
-static inline void _databuf_config_init(databuf_t *databuf, int size, DataBufAbility_t ability)
+static inline void _databuf_config_init(databuf_t *databuf, \
+                                        int size, \
+                                        DataBufAbility_t ability)
 {
     databuf->m_config.m_size    = size;
     databuf->m_config.m_ability = ability;
+}
+
+static inline void _databuf_size_init(databuf_t *databuf, int size)
+{
+    databuf->m_remain_size = size;
+    databuf->m_tail        = 0;
+    databuf->m_head        = 0;
 }
 
 static inline void _thread_safety_init(databuf_t *databuf)
@@ -121,7 +135,7 @@ static inline void _thread_safety_final(databuf_t *databuf)
     pthread_cond_destroy (&databuf->m_thread.m_write_cond);
 }
 
-static inline databuf_t *_databuf_init(DataBufConfig_t *config)
+static databuf_t *_databuf_init(DataBufConfig_t *config)
 {
     int size = ALIGN4(config->m_size);
     databuf_log("the size is: %d \n", size);
@@ -131,10 +145,7 @@ static inline databuf_t *_databuf_init(DataBufConfig_t *config)
         return NULL;
     }
 
-    databuf->m_remain_size = size;
-    databuf->m_tail        = 0;
-    databuf->m_head        = 0;
-
+    _databuf_size_init(databuf, size);
     _databuf_config_init(databuf, size, config->m_ability);
     _thread_safety_init(databuf);
 
@@ -176,37 +187,7 @@ void DataBufFinal(void *handle)
     _databuf_final((databuf_t *)handle);
 }
 
-int DataBufIsFull(void *handle)
-{
-    if (!handle) {
-        databuf_log("the handle is NULL\n");
-        return -1;
-    }
-    databuf_t *databuf = handle;
-    return (databuf->m_remain_size == databuf->m_config.m_size) ? 1 : 0;
-}
-
-int DataBufIsEmpty(void *handle)
-{
-    if (!handle) {
-        databuf_log("the handle is NULL\n");
-        return -1;
-    }
-    databuf_t *databuf = handle;
-    return (databuf->m_remain_size == 0) ? 1 : 0;
-}
-
-int DataBufGetSize(void *handle)
-{
-    if (!handle) {
-        databuf_log("the handle is NULL\n");
-        return -1;
-    }
-    databuf_t *databuf = handle;
-    return (databuf->m_config.m_size - databuf->m_remain_size);
-}
-
-int DataBufGetRemainSize(void *handle)
+static inline int _databuf_get_remain_size(void *handle)
 {
     if (!handle) {
         databuf_log("the handle is NULL\n");
@@ -214,6 +195,69 @@ int DataBufGetRemainSize(void *handle)
     }
     databuf_t *databuf = handle;
     return (databuf->m_remain_size);
+}
+
+static inline int _databuf_get_size(void *handle)
+{
+    if (!handle) {
+        databuf_log("the handle is NULL\n");
+        return -1;
+    }
+    databuf_t *databuf = handle;
+    return (databuf->m_config.m_size);
+}
+
+int DataBufIsFull(void *handle)
+{
+    return ((_databuf_get_remain_size(handle) == 0) ? 1 : 0);
+}
+
+int DataBufIsEmpty(void *handle)
+{
+    return ((_databuf_get_remain_size(handle) == _databuf_get_size(handle)) ? 1 : 0);
+}
+
+int DataBufGetSize(void *handle)
+{
+    return (_databuf_get_remain_size(handle) - _databuf_get_size(handle));
+}
+
+int DataBufGetRemainSize(void *handle)
+{
+    return _databuf_get_remain_size(handle);
+}
+
+void DataBufCleanAll(void *handle)
+{
+    if (!handle) {
+        databuf_log("the handle is NULL\n");
+        return ;
+    }
+    databuf_t *databuf = handle;
+    if (databuf->m_config.m_ability == DATABUF_ABILITY_THREAD_SAFETY) {
+        pthread_mutex_lock(&databuf->m_thread.m_mutex);
+    }
+
+    _databuf_size_init(databuf, databuf->m_config.m_size);
+
+    if (databuf->m_config.m_ability == DATABUF_ABILITY_THREAD_SAFETY) {
+        pthread_mutex_unlock(&databuf->m_thread.m_mutex);
+    }
+}
+
+static inline void _databuf_update_write_index(databuf_t *databuf, int len)
+{
+    databuf->m_tail        += len;
+    databuf->m_tail        %= databuf->m_config.m_size;
+    //FIXME 出现负数
+    databuf->m_remain_size -= len;
+}
+
+static inline void _databuf_update_read_index(databuf_t *databuf, int len)
+{
+    databuf->m_head        += len;
+    databuf->m_head        %= databuf->m_config.m_size;
+    databuf->m_remain_size += len;
 }
 
 static int _databuf_write(databuf_t *databuf, void *buf, int len)
@@ -249,10 +293,7 @@ static int _databuf_write(databuf_t *databuf, void *buf, int len)
         memcpy(databuf->buf, buf + sz, len - sz);
     }
 
-    databuf->m_tail        += len;
-    databuf->m_tail        %= databuf->m_config.m_size;
-    //FIXME 出现负数
-    databuf->m_remain_size -= len;
+    _databuf_update_write_index(databuf, len);
 
 #ifdef DATABUF_DEBUG
     printf("databuf write dump: ");
@@ -272,25 +313,28 @@ static int _databuf_write(databuf_t *databuf, void *buf, int len)
     return len;
 }
 
+#define _judge_param_common(hanle, buf, len)                            \
+    if (!handle) {                                                      \
+        databuf_log("the handle is NULL\n");                            \
+        return -1;                                                      \
+    }                                                                   \
+    if (!buf || len <= 0) {                                             \
+        databuf_log("the buf is NULL or the len less then zero \n");    \
+        return -2;                                                      \
+    }                                                                   \
+    databuf_t *databuf = handle;                                        \
+    if (databuf->m_is_init == 0) {                                      \
+        databuf_log("please init databuf first \n");                    \
+        return -3;                                                      \
+    }
+
 int DataBufWrite(void *handle, void *buf, int len)
 {
-    if (!handle) {
-        databuf_log("the handle is NULL\n");
-        return -1;
-    }
-    if (!buf || len <=0) {
-        databuf_log("the buf is NULL or the len less then zero \n");
-        return -2;
-    }
-    databuf_t *databuf = handle;
-    if (databuf->m_is_init == 0) {
-        databuf_log("please init databuf first \n");
-        return -1;
-    }
+    _judge_param_common(handle, buf, len);
     return _databuf_write(databuf, buf, len);
 }
 
-static int _databuf_read(databuf_t *databuf, void *buf, int len, int peek_flag)
+static int _databuf_read(databuf_t *databuf, void *buf, int len, int flag)
 {
     if (databuf->m_config.m_ability == DATABUF_ABILITY_THREAD_SAFETY) {
         pthread_mutex_lock(&databuf->m_thread.m_mutex);
@@ -322,10 +366,8 @@ static int _databuf_read(databuf_t *databuf, void *buf, int len, int peek_flag)
         memcpy(buf + sz, databuf->buf, len - sz);
     }
 
-    if (peek_flag == READ_DATA) {
-        databuf->m_head        += len;
-        databuf->m_head        %= databuf->m_config.m_size;
-        databuf->m_remain_size += len;
+    if (BITMAP_TEST_BIT(flag, BITMAP_GET_INDEX(READ_DATA)) == READ_DATA) {
+        _databuf_update_read_index(databuf, len);
     }
 
 #ifdef DATABUF_DEBUG
@@ -346,22 +388,10 @@ static int _databuf_read(databuf_t *databuf, void *buf, int len, int peek_flag)
     return len;
 }
 
-static int _databuf_read_common(void *handle, void *buf, int len, int peek_flag)
+int _databuf_read_common(void *handle, void *buf, int len, int flag)
 {
-    if (!handle) {
-        databuf_log("the handle is NULL\n");
-        return -1;
-    }
-    if (!buf || len <=0) {
-        databuf_log("the buf is NULL or the len less then zero \n");
-        return -2;
-    }
-    databuf_t *databuf = handle;
-    if (databuf->m_is_init == 0) {
-        databuf_log("please init databuf first \n");
-        return -3;
-    }
-    return _databuf_read(databuf, buf, len, peek_flag);
+    _judge_param_common(handle, buf, len);
+    return _databuf_read(databuf, buf, len, flag);
 }
 
 int DataBufRead(void *handle, void *buf, int len)
@@ -371,6 +401,11 @@ int DataBufRead(void *handle, void *buf, int len)
 
 int DataBufPeekRead(void *handle, void *buf, int len)
 {
-    return _databuf_read_common(handle, buf, len, PEEK_READ_DATA);
+    return _databuf_read_common(handle, buf, len, READ_DATA_PEEK);
+}
+
+int DataBufRemoveData(void *handle, void *buf, int len)
+{
+    return _databuf_read_common(handle, buf, len, READ_DATA);
 }
 
