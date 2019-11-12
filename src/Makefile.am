@@ -1,14 +1,13 @@
+
 lib_LTLIBRARIES = libutils.la
 
-AM_CFLAGS = -I$(top_srcdir)/inc
-AM_CFLAGS += -W -Wall -Werror -rdynamic \
-			 -Wno-error=sign-compare \
+AM_CFLAGS  = $(AM_CFLAGS_COM)
+AM_CFLAGS += -Wno-error=sign-compare \
              -Wno-error=unused-result \
 			 -Wno-error=format= \
 			 -Wno-error=unused-variable
 
-libutils_la_LDFLAGS = -fPIC \
-					  -version-info @current@:@revision@:@age@
+libutils_la_LDFLAGS = $(LDFLAGS_COM)
 
 # basic src file
 basic_src = signal_wrapper.c \
