@@ -28,6 +28,9 @@
 int cnt = 6;
 static void *_test_thread_loop(void *args)
 {
+    ThreadParam_t *thread_param = args;
+	printf("pid=%d, id: %ld \n", thread_param->pid, thread_param->id);
+
     while (cnt != 1) {
         sleep(1);
         printf("hello test \n");
@@ -43,6 +46,7 @@ int main(int argc, const char *argv[])
     memset(&thread_param, '\0', DATA_TYPE_LEN(thread_param));
     thread_param.thread_loop = _test_thread_loop;
     thread_param.name = "test";
+    thread_param.args = &thread_param;
 
     Thread_CreateDetachedThread(&thread_param);
 

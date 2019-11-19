@@ -35,8 +35,10 @@ extern "C" {
 typedef void *(*ThreadLoop_t)(void *args);
 
 typedef struct {
-    const char      *name;
     pthread_t       id;
+    pid_t           pid;
+
+    const char      *name;
     ThreadLoop_t    thread_loop;
     void            *args;
 } ThreadParam_t;
