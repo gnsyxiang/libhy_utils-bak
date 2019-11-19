@@ -35,13 +35,16 @@ extern "C" {
 typedef void *(*ThreadLoop_t)(void *args);
 
 typedef struct {
-    pthread_t       *id;
+    const char      *name;
+    pthread_t       id;
     ThreadLoop_t    thread_loop;
     void            *args;
 } ThreadParam_t;
 
 THREAD_WRAPPER_EX void Thread_CreateDetachedThread(ThreadParam_t *thread_param);
 THREAD_WRAPPER_EX void Thread_CreateLowPriorityDetachedThread(ThreadParam_t *thread_param);
+THREAD_WRAPPER_EX void Thread_SetName(pthread_t *thread, const char *name);
+THREAD_WRAPPER_EX void Thread_GetName(pthread_t *thread, char *name);
 
 #ifdef __cplusplus
 }

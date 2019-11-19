@@ -42,12 +42,18 @@ int main(int argc, const char *argv[])
     ThreadParam_t thread_param;
     memset(&thread_param, '\0', DATA_TYPE_LEN(thread_param));
     thread_param.thread_loop = _test_thread_loop;
+    thread_param.name = "test";
 
     Thread_CreateDetachedThread(&thread_param);
 
-    while (cnt-- >= 0) {
+    char name[16] = {};
+    while (1) {
+    // while (cnt-- >= 0) {
         sleep(1);
         printf("hello main \n");
+        memset(name, '\0', sizeof(name));
+        Thread_GetName(&thread_param.id, name);
+        printf("-----------name: %s \n", name);
     }
 
     SignalHandleFinal();

@@ -21,6 +21,8 @@
 #include <sched.h>
 #include <string.h>
 #include <errno.h>
+#include <pthread.h>
+#include <sys/prctl.h>
 
 #define LIBUTILS_INC_THREAD_WRAPPER_GB
 #include "thread_wrapper.h"
@@ -30,19 +32,44 @@
     printf("<%s:%d, result: %s> " fmt, \
            __func__, __LINE__, strerror(errno), ##__VA_ARGS__);
 
+// 设置的名字可以在proc文件系统中查看: cat /proc/PID/task/tid/comm
+void Thread_SetName(pthread_t *thread, const char *name)
+{
+    int ret = -1;
+    if (thread) {
+        ret = prctl(PR_SET_NAME, name);
+        if (ret != 0) {
+            thread_log("prctl set name faild \n");
+        }
+    } else {
+        // pthread_setname_np(*thread, name);
+    }
+}
+
+void Thread_GetName(pthread_t *thread, char *name)
+{
+    int ret = -1;
+    if (thread) {
+        ret = prctl(PR_GET_NAME, name);
+        if (ret != 0) {
+            thread_log("prctl get name faild \n");
+        }
+    } else {
+        // pthread_setname_np(*thread, name);
+    }
+}
+
 static void _create_thread_common(ThreadParam_t *thread_param, pthread_attr_t *attr)
 {
-    pthread_t t;
-    if (!thread_param->id)
-        thread_param->id = &t;
-
-    int ret = pthread_create(thread_param->id,
+    int ret = pthread_create(&thread_param->id,
                              attr,
                              thread_param->thread_loop,
                              thread_param->args);
     if (ret != 0) {
         thread_log("pthread_create faild \n");
     }
+
+    Thread_SetName(&thread_param->id, thread_param->name);
 
     pthread_attr_destroy(attr);
 }

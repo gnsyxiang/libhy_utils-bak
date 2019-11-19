@@ -311,7 +311,7 @@ static void *_uart_read_loop(void *args)
 static inline void _create_thread(ThreadLoop_t thread_loop, void *args)
 {
     ThreadParam_t thread_param;
-    thread_param.id          = NULL;
+    memset(&thread_param, '\0', DATA_TYPE_LEN(thread_param));
     thread_param.thread_loop = thread_loop;
     thread_param.args        = args;
     Thread_CreateDetachedThread(&thread_param);
