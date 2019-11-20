@@ -149,7 +149,7 @@ static int _uart_write_common(void *handle, void *buf, size_t len)
     return len;
 }
 
-static void *_uart_write_loop(void *args)
+static void _uart_write_loop(void *args)
 {
     uart_state_t *uart_state = args;
     frame_t *pos, *n;
@@ -170,7 +170,6 @@ static void *_uart_write_loop(void *args)
     }
 
     sem_post(&uart_state->sem_write_thread_exit);
-    return NULL;
 }
 #endif
 
@@ -288,7 +287,7 @@ static int _init_uart(uart_state_t *uart_state, UartConfig_t *uart_config)
     return 0;
 }
 
-static void *_uart_read_loop(void *args)
+static void _uart_read_loop(void *args)
 {
     uart_state_t *uart_state = (uart_state_t *)args;
     char buf[UART_READ_VMIN_LEN];
@@ -305,7 +304,6 @@ static void *_uart_read_loop(void *args)
     }
 
     sem_post(&uart_state->sem_read_thread_exit);
-    return NULL;
 }
 
 static inline void _create_thread(ThreadLoop_t thread_loop, void *args)

@@ -46,7 +46,7 @@ static void _read_databuf_common(void *handle, int peek_flag)
 #define _read_databuf(handle)      _read_databuf_common(handle, 0)
 #define _peek_read_databuf(handle) _read_databuf_common(handle, 1)
 
-static void *_read_databuf_loop(void *args)
+static void _read_databuf_loop(void *args)
 {
     while (1) {
         sleep(1);
@@ -58,7 +58,6 @@ static void *_read_databuf_loop(void *args)
         // DataBufRemoveData(args, buf, READ_BUF_LEN);
 #endif
     }
-    return NULL;
 }
 
 static void _write_databuf(void *handle)
@@ -71,13 +70,12 @@ static void _write_databuf(void *handle)
     DumpHexData(buf, len);
 }
 
-static void *_write_databuf_loop(void *args)
+static void _write_databuf_loop(void *args)
 {
     while (1) {
         _write_databuf(args);
         sleep(1);
     }
-    return NULL;
 }
 
 int main(int argc, const char *argv[])

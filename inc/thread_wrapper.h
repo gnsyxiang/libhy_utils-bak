@@ -32,7 +32,7 @@ extern "C" {
 #define THREAD_WRAPPER_EX
 #endif
 
-typedef void *(*ThreadLoop_t)(void *args);
+typedef void (*ThreadLoop_t)(void *args);
 
 typedef struct {
     pthread_t       id;

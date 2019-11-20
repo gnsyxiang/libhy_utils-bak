@@ -26,7 +26,7 @@
 #include "utils.h"
 
 int cnt = 6;
-static void *_test_thread_loop(void *args)
+static void _test_thread_loop(void *args)
 {
     ThreadParam_t *thread_param = args;
 	printf("pid=%d, id: %ld \n", thread_param->pid, thread_param->id);
@@ -35,7 +35,6 @@ static void *_test_thread_loop(void *args)
         sleep(1);
         printf("hello test \n");
     }
-    return NULL;
 }
 
 int main(int argc, const char *argv[])
