@@ -24,11 +24,6 @@
 
 #include "uart_wrapper.h"
 
-static void _uart_read_cb(char *buf, size_t len)
-{
-    DumpHexData(buf, len);
-}
-
 int main(int argc, const char *argv[])
 {
     UartConfig_t uart_config;
@@ -38,19 +33,18 @@ int main(int argc, const char *argv[])
     uart_config.data_bit     = DATA_BIT_8;
     uart_config.parity_type  = PARITY_NONE;
     uart_config.stop_bit     = STOP_BIT_1;
-    uart_config.read_cb      = _uart_read_cb;
 
-    void *handle = UartInit(&uart_config);
+    int fd = UartInit(&uart_config);
 
-    char haha[] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff};
+    char test[] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff};
 
     int cnt = 5;
     while (cnt-- > 0) {
-        UartWrite(handle, haha, sizeof(haha));
+        UartWrite(fd, test, sizeof(test));
         sleep(1);
     }
     
-    UartFinal(handle);
+    UartFinal(fd);
 
     return 0;
 }

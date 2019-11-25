@@ -24,8 +24,13 @@
 extern "C" {
 #endif
 
-#define USING_LIST      // 保证一帧数据完整发出
-// #define USING_RINGBUF   // 减少多次开辟释放空间的消耗
+#include <sys/types.h>
+
+#ifndef LIBUTILS_INC_UART_WRAPPER_GB
+#define LIBUTILS_INC_UART_WRAPPER_EX extern
+#else
+#define LIBUTILS_INC_UART_WRAPPER_EX
+#endif
 
 typedef enum {
     UART_NUM_1,
@@ -68,8 +73,6 @@ typedef enum {
     STOP_BIT_MAX,
 } UartStopBit_t;
 
-typedef void (*UartRead_cb_t)(char *buf, size_t len);
-
 /**
  * @brief 串口配置结构体
  *
@@ -79,7 +82,6 @@ typedef void (*UartRead_cb_t)(char *buf, size_t len);
  * @param data_bit
  * @param parity_type
  * @param stop_bit
- * @param read_cb: 串口读回调函数 (注意在回调中不能做耗时操作)
  *
  */
 typedef struct {
@@ -89,8 +91,6 @@ typedef struct {
     UartDataBit_t       data_bit;
     UartParityType_t    parity_type;
     UartStopBit_t       stop_bit;
-
-    UartRead_cb_t       read_cb;
 } UartConfig_t;
 
 /**
@@ -98,12 +98,13 @@ typedef struct {
  *
  * @param uart_config
  *
- * @return 
+ *db shell @return 
  */
-void *UartInit(UartConfig_t *uart_config);
-void UartFinal(void *handle);
+LIBUTILS_INC_UART_WRAPPER_EX int  UartInit(UartConfig_t *uart_config);
+LIBUTILS_INC_UART_WRAPPER_EX void UartFinal(int fd);
 
-int UartWrite(void *handle, void *buf, size_t len);
+LIBUTILS_INC_UART_WRAPPER_EX ssize_t UartWrite(int fd, void *buf, size_t len);
+LIBUTILS_INC_UART_WRAPPER_EX ssize_t UartRead(int fd, void *buf, size_t len);
 
 #ifdef __cplusplus
 }
