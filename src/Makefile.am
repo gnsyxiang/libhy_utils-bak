@@ -16,7 +16,8 @@ basic_src = signal_wrapper.c \
 			databuf.c \
 			time_wrapper.c \
 			core_dump.c \
-			bitmap_wrapper.c
+			bitmap_wrapper.c \
+			file_wrapper.c
 
 # uart src files
 uart_src = uart_wrapper.c

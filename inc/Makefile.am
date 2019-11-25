@@ -7,7 +7,8 @@ basic_inc = common.h \
 			databuf.h \
 			time_wrapper.h \
 			core_dump.h \
-			bitmap_wrapper.h
+			bitmap_wrapper.h \
+			file_wrapper.h
 
 # uart header files
 uart_inc = uart_wrapper.h
