@@ -146,7 +146,7 @@ static int _init_uart(UartConfig_t *uart_config)
         close(fd);
         return -1;
     }
-    uart_log("set uart successful \n");
+    uart_log("set uart successful, fd = %d \n", fd);
 
     return fd;
 }
@@ -159,7 +159,7 @@ int UartInit(UartConfig_t *uart_config)
     }
 
     int fd = -1;
-    return (fd = _init_uart(uart_config) > 0) ? fd : -1;
+    return (fd = _init_uart(uart_config)) > 0 ? fd : -1;
 }
 
 void UartFinal(int fd)
