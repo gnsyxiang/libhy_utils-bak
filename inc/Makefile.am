@@ -11,7 +11,8 @@ basic_inc = common.h \
 			file_wrapper.h
 
 # uart header files
-uart_inc = uart_wrapper.h
+uart_inc = uart_wrapper.h \
+		   uart_protocol.h
 
 include_HEADERS = $(basic_inc) \
 				  $(uart_inc)

@@ -20,7 +20,8 @@ basic_src = signal_wrapper.c \
 			file_wrapper.c
 
 # uart src files
-uart_src = uart_wrapper.c
+uart_src = uart_wrapper.c \
+		   uart_protocol.c
 
 libutils_la_SOURCES  = $(basic_src) \
 					   $(uart_src)

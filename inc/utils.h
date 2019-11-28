@@ -41,6 +41,11 @@ extern "C" {
 
 #define DATA_TYPE_LEN(type)     (sizeof(type))
 
+
+#define MK_SHORT(hight, low)    ((hight) << 8 | (low))
+
+#define UNPACK __attribute__((packed))
+
 LIBUTILS_INC_UTILS_EX void DumpHexData(char *buf, int len);
 
 #ifdef __cplusplus
