@@ -33,8 +33,8 @@ extern "C" {
 #endif
 
 typedef enum {
+    UART_NUM_0,
     UART_NUM_1,
-    UART_NUM_2,
     UART_NUM_MAX,
 } UartNum_t;
 
