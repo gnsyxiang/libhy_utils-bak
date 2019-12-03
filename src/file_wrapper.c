@@ -62,6 +62,7 @@ ssize_t FileRead(int fd, void *buf, size_t len)
 
     while (nleft > 0) {
         ret = read(fd, buf + offset, nleft);
+        // printf("file_wrapper->read, len: %d \n", ret);
         if (ret < 0) {
             if (errno == EINTR) {
                 ret = 0;
