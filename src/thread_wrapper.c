@@ -25,14 +25,25 @@
 #include <sys/prctl.h>
 #include <unistd.h>
 #include <sys/syscall.h>   /* For SYS_xxx definitions */
+#include <stdlib.h>
 
 #define LIBUTILS_INC_THREAD_WRAPPER_GB
 #include "thread_wrapper.h"
 #undef LIBUTILS_INC_THREAD_WRAPPER_GB
+#include "utils.h"
 
 #define thread_log(fmt, ...) \
     printf("<%s:%d, result: %s> " fmt, \
            __func__, __LINE__, strerror(errno), ##__VA_ARGS__);
+
+#define THREAD_WRAPPER_NAME_LEN (16)
+typedef struct {
+    ThreadParam_t   *param;
+
+    pthread_t       id;
+    pid_t           pid;
+    char            name[THREAD_WRAPPER_NAME_LEN];
+} thread_wrapper_state_t;
 
 /*
  * pthread_t pthread_self(void)     <进程级别>是pthread 库给每个线程定义的进程内唯一标识，是 pthread 库维护的，是进程级而非系统级
@@ -44,10 +55,16 @@ static inline pid_t _getpid(void)
 }
 
 // 设置的名字可以在proc文件系统中查看: cat /proc/PID/task/tid/comm
-void Thread_SetName(pthread_t *thread, const char *name)
+void Thread_SetName(const char *name)
 {
+    pthread_t *thread = NULL;
+    if (!name) {
+        thread_log("the name is NULL \n");
+        return;
+    }
+
     int ret = -1;
-    if (thread) {
+    if (!thread) {
         ret = prctl(PR_SET_NAME, name);
         if (ret != 0) {
             thread_log("prctl set name faild \n");
@@ -57,10 +74,11 @@ void Thread_SetName(pthread_t *thread, const char *name)
     }
 }
 
-void Thread_GetName(pthread_t *thread, char *name)
+void Thread_GetName(char *name)
 {
+    pthread_t *thread = NULL;
     int ret = -1;
-    if (thread) {
+    if (!thread) {
         ret = prctl(PR_GET_NAME, name);
         if (ret != 0) {
             thread_log("prctl get name faild \n");
@@ -70,14 +88,49 @@ void Thread_GetName(pthread_t *thread, char *name)
     }
 }
 
+static thread_wrapper_state_t *_copy_param_init(ThreadParam_t *thread_param)
+{
+    thread_wrapper_state_t *state = calloc(1, DATA_TYPE_LEN(*state));
+    if (!state) {
+        thread_log("calloc faild \n");
+        return NULL;
+    }
+
+    state->param = calloc(1, DATA_TYPE_LEN(ThreadParam_t));
+    if (!state->param) {
+        thread_log("calloc faild \n");
+        return NULL;
+    }
+
+    memcpy(state->param, thread_param, DATA_TYPE_LEN(ThreadParam_t));
+
+    int len = strlen(thread_param->name);
+    len = (len > THREAD_WRAPPER_NAME_LEN) ? THREAD_WRAPPER_NAME_LEN - 1 : len;
+    memcpy(state->name, thread_param->name, len);
+
+    return state;
+}
+
+static inline void _copy_param_final(thread_wrapper_state_t *state)
+{
+    if (state) {
+        if (state->param) {
+            free(state->param);
+        }
+        free(state);
+    }
+}
+
 static void *_thread_loop_wrapper(void *args)
 {
-    ThreadParam_t *thread_param = args;
+    thread_wrapper_state_t *state = args;
 
-    thread_param->pid = _getpid();
-    Thread_SetName(&thread_param->id, thread_param->name);
+    state->pid = _getpid();
+    Thread_SetName(state->name);
 
-    thread_param->thread_loop(thread_param->args);
+    state->param->thread_loop(state->param->args);
+
+    _copy_param_final(state);
     return NULL;
 }
 
@@ -100,12 +153,17 @@ void Thread_CreateDetachedThread(ThreadParam_t *thread_param)
         return ;
     }
 
+    thread_wrapper_state_t *state = _copy_param_init(thread_param);
+    if (!state) {
+        thread_log("_copy_param_init faild \n");
+        return ;
+    }
+
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
-    if (0 != pthread_create(&thread_param->id, &attr, \
-                            _thread_loop_wrapper, thread_param)) {
+    if (0 != pthread_create(&state->id, &attr, _thread_loop_wrapper, state)) {
         thread_log("pthread_create faild \n");
     }
 
@@ -115,6 +173,12 @@ void Thread_CreateDetachedThread(ThreadParam_t *thread_param)
 void Thread_CreateLowPriorityDetachedThread(ThreadParam_t *thread_param)
 {
     if (0 != _check_thread_param(thread_param)) {
+        return ;
+    }
+
+    thread_wrapper_state_t *state = _copy_param_init(thread_param);
+    if (!state) {
+        thread_log("_copy_param_init faild \n");
         return ;
     }
 
@@ -131,8 +195,7 @@ void Thread_CreateLowPriorityDetachedThread(ThreadParam_t *thread_param)
 	param.sched_priority = sched_get_priority_min(policy);
 	pthread_attr_setschedparam(&attr, &param);
 
-    if (0 != pthread_create(&thread_param->id, &attr, \
-                            _thread_loop_wrapper, thread_param)) {
+    if (0 != pthread_create(&state->id, &attr, _thread_loop_wrapper, state)) {
         thread_log("pthread_create faild \n");
     }
 

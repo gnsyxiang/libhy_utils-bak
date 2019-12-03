@@ -25,17 +25,20 @@
 #include "signal_wrapper.h"
 #include "utils.h"
 
-int cnt = 6;
 static void _test_thread_loop(void *args)
 {
-    ThreadParam_t *thread_param = args;
-	printf("pid=%d, id: %ld \n", thread_param->pid, thread_param->id);
+    char *test = args;
 
-    while (cnt != 1) {
+    printf("--test--->> %s \n", test);
+
+    int cnt = 3;
+    while (cnt-- > 0) {
         sleep(1);
         printf("hello test \n");
     }
 }
+
+static char *test = "hello world";
 
 int main(int argc, const char *argv[])
 {
@@ -44,18 +47,19 @@ int main(int argc, const char *argv[])
     ThreadParam_t thread_param;
     memset(&thread_param, '\0', DATA_TYPE_LEN(thread_param));
     thread_param.thread_loop = _test_thread_loop;
-    thread_param.name = "test";
-    thread_param.args = &thread_param;
+    thread_param.name        = "test";
+    thread_param.args        = test;
 
     Thread_CreateDetachedThread(&thread_param);
 
     char name[16] = {};
-    while (1) {
+    int cnt = 5;
+    while (cnt-- > 0) {
     // while (cnt-- >= 0) {
         sleep(1);
         printf("hello main \n");
         memset(name, '\0', sizeof(name));
-        Thread_GetName(&thread_param.id, name);
+        Thread_GetName(name);
         printf("-----------name: %s \n", name);
     }
 

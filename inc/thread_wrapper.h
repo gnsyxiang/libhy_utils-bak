@@ -34,19 +34,28 @@ extern "C" {
 
 typedef void (*ThreadLoop_t)(void *args);
 
+/**
+ * @brief 
+ * @param name: 设置的名字，最好不要超过16字节
+ */
 typedef struct {
-    pthread_t       id;
-    pid_t           pid;
-
     const char      *name;
     ThreadLoop_t    thread_loop;
     void            *args;
 } ThreadParam_t;
 
+/**
+ * @brief 
+ *
+ * @param thread_param
+ *
+ * @return 
+ */
 THREAD_WRAPPER_EX void Thread_CreateDetachedThread(ThreadParam_t *thread_param);
 THREAD_WRAPPER_EX void Thread_CreateLowPriorityDetachedThread(ThreadParam_t *thread_param);
-THREAD_WRAPPER_EX void Thread_SetName(pthread_t *thread, const char *name);
-THREAD_WRAPPER_EX void Thread_GetName(pthread_t *thread, char *name);
+
+THREAD_WRAPPER_EX void Thread_SetName(const char *name);
+THREAD_WRAPPER_EX void Thread_GetName(char *name);
 
 #ifdef __cplusplus
 }
