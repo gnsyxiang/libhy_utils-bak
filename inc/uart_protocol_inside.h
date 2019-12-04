@@ -38,7 +38,14 @@ typedef struct {
     size_t len;
 } buf_t;
 
-LIBUTILS_INC_UART_PROTOCOL_INSIDE_EX void UartProtocolDumpHex(char *name, char *buf, int len);
+// note: 在接收底层数据中，一包最多解除4个frame
+#define UART_PROTOCOL_FRAME_NUM     (4)
+typedef struct {
+    char *frame[UART_PROTOCOL_FRAME_NUM];
+    size_t len[UART_PROTOCOL_FRAME_NUM];
+} frame_cnt_t;
+
+LIBUTILS_INC_UART_PROTOCOL_INSIDE_EX void UartProtocolDumpHex(char *sign, char *buf, size_t len);
 #ifdef __cplusplus
 }
 #endif

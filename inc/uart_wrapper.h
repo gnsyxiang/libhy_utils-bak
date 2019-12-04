@@ -33,7 +33,7 @@ extern "C" {
 #endif
 
 // note: open串口为阻塞情况下，这两个参数适配应用层协议
-#define UART_READ_VMIN_LEN      (16)
+#define UART_READ_VMIN_LEN      (32)
 #define UART_READ_VTIME_100MS   (5)
 
 typedef enum {

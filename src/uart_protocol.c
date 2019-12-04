@@ -54,7 +54,7 @@ typedef enum {
 typedef int (*uart_protocol_init_cb_t)(void);
 typedef int (*uart_protocol_final_cb_t)(void);
 typedef int (*uart_protocol_encode_cb_t)(unsigned char **frame, buf_t *buf, cmd_t *cmd);
-typedef int (*uart_protocol_decode_cb_t)(buf_t *buf, char **frame);
+typedef int (*uart_protocol_decode_cb_t)(buf_t *buf, frame_cnt_t *frame_cnt);
 typedef int (*uart_protocol_sync_state_cb_t)(char *frame, UartProtocolState_t * const state);
 
 typedef struct {
@@ -234,25 +234,24 @@ static void _read_frame_loop(void *args)
     uart_protocol_log("_read_frame_loop start \n");
 
     buf_t buf;
-    char *frame = NULL;
-    int frame_len = 0;
+    frame_cnt_t frame_cnt;
+    size_t cnt = 0;
     uart_protocol_state_t *uart_protocol_state = args;
     uart_protocol_cb_t    *protocol_cb = &uart_protocol_state->protocol_cb;
 
     while (uart_protocol_state->is_running) {
         buf.len = UartRead(uart_protocol_state->fd, buf.buf, UART_READ_VMIN_LEN);
-        UartProtocolDumpHex("uart_protocol 1", buf.buf, buf.len);
-        if (buf.len > 0 && (frame_len = protocol_cb->decode_cb(&buf, &frame)) > 0) {
-            
-            UartProtocolDumpHex("uart_protocol cb", frame, frame_len);
+        if (buf.len > 0 && (cnt = protocol_cb->decode_cb(&buf, &frame_cnt)) > 0) {
+            for (size_t i = 0; i < cnt; i++) {
+                // UartProtocolDumpHex("--------------->>>", frame_cnt.frame[i], frame_cnt.len[i]);
+                protocol_cb->sync_state_cb(frame_cnt.frame[i], &uart_protocol_state->state);
+                uart_protocol_state->config.read_cb(&uart_protocol_state->state);
+                free(frame_cnt.frame[i]);
+                frame_cnt.frame[i] = NULL;
+            }
 
-            // protocol_cb->sync_state_cb(frame, &uart_protocol_state->state);
-            // uart_protocol_state->config.read_cb(&uart_protocol_state->state);
-            free(frame);
-            frame = NULL;
         }
     }
-    printf("--------------haha \n");
 
     sem_post(&uart_protocol_state->creat_threads.sem_read_thread_exit);
 }
@@ -393,12 +392,12 @@ int UartProtocolWriteFrame(void *handle, cmd_t *cmd)
     return _write_frame(handle, cmd);
 }
 
-void UartProtocolDumpHex(char *name, char *buf, int len)
+void UartProtocolDumpHex(char *sign, char *buf, size_t len)
 {
-    printf("name: %s, len[%d]: ", name, len);
-    for (int i = 0; i < len; i++) {
+    printf("%s, len[%ld]: ", sign, len);
+    for (size_t i = 0; i < len; i++) {
         printf("%02x ", (unsigned char)buf[i]);
     }
-    printf("\n\n");
+    printf("\n");
 }
 

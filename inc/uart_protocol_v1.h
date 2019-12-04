@@ -37,9 +37,9 @@ int UartProtocolV1Init(void);
 int UartProtocolV1Final(void);
 
 int UartProtocolV1Encode(unsigned char **frame, buf_t *buf, cmd_t *cmd);
-int UartProtocolV1Decode(buf_t *buf, char **frame);
+int UartProtocolV1Decode(buf_t *buf, frame_cnt_t *frame_cnt);
 
-int UartProtocolV1SyncState(char *frame, UartProtocolState_t * const state);
+int UartProtocolV1SyncState(char *buf, UartProtocolState_t * const state);
 
 #ifdef __cplusplus
 }

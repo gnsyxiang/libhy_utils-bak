@@ -57,9 +57,15 @@ int main(int argc, const char *argv[])
 #else
 #include "uart_protocol.h"
 
+static void _uart_protocol_read_cb(const UartProtocolState_t * const state)
+{
+    printf("power: %d \n", state->power);
+}
+
 int main(int argc, const char *argv[])
 {
     UartProtocolConfig_t config;
+    config.read_cb = _uart_protocol_read_cb;
     void *handle = UartProtocolInit(&config);
 
     cmd_t cmd;

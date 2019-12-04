@@ -31,6 +31,7 @@
     printf("<%s:%d, result: %s> " fmt, \
            __func__, __LINE__, strerror(errno), ##__VA_ARGS__);
 
+// #define DECODE_DEBUG
 #define UART_PROTOCOL_V1_BUF_LEN    (128)
 #define FRAME_HEAD                  (0x3c)
 #define FRAME_TAIL                  (0x3e)
@@ -74,9 +75,9 @@ static inline void _init_frame_head(frame_t *frame)
     frame->head.head = MK_SHORT(FRAME_HEAD, FRAME_HEAD);
 }
 
-static inline int _check_frame_head(frame_t *frame)
+static inline int _check_frame_head(uint16_t *head)
 {
-    return (frame->head.head == MK_SHORT(FRAME_HEAD, FRAME_HEAD) ? 0 : -1);
+    return (*head == MK_SHORT(FRAME_HEAD, FRAME_HEAD) ? 0 : -1);
 }
 
 static inline void _init_frame_cmd(frame_t *frame, cmd_t *cmd)
@@ -165,53 +166,95 @@ int UartProtocolV1Encode(unsigned char **frame, buf_t *buf, cmd_t *cmd)
     return bc;
 }
 
-int UartProtocolV1Decode(buf_t *buf, char **frame)
+static inline void _debug_decode(char *sign)
+{
+#ifdef DECODE_DEBUG
+    uart_protocol_v1_log("-------------------------%s\n", sign);
+#else
+    (void)sign;
+#endif
+}
+
+static inline void _debug_decode_data(char *sign, char *buf, size_t len)
+{
+#ifdef DECODE_DEBUG
+    UartProtocolDumpHex(sign, buf, len);
+#else
+    (void)sign;
+    (void)buf;
+    (void)len;
+#endif
+}
+
+int UartProtocolV1Decode(buf_t *buf, frame_cnt_t *frame_cnt)
 {
     static int buf_save_len = 0;
-    static int buf_save_offset = 0;
     static char buf_save[UART_PROTOCOL_V1_BUF_LEN] = {0};
+    int buf_save_offset = 0;
+    int cnt = 0;
 
+    _debug_decode_data("0", buf->buf, buf->len);
     memcpy(buf_save + buf_save_len, buf->buf, buf->len);
     buf_save_len += buf->len;
 
-    if (buf_save_len <= DATA_TYPE_LEN(frame_t)) {
-        return -1;
+    while (buf_save_len > 0) {
+        char *buf_save_plus_offset = buf_save + buf_save_offset;
+        _debug_decode_data("1", buf_save_plus_offset, buf_save_len);
+        if (buf_save_len <= DATA_TYPE_LEN(frame_t)) {
+            _debug_decode("1");
+            break;
+        }
+
+        _debug_decode_data("2", buf_save_plus_offset, buf_save_len);
+        if (0 != _check_frame_head((uint16_t *)buf_save_plus_offset)) {
+            buf_save_offset++;
+            buf_save_len--;
+            _debug_decode("2");
+            continue;
+        }
+
+        _debug_decode_data("3", buf_save_plus_offset, buf_save_len);
+        frame_t *frame_p = (frame_t *)buf_save_plus_offset;
+        if (frame_p->bc.byte_cnt + DATA_TYPE_LEN(frame_t) > buf_save_len) {
+            _debug_decode("3");
+            break;
+        }
+
+        _debug_decode_data("4", buf_save_plus_offset, buf_save_len);
+        if (frame_p->cksum.check_sum != _check_frame_cksum(frame_p, frame_p->bc.byte_cnt)) {
+            buf_save_offset++;
+            buf_save_len--;
+            _debug_decode("4");
+            continue;
+        }
+
+        _debug_decode_data("5", buf_save_plus_offset, buf_save_len);
+        uint16_t bc = frame_p->bc.byte_cnt + DATA_TYPE_LEN(frame_t);
+        frame_cnt->frame[cnt] = calloc(1, bc);
+        if (!frame_cnt->frame[cnt]) {
+            uart_protocol_v1_log("calloc faild \n");
+            _debug_decode("5");
+            break;
+        }
+
+        memcpy(frame_cnt->frame[cnt], frame_p, bc);
+        frame_cnt->len[cnt] = bc;
+        cnt++;
+
+        memcpy(buf_save, buf_save + bc + buf_save_offset, bc + buf_save_offset);
+        buf_save_len   -= bc;
+        buf_save_offset = 0;
+
+        _debug_decode_data("6", buf_save, buf_save_len);
     }
-
-    frame_t *frame_p = (frame_t *)(buf_save + buf_save_offset);
-    if (frame_p->bc.byte_cnt + DATA_TYPE_LEN(head_t) > buf_save_len) {
-        return -1;
-    }
-
-    if (0 != _check_frame_head(frame_p)) {
-        buf_save_offset++;
-        return -1;
-    }
-
-    if (frame_p->cksum.check_sum != _check_frame_cksum(frame_p, frame_p->bc.byte_cnt)) {
-        buf_save_offset++;
-        return -1;
-    }
-
-    uint16_t bc = frame_p->bc.byte_cnt + DATA_TYPE_LEN(frame_t);
-    *frame = calloc(1, bc);
-    if (!*frame) {
-        uart_protocol_v1_log("calloc faild \n");
-        return -1;
-    }
-
-    memcpy(*frame, frame_p, bc);
-
-    memcpy(buf_save, buf_save + bc, bc);
-    buf_save_len   -= bc;
-    buf_save_offset = 0;
-
-    return bc;
+    return cnt;
 }
 
-int UartProtocolV1SyncState(char *frame, UartProtocolState_t * const state)
+int UartProtocolV1SyncState(char *buf, UartProtocolState_t * const state)
 {
+    frame_t *frame = (frame_t *)buf;
     (void)frame;
-    (void)state;
+
+    state->power = 1;
     return 0;
 }
