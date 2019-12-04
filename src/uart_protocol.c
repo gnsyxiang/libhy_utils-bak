@@ -23,112 +23,58 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdint.h>
+#include <semaphore.h>
 
 #define LIBUTILS_INC_UART_PROTOCOL_GB
 #include "uart_protocol.h"
 #undef LIBUTILS_INC_UART_PROTOCOL_GB
+#include "uart_protocol_inside.h"
+#include "uart_protocol_v1.h"
 
 #include "uart_wrapper.h"
-#include "utils.h"
+#include "thread_wrapper.h"
+#include "list.h"
+#include "file_wrapper.h"
 
 #define uart_protocol_log(fmt, ...) \
     printf("<%s:%d, result: %s> " fmt, \
            __func__, __LINE__, strerror(errno), ##__VA_ARGS__);
 
-#define UART_PROTOCOL_BUF_LEN       (32)
-#define FRAME_HEAD                  (0x3c)
-#define FRAME_TAIL                  (0x3e)
-
-typedef struct {
-    unsigned short head;
-} UNPACK head_t;
+static void _read_frame_loop(void *args);
+static void _write_frame_loop(void *args);
+static int _write_frame(void *handle, cmd_t *cmd);
 
 typedef enum {
-    CMD_TYPE_UP             = 0x10,
-    CMD_TYPE_DOWN           = 0x30,
-    CMD_TYPE_RETRANSMISSION = 0x50,
-    CMD_TYPE_RESPOND        = 0x70,
-} cmd_type_t;
+    UART_PROTOCOL_V1,
+    UART_PROTOCOL_V2,
 
-/**
- * @brief 命令说明
- * cmd_type: 表示命令的种类，详见cmd_type_t;
- * cmd_num: 表示具体的命令，详见UartProtocolCmdSetting_t;
- */
+    UART_PROTOCOL_MAX,
+} uart_protocol_version_t;
+
+typedef int (*uart_protocol_init_cb_t)(void);
+typedef int (*uart_protocol_final_cb_t)(void);
+typedef int (*uart_protocol_encode_cb_t)(unsigned char **frame, buf_t *buf, cmd_t *cmd);
+typedef int (*uart_protocol_decode_cb_t)(buf_t *buf, char **frame);
+typedef int (*uart_protocol_sync_state_cb_t)(char *frame, UartProtocolState_t * const state);
+
 typedef struct {
-    char cmd_type;
-    char cmd_num;
-} UNPACK cmd_t;
+    uart_protocol_init_cb_t         init_cb;
+    uart_protocol_final_cb_t        final_cb;
+    uart_protocol_encode_cb_t       encode_cb;
+    uart_protocol_decode_cb_t       decode_cb;
+    uart_protocol_sync_state_cb_t   sync_state_cb;
+} uart_protocol_cb_t;
 
-/**
- * @brief 长度说明
- *
- */
 typedef struct {
-    unsigned short byte_cnt;
-} UNPACK bc_t;
+    struct list_head    list;
+    pthread_mutex_t     mutex;
+    sem_t               sem_write;
+} list_wrapper_t;
 
-/**
- * @brief 数据校验
- *
- */
 typedef struct {
-    unsigned short check_sum;
-} UNPACK cksum_t;
-
-/*
- * 协议说明：
- * 1, head:     帧头
- * 2, cmd:      命令说明，详细见cmd_t
- * 3, bc:       数据长度，详见bc_t
- */
-typedef struct {
-    head_t  head;
-    cmd_t   cmd;
-    bc_t    bc;
-    cksum_t cksum;
-    char    data[0];
-} UNPACK frame_t;
-
-static inline void _init_frame_head(frame_t *frame)
-{
-    frame->head.head = MK_SHORT(FRAME_HEAD, FRAME_HEAD);
-}
-
-static inline void 
-_init_frame_cmd(frame_t *frame, cmd_type_t cmd_type, UartProtocolCmdSetting_t cmd)
-{
-    frame->cmd.cmd_type = cmd_type;
-    frame->cmd.cmd_num  = cmd;
-}
-
-static inline void _init_frame_bc(frame_t *frame, unsigned short bc)
-{
-    frame->bc.byte_cnt = bc;
-}
-
-static unsigned short _init_frame_cksum(uint8_t *data, uint16_t len) {
-    uint64_t cksum = 0;
-    int i = 0;
-    while (i < len) {
-        if (i + 2 > len) {
-            cksum += data[i];
-        } else {
-            cksum += data[i + 1] << 8 | data[i];
-        }
-        i += 2;
-    }
-    cksum = (cksum >> 16) + (cksum & 0xffff);
-    cksum += (cksum >>16);
-    cksum = (uint16_t)~cksum;
-    return ((cksum >> 8) | (cksum & 0xff) << 8);
-    //FIXME 检验位还没有写
-}
-
-static inline void _init_frame_data(frame_t *frame, char *buf, int len)
-{
-    memcpy(frame->data, buf, len);
-}
+    sem_t   sem_read_thread_exit;
+    sem_t   sem_write_thread_exit;
+} creat_threads_t;
 
 /**
  * @brief 
@@ -136,9 +82,182 @@ static inline void _init_frame_data(frame_t *frame, char *buf, int len)
 typedef struct {
     UartProtocolConfig_t    config;
     int                     fd;
+    int                     is_running;
+    int                     version;
+    int                     lock_version;
+
+    UartProtocolState_t     state;
+    list_wrapper_t          list_wrapper;
+    creat_threads_t         creat_threads;
+    uart_protocol_cb_t      protocol_cb;
 } uart_protocol_state_t;
 
-void *UartProtocol_Init(UartProtocolConfig_t *config)
+typedef struct {
+    unsigned char       *frame;
+    int                 len;
+    struct list_head    list;
+} frame_list_t;
+
+static frame_list_t *_frame_list_init(uart_protocol_state_t *uart_protocol_state, buf_t *buf, cmd_t *cmd)
+{
+    frame_list_t *frame_list = calloc(1, DATA_TYPE_LEN(frame_list_t));
+    if (!frame_list) {
+        uart_protocol_log("calloc is faild \n");
+        return NULL;
+    }
+
+    uart_protocol_cb_t *protocol_cb = &uart_protocol_state->protocol_cb;
+    frame_list->len = protocol_cb->encode_cb(&frame_list->frame, buf, cmd);
+    if (-1 == frame_list->len) {
+        uart_protocol_log("calloc is faild \n");
+        free(frame_list);
+        return NULL;
+    }
+
+    return frame_list;
+}
+
+static inline void _frame_list_final(frame_list_t *frame_list)
+{
+    if (frame_list) {
+        if (frame_list->frame) {
+            free(frame_list->frame);
+        }
+        free(frame_list);
+    }
+}
+
+static inline void _list_wrapper_init(list_wrapper_t *list_wrapper)
+{
+    INIT_LIST_HEAD(&list_wrapper->list);
+    pthread_mutex_init(&list_wrapper->mutex, NULL);
+    sem_init(&list_wrapper->sem_write, 0, 0);
+}
+
+static inline void _list_wrapper_final(list_wrapper_t *list_wrapper)
+{
+    sem_destroy(&list_wrapper->sem_write);
+}
+
+static inline void _creat_thread_init(creat_threads_t *creat_threads, void *args)
+{
+    sem_init(&creat_threads->sem_read_thread_exit, 0, 0);
+    sem_init(&creat_threads->sem_write_thread_exit, 0, 0);
+
+    ThreadParam_t thread_param;
+    memset(&thread_param, '\0', DATA_TYPE_LEN(thread_param));
+    thread_param.thread_loop = _write_frame_loop;
+    thread_param.name        = "write";
+    thread_param.args        = args;
+    Thread_CreateDetachedThread(&thread_param);
+
+    thread_param.thread_loop = _read_frame_loop;
+    thread_param.name        = "read";
+    Thread_CreateDetachedThread(&thread_param);
+}
+
+static inline void _creat_thread_final(creat_threads_t *creat_threads)
+{
+    sem_wait(&creat_threads->sem_write_thread_exit);
+    sem_wait(&creat_threads->sem_read_thread_exit);
+
+    sem_destroy(&creat_threads->sem_read_thread_exit);
+    sem_destroy(&creat_threads->sem_write_thread_exit);
+}
+
+static void _lock_version_loop(void *args)
+{
+    cmd_t cmd;
+    uart_protocol_version_t version = UART_PROTOCOL_V1;
+    uart_protocol_state_t *uart_protocol_state = args;
+    uart_protocol_cb_t protocol_cb[UART_PROTOCOL_MAX] = {
+        {UartProtocolV1Init, UartProtocolV1Final, UartProtocolV1Encode, UartProtocolV1Decode, UartProtocolV1SyncState},
+    };
+
+    cmd.cmd_type = CMD_TYPE_DOWN;
+    cmd.cmd_num  = UART_PROTOCOL_CMD_QUERY;
+
+    while (!uart_protocol_state->lock_version) {
+        if (version == UART_PROTOCOL_MAX) {
+            version = UART_PROTOCOL_V1;
+        }
+        uart_protocol_state->version = version++;
+        uart_protocol_state->protocol_cb = protocol_cb[uart_protocol_state->version];
+
+        if (_write_frame(args, &cmd) < 0) {
+            uart_protocol_log("_write_frame faild \n");
+        }
+
+        //FIXME
+        uart_protocol_state->lock_version = 1;
+    }
+}
+
+static void _lock_version(void *args)
+{
+    ThreadParam_t thread_param;
+    memset(&thread_param, '\0', DATA_TYPE_LEN(thread_param));
+    thread_param.thread_loop = _lock_version_loop;
+    thread_param.name        = "lock_version";
+    thread_param.args        = args;
+    Thread_CreateDetachedThread(&thread_param);
+}
+
+static void _write_frame_loop(void *args)
+{
+    uart_protocol_log("_write_frame_loop start \n");
+
+    frame_list_t *pos, *n;
+    uart_protocol_state_t *uart_protocol_state = args;
+    list_wrapper_t *list_wrapper = &uart_protocol_state->list_wrapper;
+
+    while (uart_protocol_state->is_running) {
+        sem_wait(&list_wrapper->sem_write);
+
+        pthread_mutex_lock(&list_wrapper->mutex);
+        list_for_each_entry_safe(pos, n, &list_wrapper->list, list) {
+            if (-1 == UartWrite(uart_protocol_state->fd, pos->frame, pos->len)) {
+                uart_protocol_log("uart write internel faild \n");
+                continue;
+            }
+            list_del(&pos->list);
+            _frame_list_final(pos);
+            break;
+        }
+        pthread_mutex_unlock(&list_wrapper->mutex);
+    }
+    sem_post(&uart_protocol_state->creat_threads.sem_write_thread_exit);
+}
+
+static void _read_frame_loop(void *args)
+{
+    uart_protocol_log("_read_frame_loop start \n");
+
+    buf_t buf;
+    char *frame = NULL;
+    int frame_len = 0;
+    uart_protocol_state_t *uart_protocol_state = args;
+    uart_protocol_cb_t    *protocol_cb = &uart_protocol_state->protocol_cb;
+
+    while (uart_protocol_state->is_running) {
+        buf.len = UartRead(uart_protocol_state->fd, buf.buf, UART_READ_VMIN_LEN);
+        UartProtocolDumpHex("uart_protocol 1", buf.buf, buf.len);
+        if (buf.len > 0 && (frame_len = protocol_cb->decode_cb(&buf, &frame)) > 0) {
+            
+            UartProtocolDumpHex("uart_protocol cb", frame, frame_len);
+
+            // protocol_cb->sync_state_cb(frame, &uart_protocol_state->state);
+            // uart_protocol_state->config.read_cb(&uart_protocol_state->state);
+            free(frame);
+            frame = NULL;
+        }
+    }
+    printf("--------------haha \n");
+
+    sem_post(&uart_protocol_state->creat_threads.sem_read_thread_exit);
+}
+
+void *UartProtocolInit(UartProtocolConfig_t *config)
 {
     if (!config) {
         uart_protocol_log("the config is NULL \n");
@@ -150,6 +269,8 @@ void *UartProtocol_Init(UartProtocolConfig_t *config)
         uart_protocol_log("calloc is faild \n");
         return NULL;
     }
+
+    uart_protocol_state->is_running = 1;
 
     UartConfig_t uart_config;
     uart_config.num          = UART_NUM_0;
@@ -169,18 +290,28 @@ void *UartProtocol_Init(UartProtocolConfig_t *config)
     // 结构体里面的指针不会有两次释放的操作，所以没有风险
     uart_protocol_state->config = *config;
 
-    if (uart_protocol_state->config.interface_type == UART_PROTOCOL_INTERFACE_ASYNC) {
-    }
+    _creat_thread_init(&uart_protocol_state->creat_threads, uart_protocol_state);
+    _list_wrapper_init(&uart_protocol_state->list_wrapper);
+
+    uart_protocol_state->version = UART_PROTOCOL_MAX;
+    _lock_version(uart_protocol_state);
+
+    uart_protocol_log("uart protocol init successful \n");
 
     return (void *)uart_protocol_state;
 }
 
-int UartProtocol_Final(void *handle)
+int UartProtocolFinal(void *handle)
 {
-    if (!handle) {
+    if (handle) {
         uart_protocol_state_t *uart_protocol_state = handle;
+
+        uart_protocol_state->is_running = 0;
+        _creat_thread_final(&uart_protocol_state->creat_threads);
+        _list_wrapper_final(&uart_protocol_state->list_wrapper);
+
         if (uart_protocol_state->fd > 0) {
-            close(uart_protocol_state->fd);
+            UartFinal(uart_protocol_state->fd);
             uart_protocol_log("close uart fd \n");
         }
         free(uart_protocol_state);
@@ -190,12 +321,20 @@ int UartProtocol_Final(void *handle)
 
 static int _cmd_num_setting_power(char *buf)
 {
-    return 0;
+#define POWER_LEN (3)
+    for (int i = 0; i < POWER_LEN; i++) {
+        buf[i] = i;
+    }
+    return POWER_LEN;
 }
 
 static int _cmd_num_setting_query(char *buf)
 {
-    return 0;
+#define QUERY_LEN (3)
+    for (int i = 0; i < POWER_LEN; i++) {
+        buf[i] = i;
+    }
+    return QUERY_LEN;
 }
 
 typedef int (*cmd_setting_cb_t)(char *buf);
@@ -209,45 +348,57 @@ static call_cmd_func_t g_call_cmd_func[UART_PROTOCOL_CMD_MAX] = {
     {UART_PROTOCOL_CMD_QUERY,   _cmd_num_setting_query},
 };
 
-static int _write_frame(void *handle, UartProtocolCmdSetting_t cmd)
+static int _write_frame(void *handle, cmd_t *cmd)
 {
-    char buf[UART_PROTOCOL_BUF_LEN] = {0};
-    int len = g_call_cmd_func[cmd].cmd_setting_cb(buf);
+    buf_t buf;
+    Memset(buf);
 
-    int bc  = DATA_TYPE_LEN(frame_t) + len;
-    frame_t *frame = calloc(1, bc);
-    if (!frame) {
-        uart_protocol_log("calloc faild \n");
+    uart_protocol_state_t *uart_protocol_state = (uart_protocol_state_t *)handle;
+
+    if (uart_protocol_state->version == UART_PROTOCOL_MAX) {
+        uart_protocol_log("the version is UART_PROTOCOL_MAX \n");
         return -1;
     }
 
-    _init_frame_head(frame);
-    _init_frame_cmd(frame, CMD_TYPE_DOWN, cmd);
-    _init_frame_bc(frame, bc);
-    _init_frame_data(frame, buf, len);
-    _init_frame_cksum((uint8_t *)frame, bc);
+    buf.len = g_call_cmd_func[(int)cmd->cmd_num].cmd_setting_cb(buf.buf);
 
-    uart_protocol_state_t *uart_protocol_state = handle;
-    return UartWrite(uart_protocol_state->fd, frame, bc);
-}
-
-#define _judge_param(handle)                            \
-    if (!handle) {                                      \
-        uart_protocol_log("the handle is NULL \n");     \
-        return -1;                                      \
+    frame_list_t *frame_list = _frame_list_init(uart_protocol_state, &buf, cmd);
+    if (!frame_list) {
+        uart_protocol_log("_frame_list_init faild \n");
+        return -1;
     }
 
-int UartProtocol_WriteFrame(void *handle, UartProtocolCmdSetting_t cmd)
+    list_wrapper_t *list_wrapper = &uart_protocol_state->list_wrapper;
+    pthread_mutex_lock(&list_wrapper->mutex);
+    list_add_tail(&frame_list->list, &list_wrapper->list);
+    pthread_mutex_unlock(&list_wrapper->mutex);
+
+    sem_post(&list_wrapper->sem_write);
+
+    return 0;
+}
+
+int UartProtocolWriteFrame(void *handle, cmd_t *cmd)
 {
-    _judge_param(handle);
+    if (!handle) {
+        uart_protocol_log("the handle is NULL \n");
+        return -1;
+    }
+
+    if (!cmd) {
+        uart_protocol_log("the cmd is NULL \n");
+        return -1;
+    }
 
     return _write_frame(handle, cmd);
 }
 
-int UartProtocol_ReadFrame(void *handle, char * const buf)
+void UartProtocolDumpHex(char *name, char *buf, int len)
 {
-    _judge_param(handle);
-
-    return 0;
+    printf("name: %s, len[%d]: ", name, len);
+    for (int i = 0; i < len; i++) {
+        printf("%02x ", (unsigned char)buf[i]);
+    }
+    printf("\n\n");
 }
 

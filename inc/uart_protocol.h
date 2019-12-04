@@ -30,32 +30,46 @@ extern "C" {
 #define LIBUTILS_INC_UART_PROTOCOL_EX
 #endif
 
-#include <sys/types.h>
+#include "utils.h"
 
 typedef enum {
     UART_PROTOCOL_CMD_POWER,
     UART_PROTOCOL_CMD_QUERY,
+
     UART_PROTOCOL_CMD_MAX,
 } UartProtocolCmdSetting_t;
 
 typedef enum {
-    UART_PROTOCOL_INTERFACE_SYNC,
-    UART_PROTOCOL_INTERFACE_ASYNC,
-    UART_PROTOCOL_INTERFACE_MAX,
-} UartProtocolInterfaceType_t;
+    CMD_TYPE_UP             = 0x10,
+    CMD_TYPE_DOWN           = 0x30,
+    CMD_TYPE_RETRANSMISSION = 0x50,
+    CMD_TYPE_RESPOND        = 0x70,
+} cmd_type_t;
 
-typedef void (*UartProtocolReadCB_t)(const char *buf, size_t len);
+/**
+ * @brief 命令说明
+ * cmd_type: 表示命令的种类，详见cmd_type_t;
+ * cmd_num: 表示具体的命令，详见UartProtocolCmdSetting_t;
+ */
+typedef struct {
+    char cmd_type;
+    char cmd_num;
+} UNPACK cmd_t;
 
 typedef struct {
-    UartProtocolInterfaceType_t interface_type; 
-    UartProtocolReadCB_t        read_cb;
+    int power;
+} UartProtocolState_t;
+
+typedef void (*UartProtocolReadFrameCB_t)(const UartProtocolState_t * const state);
+
+typedef struct {
+    UartProtocolReadFrameCB_t       read_cb;
 } UartProtocolConfig_t;
 
-void *UartProtocol_Init(UartProtocolConfig_t *config);
-int UartProtocol_Final(void *handle);
+LIBUTILS_INC_UART_PROTOCOL_EX void *UartProtocolInit(UartProtocolConfig_t *config);
+LIBUTILS_INC_UART_PROTOCOL_EX int UartProtocolFinal(void *handle);
 
-int UartProtocol_WriteFrame(void *handle, UartProtocolCmdSetting_t cmd_setting);
-int UartProtocol_ReadFrame(void *handle, char * const buf);
+LIBUTILS_INC_UART_PROTOCOL_EX int UartProtocolWriteFrame(void *handle, cmd_t *cmd);
 
 #ifdef __cplusplus
 }

@@ -20,14 +20,14 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "utils.h"
-
+#if 0
 #include "uart_wrapper.h"
+#include "utils.h"
 
 int main(int argc, const char *argv[])
 {
     UartConfig_t uart_config;
-    uart_config.num          = UART_NUM_1;
+    uart_config.num          = UART_NUM_0;
     uart_config.speed        = UART_SPEED_115200;
     uart_config.flow_control = FLOW_CONTROL_NONE;
     uart_config.data_bit     = DATA_BIT_8;
@@ -35,16 +35,45 @@ int main(int argc, const char *argv[])
     uart_config.stop_bit     = STOP_BIT_1;
 
     int fd = UartInit(&uart_config);
+    if (fd < 0) {
+        printf("calloc is faild \n");
+        return -1;
+    }
 
-    char test[] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff};
+    char buf[16] = {0};
+    int ret;
+    while (1) {
+        ret = UartRead(fd, buf, 16);
+        DumpHexData(buf, ret);
+    }
 
-    int cnt = 5;
-    while (cnt-- > 0) {
-        UartWrite(fd, test, sizeof(test));
-        sleep(1);
+    if (fd > 0) {
+        UartFinal(fd);
     }
     
-    UartFinal(fd);
+    return 0;
+}
+
+#else
+#include "uart_protocol.h"
+
+int main(int argc, const char *argv[])
+{
+    UartProtocolConfig_t config;
+    void *handle = UartProtocolInit(&config);
+
+    cmd_t cmd;
+    cmd.cmd_type = CMD_TYPE_DOWN;
+    cmd.cmd_num  = UART_PROTOCOL_CMD_POWER;
+
+    while (1) {
+        sleep(1);
+        UartProtocolWriteFrame(handle, &cmd);
+    }
+
+    UartProtocolFinal(handle);
 
     return 0;
 }
+#endif
+
