@@ -56,11 +56,22 @@ typedef struct {
     uint16_t check_sum;
 } UNPACK cksum_t;
 
+/**
+ * @brief 命令说明
+ * cmd_type: 表示命令的种类，详见cmd_type_t;
+ * cmd: 表示具体的命令，详见UartProtocolCmdSetting_t;
+ */
+typedef struct {
+    char cmd_type;
+    char cmd;
+} UNPACK cmd_t;
+
 /*
  * 协议说明：
  * 1, head:     帧头
  * 2, cmd:      命令说明，详细见cmd_t
  * 3, bc:       数据长度，详见bc_t
+ * 4, data:     状态设置，详见uart_protocol_v1_state_bytes_t
  */
 typedef struct {
     head_t  head;
@@ -83,7 +94,7 @@ static inline int _check_frame_head(uint16_t *head)
 static inline void _init_frame_cmd(frame_t *frame, cmd_t *cmd)
 {
     frame->cmd.cmd_type = cmd->cmd_type;
-    frame->cmd.cmd_num  = cmd->cmd_num;
+    frame->cmd.cmd      = cmd->cmd;
 }
 
 static inline void _init_frame_bc(frame_t *frame, uint16_t bc)
@@ -134,6 +145,21 @@ static void _dump_frame(frame_t *frame, int len)
     printf("\n");
 }
 
+// 低比特在前，高比特在后
+typedef struct {
+    char none:7;
+    char power:1;
+} byte_1_t;
+
+// note: frame_t中的data可以强制转化成下面的结构体
+typedef struct {
+    byte_1_t byte1;
+} uart_protocol_v1_state_bytes_t;
+
+typedef struct {
+    uart_protocol_v1_state_bytes_t state;
+} uart_protocol_v1_state_t;
+
 int UartProtocolV1Init(void)
 {
     return 0;
@@ -144,7 +170,7 @@ int UartProtocolV1Final(void)
     return 0;
 }
 
-int UartProtocolV1Encode(unsigned char **frame, buf_t *buf, cmd_t *cmd)
+int UartProtocolV1Encode(unsigned char **frame, buf_t *buf, UartProtocolCmd_t *cmd)
 {
     size_t bc = DATA_TYPE_LEN(frame_t) + buf->len;
     *frame = calloc(1, bc);
@@ -153,11 +179,15 @@ int UartProtocolV1Encode(unsigned char **frame, buf_t *buf, cmd_t *cmd)
         return -1;
     }
 
+    cmd_t cmd_set;
+    cmd_set.cmd      = cmd->cmd;
+    cmd_set.cmd_type = CMD_TYPE_DOWN;
+
     frame_t *frame_p = (frame_t *)*frame;
 
     _init_frame_head(frame_p);
     _init_frame_bc(frame_p, buf->len);
-    _init_frame_cmd(frame_p, cmd);
+    _init_frame_cmd(frame_p, &cmd_set);
     _init_frame_data(frame_p, buf->buf, buf->len);
     _init_frame_cksum(frame_p, buf->len);
 
@@ -250,6 +280,7 @@ int UartProtocolV1Decode(buf_t *buf, frame_cnt_t *frame_cnt)
     return cnt;
 }
 
+// note: 同步所有状态到顶层protocol，根据具体协议解析 
 int UartProtocolV1SyncState(char *buf, UartProtocolState_t * const state)
 {
     frame_t *frame = (frame_t *)buf;
@@ -258,3 +289,37 @@ int UartProtocolV1SyncState(char *buf, UartProtocolState_t * const state)
     state->power = 1;
     return 0;
 }
+
+// 既可以单独设置需要控制字节，也可以同步所有字节状态
+static int _cmd_num_setting_power(buf_t *buf)
+{
+    for (int i = 0; i < 3; i++) {
+        buf->buf[i] = i;
+    }
+    buf->len = 3;
+    return 0;
+}
+
+static int _cmd_num_setting_query(buf_t *buf)
+{
+    (void)buf;
+    return 0;
+}
+
+typedef int (*cmd_setting_cb_t)(buf_t *buf);
+typedef struct {
+    UartProtocolCmdSetting_t    cmd;
+    cmd_setting_cb_t            cmd_setting_cb;
+} call_cmd_func_t;
+
+static call_cmd_func_t g_call_cmd_func[UART_PROTOCOL_CMD_MAX] = {
+    {UART_PROTOCOL_CMD_POWER,   _cmd_num_setting_power},
+    {UART_PROTOCOL_CMD_QUERY,   _cmd_num_setting_query},
+};
+
+int UartProtocolV1SetState(UartProtocolCmd_t *cmd, buf_t *buf)
+{
+    g_call_cmd_func[(int)cmd->cmd].cmd_setting_cb(buf);
+    return 0;
+}
+

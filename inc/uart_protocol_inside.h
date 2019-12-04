@@ -31,6 +31,7 @@ extern "C" {
 #endif
 
 #include <sys/types.h>
+#include "utils.h"
 
 #define UART_PROTOCOL_BUF_LEN       (64)
 typedef struct {
@@ -44,6 +45,14 @@ typedef struct {
     char *frame[UART_PROTOCOL_FRAME_NUM];
     size_t len[UART_PROTOCOL_FRAME_NUM];
 } frame_cnt_t;
+
+typedef enum {
+    CMD_TYPE_UP             = 0x10,
+    CMD_TYPE_DOWN           = 0x30,
+    CMD_TYPE_RETRANSMISSION = 0x50,
+    CMD_TYPE_RESPOND        = 0x70,
+} cmd_type_t;
+
 
 LIBUTILS_INC_UART_PROTOCOL_INSIDE_EX void UartProtocolDumpHex(char *sign, char *buf, size_t len);
 #ifdef __cplusplus

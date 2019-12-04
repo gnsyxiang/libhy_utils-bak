@@ -33,28 +33,24 @@ extern "C" {
 #include "utils.h"
 
 typedef enum {
+    UART_PROTOCOL_VAL_ON,
+    UART_PROTOCOL_VAL_OFF,
+    UART_PROTOCOL_VAL_NONE,
+
+    UART_PROTOCOL_VAL_MAX,
+} UartProtocolCmdVal_t;
+
+typedef enum {
     UART_PROTOCOL_CMD_POWER,
     UART_PROTOCOL_CMD_QUERY,
 
     UART_PROTOCOL_CMD_MAX,
 } UartProtocolCmdSetting_t;
 
-typedef enum {
-    CMD_TYPE_UP             = 0x10,
-    CMD_TYPE_DOWN           = 0x30,
-    CMD_TYPE_RETRANSMISSION = 0x50,
-    CMD_TYPE_RESPOND        = 0x70,
-} cmd_type_t;
-
-/**
- * @brief 命令说明
- * cmd_type: 表示命令的种类，详见cmd_type_t;
- * cmd_num: 表示具体的命令，详见UartProtocolCmdSetting_t;
- */
 typedef struct {
-    char cmd_type;
-    char cmd_num;
-} UNPACK cmd_t;
+    UartProtocolCmdSetting_t    cmd;
+    int                         val;
+} UartProtocolCmd_t;
 
 typedef struct {
     int power;
@@ -69,7 +65,7 @@ typedef struct {
 LIBUTILS_INC_UART_PROTOCOL_EX void *UartProtocolInit(UartProtocolConfig_t *config);
 LIBUTILS_INC_UART_PROTOCOL_EX int UartProtocolFinal(void *handle);
 
-LIBUTILS_INC_UART_PROTOCOL_EX int UartProtocolWriteFrame(void *handle, cmd_t *cmd);
+LIBUTILS_INC_UART_PROTOCOL_EX int UartProtocolWriteFrame(void *handle, UartProtocolCmd_t *cmd);
 
 #ifdef __cplusplus
 }

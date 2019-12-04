@@ -68,9 +68,9 @@ int main(int argc, const char *argv[])
     config.read_cb = _uart_protocol_read_cb;
     void *handle = UartProtocolInit(&config);
 
-    cmd_t cmd;
-    cmd.cmd_type = CMD_TYPE_DOWN;
-    cmd.cmd_num  = UART_PROTOCOL_CMD_POWER;
+    UartProtocolCmd_t cmd;
+    cmd.cmd = UART_PROTOCOL_CMD_POWER;
+    cmd.val = UART_PROTOCOL_VAL_ON;
 
     while (1) {
         sleep(1);

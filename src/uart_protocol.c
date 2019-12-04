@@ -42,7 +42,6 @@
 
 static void _read_frame_loop(void *args);
 static void _write_frame_loop(void *args);
-static int _write_frame(void *handle, cmd_t *cmd);
 
 typedef enum {
     UART_PROTOCOL_V1,
@@ -53,9 +52,10 @@ typedef enum {
 
 typedef int (*uart_protocol_init_cb_t)(void);
 typedef int (*uart_protocol_final_cb_t)(void);
-typedef int (*uart_protocol_encode_cb_t)(unsigned char **frame, buf_t *buf, cmd_t *cmd);
+typedef int (*uart_protocol_encode_cb_t)(unsigned char **frame, buf_t *buf, UartProtocolCmd_t *cmd);
 typedef int (*uart_protocol_decode_cb_t)(buf_t *buf, frame_cnt_t *frame_cnt);
 typedef int (*uart_protocol_sync_state_cb_t)(char *frame, UartProtocolState_t * const state);
+typedef int (*uart_protocol_set_state_cb_t)(UartProtocolCmd_t *cmd, buf_t *buf);
 
 typedef struct {
     uart_protocol_init_cb_t         init_cb;
@@ -63,6 +63,7 @@ typedef struct {
     uart_protocol_encode_cb_t       encode_cb;
     uart_protocol_decode_cb_t       decode_cb;
     uart_protocol_sync_state_cb_t   sync_state_cb;
+    uart_protocol_set_state_cb_t    set_state_cb;
 } uart_protocol_cb_t;
 
 typedef struct {
@@ -98,7 +99,7 @@ typedef struct {
     struct list_head    list;
 } frame_list_t;
 
-static frame_list_t *_frame_list_init(uart_protocol_state_t *uart_protocol_state, buf_t *buf, cmd_t *cmd)
+static frame_list_t *_frame_list_init(uart_protocol_state_t *uart_protocol_state, buf_t *buf, UartProtocolCmd_t *cmd)
 {
     frame_list_t *frame_list = calloc(1, DATA_TYPE_LEN(frame_list_t));
     if (!frame_list) {
@@ -165,17 +166,47 @@ static inline void _creat_thread_final(creat_threads_t *creat_threads)
     sem_destroy(&creat_threads->sem_write_thread_exit);
 }
 
+static int _write_frame(void *handle, UartProtocolCmd_t *cmd)
+{
+    buf_t buf;
+    Memset(buf);
+
+    uart_protocol_state_t *uart_protocol_state = (uart_protocol_state_t *)handle;
+
+    if (uart_protocol_state->version == UART_PROTOCOL_MAX) {
+        uart_protocol_log("the version is UART_PROTOCOL_MAX \n");
+        return -1;
+    }
+
+    uart_protocol_state->protocol_cb.set_state_cb(cmd, &buf);
+
+    frame_list_t *frame_list = _frame_list_init(uart_protocol_state, &buf, cmd);
+    if (!frame_list) {
+        uart_protocol_log("_frame_list_init faild \n");
+        return -1;
+    }
+
+    list_wrapper_t *list_wrapper = &uart_protocol_state->list_wrapper;
+    pthread_mutex_lock(&list_wrapper->mutex);
+    list_add_tail(&frame_list->list, &list_wrapper->list);
+    pthread_mutex_unlock(&list_wrapper->mutex);
+
+    sem_post(&list_wrapper->sem_write);
+
+    return 0;
+}
+
 static void _lock_version_loop(void *args)
 {
-    cmd_t cmd;
+    UartProtocolCmd_t cmd;
     uart_protocol_version_t version = UART_PROTOCOL_V1;
     uart_protocol_state_t *uart_protocol_state = args;
     uart_protocol_cb_t protocol_cb[UART_PROTOCOL_MAX] = {
-        {UartProtocolV1Init, UartProtocolV1Final, UartProtocolV1Encode, UartProtocolV1Decode, UartProtocolV1SyncState},
+        {UartProtocolV1Init, UartProtocolV1Final, UartProtocolV1Encode, UartProtocolV1Decode, UartProtocolV1SyncState, UartProtocolV1SetState},
     };
 
-    cmd.cmd_type = CMD_TYPE_DOWN;
-    cmd.cmd_num  = UART_PROTOCOL_CMD_QUERY;
+    cmd.cmd = UART_PROTOCOL_CMD_QUERY;
+    cmd.val = UART_PROTOCOL_VAL_NONE;
 
     while (!uart_protocol_state->lock_version) {
         if (version == UART_PROTOCOL_MAX) {
@@ -318,66 +349,8 @@ int UartProtocolFinal(void *handle)
     return 0;
 }
 
-static int _cmd_num_setting_power(char *buf)
-{
-#define POWER_LEN (3)
-    for (int i = 0; i < POWER_LEN; i++) {
-        buf[i] = i;
-    }
-    return POWER_LEN;
-}
 
-static int _cmd_num_setting_query(char *buf)
-{
-#define QUERY_LEN (3)
-    for (int i = 0; i < POWER_LEN; i++) {
-        buf[i] = i;
-    }
-    return QUERY_LEN;
-}
-
-typedef int (*cmd_setting_cb_t)(char *buf);
-typedef struct {
-    UartProtocolCmdSetting_t    cmd;
-    cmd_setting_cb_t            cmd_setting_cb;
-} call_cmd_func_t;
-
-static call_cmd_func_t g_call_cmd_func[UART_PROTOCOL_CMD_MAX] = {
-    {UART_PROTOCOL_CMD_POWER,   _cmd_num_setting_power},
-    {UART_PROTOCOL_CMD_QUERY,   _cmd_num_setting_query},
-};
-
-static int _write_frame(void *handle, cmd_t *cmd)
-{
-    buf_t buf;
-    Memset(buf);
-
-    uart_protocol_state_t *uart_protocol_state = (uart_protocol_state_t *)handle;
-
-    if (uart_protocol_state->version == UART_PROTOCOL_MAX) {
-        uart_protocol_log("the version is UART_PROTOCOL_MAX \n");
-        return -1;
-    }
-
-    buf.len = g_call_cmd_func[(int)cmd->cmd_num].cmd_setting_cb(buf.buf);
-
-    frame_list_t *frame_list = _frame_list_init(uart_protocol_state, &buf, cmd);
-    if (!frame_list) {
-        uart_protocol_log("_frame_list_init faild \n");
-        return -1;
-    }
-
-    list_wrapper_t *list_wrapper = &uart_protocol_state->list_wrapper;
-    pthread_mutex_lock(&list_wrapper->mutex);
-    list_add_tail(&frame_list->list, &list_wrapper->list);
-    pthread_mutex_unlock(&list_wrapper->mutex);
-
-    sem_post(&list_wrapper->sem_write);
-
-    return 0;
-}
-
-int UartProtocolWriteFrame(void *handle, cmd_t *cmd)
+int UartProtocolWriteFrame(void *handle, UartProtocolCmd_t *cmd)
 {
     if (!handle) {
         uart_protocol_log("the handle is NULL \n");
