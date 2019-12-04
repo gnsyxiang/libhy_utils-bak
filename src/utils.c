@@ -27,7 +27,7 @@ void DumpHexData(char *buf, int len)
 {
     printf("len[%d]: ", len);
     for (int i = 0; i < len; i++) {
-        printf("%02x ", buf[i]);
+        printf("%02x ", (unsigned char)buf[i]);
     }
     printf("\n");
 }

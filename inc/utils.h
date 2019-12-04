@@ -39,7 +39,8 @@ extern "C" {
 #define ARRAY_ITEM_LEN(arr)     (sizeof(arr[0]))
 #define ARRAY_CNT(arr)          (int)(ARRAY_LEN(arr) / ARRAY_ITEM_LEN(arr))
 
-#define DATA_TYPE_LEN(type)     (sizeof(type))
+#define DATA_TYPE_LEN(type)     (int)(sizeof(type))
+#define Memset(buf)             (memset(&buf, '\0', sizeof(buf)))
 
 
 #define MK_SHORT(hight, low)    ((hight) << 8 | (low))
