@@ -1,6 +1,36 @@
 
 
+# ignore pattern
+cscope.*
+
+*.o
+*.in
+*.la
+*.lo
+config.*
+Makefile
+
 # ignore dir
+.SpaceVim.d/
 node_modules/
 
+3rd_lib/
+m4/
+build-aux/
+autom4te.cache/
+.deps/
+.libs/
+install/
+
 # ignore files
+.clang
+
+aclocal.m4
+autoscan.log
+configure
+configure.scan
+example/demo_test
+libtool
+stamp-h1
+
+
