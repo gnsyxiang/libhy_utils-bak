@@ -18,7 +18,7 @@
 #     last modified: 21/03 2020 14:09
 # ===============================================================
 
-HEADERS_COM = utils-demo.h
+HEADERS_COM = utils_demo.h
 
 noinst_HEADERS  =
 include_HEADERS = $(HEADERS_COM)

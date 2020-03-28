@@ -2,7 +2,7 @@
  * 
  * Release under GPL-3.0.
  * 
- * @file    utils-demo.c
+ * @file    utils_demo.c
  * @brief   
  * @author  gnsyxiang <gnsyxiang@163.com>
  * @date    21/03 2020 14:13
@@ -18,7 +18,7 @@
  *     last modified: 21/03 2020 14:13
  */
 #include "hal_config.h"
-#include "utils-demo.h"
+#include "utils_demo.h"
 
 void UtilsDemoFunc(void)
 {

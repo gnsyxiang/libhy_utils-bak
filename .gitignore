@@ -1,5 +1,4 @@
 
-
 # ignore pattern
 cscope.*
 
@@ -29,8 +28,6 @@ aclocal.m4
 autoscan.log
 configure
 configure.scan
-example/demo_test
 libtool
 stamp-h1
-
 

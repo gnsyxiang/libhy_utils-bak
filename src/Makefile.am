@@ -29,7 +29,7 @@ CFLAGS_COM  += -fPIC
 CFLAGS_COM  += -Wno-unused-parameter
 CFLAGS_COM  += -I$(top_srcdir)/include
 
-SOURCES_COM  = utils-demo.c
+SOURCES_COM  = utils_demo.c
 
 AM_CFLAGS 		     = $(CFLAGS_COM)
 libutils_la_LDFLAGS  = $(LDFLAGS_COM)

@@ -23,11 +23,9 @@ CFLAGS_COM += -Wno-unused-parameter
 
 hal_ld_com  = -L$(top_builddir)/src/.libs
 hal_ld_com += -lutils
-hal_ld_com += -lhal
 
-bin_PROGRAMS = demo_test
+bin_PROGRAMS = demo
 
-demo_test_SOURCES = utils-demo_test.c
-demo_test_LDADD   = $(hal_ld_com)
-demo_test_CFLAGS  = $(AM_CFLAGS_COM) $(CFLAGS_COM)
-
+demo_SOURCES = demo.c
+demo_LDADD   = $(hal_ld_com)
+demo_CFLAGS  = $(AM_CFLAGS_COM) $(CFLAGS_COM)

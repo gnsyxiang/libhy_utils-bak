@@ -2,7 +2,7 @@
  * 
  * Release under GPL-3.0.
  * 
- * @file    utils-demo_test.c
+ * @file    utils_demo.h
  * @brief   
  * @author  gnsyxiang <gnsyxiang@163.com>
  * @date    21/03 2020 14:14
@@ -17,12 +17,18 @@
  * 
  *     last modified: 21/03 2020 14:14
  */
-#include "hal_config.h"
-#include "utils-demo.h"
+#ifndef __LIBUTILS_INCLUDE_UTILS_DEMO_H_
+#define __LIBUTILS_INCLUDE_UTILS_DEMO_H_
 
-hal_int32_t main(hal_int32_t argc, const hal_char *argv[])
-{
-    UtilsDemoFunc();
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-    return 0;
+void UtilsDemoFunc(void);
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif // __LIBUTILS_INCLUDE_UTILS_DEMO_H_
+
