@@ -83,16 +83,19 @@ static cJSON *_get_item(cJSON *root, const char *field, hal_uint32_t field_len)
     while (field_len_tmp > 0) {
         offset = Hal_strlen(field_fmt) + 1;
         index = _get_index(field_fmt);
+
         child = cJSON_GetObjectItem(parent, field_fmt);
         if (NULL == child) {
             goto L_GET_ITEM_1;
         }
+
         if (index >= 0) {
             child = cJSON_GetArrayItem(child, index);
             if (NULL == child) {
                 goto L_GET_ITEM_1;
             }
         }
+
         parent         = child;
         field_fmt     += offset;
         field_len_tmp -= offset;
@@ -103,38 +106,67 @@ L_GET_ITEM_1:
     return child;
 }
 
-hal_int32_t UtilsJsonGetInt(cJSON *root, hal_char_t *field, hal_uint32_t field_len, hal_int32_t *val)
+void *_get_item_com(cJSON *root, hal_char_t *field, hal_uint32_t field_len)
 {
-    if (NULL == root || NULL == val || NULL == field || field_len <= 0) {
+    if (NULL == root || NULL == field || field_len <= 0) {
         HalLogE("the param is NULL \n");
-        return  HAL_INVALID_PARAM_ERR;
+        return NULL;
     }
 
     cJSON *item = _get_item(root, field, field_len);
     if (NULL == item) {
         HalLogE("get item is NULL \n");
-        return  HAL_INVALID_PARAM_ERR;
+        return  NULL;
     }
 
-    if (cJSON_Number != item->type) {
-        HalLogE("the cJSON type error \n");
-        return  HAL_INVALID_PARAM_ERR;
-    }
+    return item;
+}
 
-    *val = item->valueint;
+#define _get_item_com_macro(root, field, field_len, val_type)   \
+    ({                                                          \
+        cJSON *item = _get_item_com(root, field, field_len);    \
+        if (NULL == item || val_type != item->type) {           \
+            HalLogE("the cJSON type error \n");                 \
+            return  HAL_INVALID_PARAM_ERR;                      \
+        }                                                       \
+        item;                                                   \
+    })
+
+hal_int32_t UtilsJsonGetInt(cJSON *root, hal_int32_t *val, 
+                            hal_char_t *field, hal_uint32_t field_len)
+{
+    cJSON *item = _get_item_com_macro(root, field, field_len, cJSON_Number);
+
+    if (NULL != val) {
+        *val = item->valueint;
+    }
 
     return HAL_NO_ERR;
 }
 
-// void *UtilsJsonGetDouble(cJSON *json, hal_char_t *field, hal_double_t val)
-// {
-// return NULL;
-// }
-//
-// void *UtilsJsonGetString(cJSON *json, hal_char_t *field, hal_char_t val)
-// {
-// return NULL;
-// }
+hal_int32_t UtilsJsonGetDouble(cJSON *root, hal_double_t *val, 
+                               hal_char_t *field, hal_uint32_t field_len)
+{
+    cJSON *item = _get_item_com_macro(root, field, field_len, cJSON_Number);
+
+    if (NULL != val) {
+        *val = item->valuedouble;
+    }
+
+    return HAL_NO_ERR;
+}
+
+hal_int32_t UtilsJsonGetString(cJSON *root, hal_char_t *val, 
+                               hal_char_t *field, hal_uint32_t field_len)
+{
+    cJSON *item = _get_item_com_macro(root, field, field_len, cJSON_String);
+
+    if (NULL != val) {
+        Hal_strncpy(val, item->valuestring, Hal_strlen(item->valuestring));
+    }
+
+    return HAL_NO_ERR;
+}
 
 #if 0
 #include <stdarg.h>

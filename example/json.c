@@ -23,22 +23,62 @@
 #include "hal/hal_string.h"
 #include "hal/hal_log.h"
 
-
 hal_char_t text_json[]="{\n\
 	\"image\": {\n\
 		\"width\":  800,\n\
-		\"height\": 600,\n\
-		\"title\":  \"View from 15th Floor\",\n\
-		\"thumbnail\": {\n\
-			\"url\":    \"http:/*www.example.com/image/481989943\",\n\
-			\"height\": 125,\n\
-			\"width\":  \"100\"\n\
-		},\n\
+		\"height\":  600.1,\n\
+		\"hello\": \"world\",\n\
 		\"int\": [1, 2, 3, 4],\n\
 		\"double\": [1.1, 0.2, 0.3],\n\
 		\"string\": [\"haha\", \"heihei\"]\n\
 	}\n\
 }";
+
+static void _test_1(cJSON *root)
+{
+    hal_char_t *field = NULL;
+    hal_int32_t int_val = 0;
+    hal_double_t double_val = 0.0;
+    hal_char_t str_val[16] = {0};
+
+    field = "image.width";
+    if (0 == UtilsJsonGetInt(root, &int_val, field, Hal_strlen(field))) {
+        HalLogD("width: %d \n", int_val);
+    }
+
+    field = "image.height";
+    if (0 == UtilsJsonGetDouble(root, &double_val, field, Hal_strlen(field))) {
+        HalLogD("height: %f \n", double_val);
+    }
+
+    field = "image.hello";
+    if (0 == UtilsJsonGetString(root, str_val, field, Hal_strlen(field))) {
+        HalLogD("hello, %s \n", str_val);
+    }
+}
+
+static void _test_2(cJSON *root)
+{
+    hal_char_t *field = NULL;
+    hal_int32_t int_val = 0;
+    hal_double_t double_val = 0.0;
+    hal_char_t str_val[16] = {0};
+
+    field = "image.int[2]";
+    if (0 == UtilsJsonGetInt(root, &int_val, field, Hal_strlen(field))) {
+        HalLogD("int val: %d \n", int_val);
+    }
+
+    field = "image.double[2]";
+    if (0 == UtilsJsonGetDouble(root, &double_val, field, Hal_strlen(field))) {
+        HalLogD("double val: %f \n", double_val);
+    }
+
+    field = "image.string[1]";
+    if (0 == UtilsJsonGetString(root, str_val, field, Hal_strlen(field))) {
+        HalLogD("string val: %s \n", str_val);
+    }
+}
 
 hal_int32_t main(hal_int32_t argc, const hal_char_t *argv[])
 {
@@ -51,11 +91,8 @@ hal_int32_t main(hal_int32_t argc, const hal_char_t *argv[])
 
     cJSON *root = cJSON_Parse(text_json);
 
-    hal_char_t *field = "image.int[2]";
-    int val;
-    if (0 == UtilsJsonGetInt(root, field, Hal_strlen(field), &val)) {
-        HalLogD("int val: %d \n", val);
-    }
+    _test_1(root);
+    _test_2(root);
 
     cJSON_Delete(root);
 
