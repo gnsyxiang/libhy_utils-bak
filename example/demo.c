@@ -17,7 +17,7 @@
  * 
  *     last modified: 21/03 2020 14:14
  */
-#include "hal_config.h"
+#include "hal/hal_type.h"
 #include "utils_demo.h"
 
 hal_int32_t main(hal_int32_t argc, const hal_char_t *argv[])

@@ -24,8 +24,17 @@ CFLAGS_COM += -Wno-unused-parameter
 hal_ld_com  = -L$(top_builddir)/src/.libs
 hal_ld_com += -lutils
 
-bin_PROGRAMS = demo
+bin_PROGRAMS 	=
 
-demo_SOURCES = demo.c
-demo_LDADD   = $(hal_ld_com)
-demo_CFLAGS  = $(AM_CFLAGS_COM) $(CFLAGS_COM)
+if COMPILE_WITH_LIBCJSON_UTILS
+bin_PROGRAMS 	+= json
+json_SOURCES	 = json.c -lcjson
+json_LDADD   	 = $(hal_ld_com)
+json_CFLAGS  	 = $(AM_CFLAGS_COM) $(CFLAGS_COM)
+endif
+
+bin_PROGRAMS	+= demo
+demo_SOURCES 	 = demo.c
+demo_LDADD   	 = $(hal_ld_com)
+demo_CFLAGS  	 = $(AM_CFLAGS_COM) $(CFLAGS_COM)
+

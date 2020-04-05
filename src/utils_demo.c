@@ -17,11 +17,13 @@
  * 
  *     last modified: 21/03 2020 14:13
  */
-#include "hal_config.h"
 #include "utils_demo.h"
+
+#include "hal/hal_type.h"
+#include "hal/hal_log.h"
 
 void UtilsDemoFunc(void)
 {
-    Hal_LogT("hell demo test func \n");
+    HalLogT("hell demo test func \n");
 }
 
