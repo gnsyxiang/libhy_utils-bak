@@ -1,3 +1,22 @@
+# ===============================================================
+# 
+# Release under GPL-3.0.
+# 
+# @file    .gitignore
+# @brief   
+# @author  gnsyxiang <gnsyxiang@163.com>
+# @date    05/04 2020 11:54
+# @version v0.0.1
+# 
+# @since    note
+# @note     note
+# 
+#     change log:
+#     NO.     Author              Date            Modified
+#     00      zhenquan.qiu        05/04 2020      create the file
+# 
+#     last modified: 05/04 2020 11:54
+# ===============================================================
 
 # ignore pattern
 cscope.*
@@ -13,12 +32,13 @@ Makefile
 .SpaceVim.d/
 node_modules/
 
-3rd_lib/
 m4/
 build-aux/
 autom4te.cache/
 .deps/
 .libs/
+3rd_lib/
+build/
 install/
 
 # ignore files
@@ -30,4 +50,6 @@ configure
 configure.scan
 libtool
 stamp-h1
+example/demo
+example/json
 
