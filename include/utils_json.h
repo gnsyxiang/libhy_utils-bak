@@ -24,10 +24,10 @@
 extern "C" {
 #endif
 
+#include "hal/hal_type.h"
 #include "cJSON.h"
-#include "hal/hal_config.h"
 
-void *UtilsJsonGetInt(cJSON *json, hal_char_t *field, hal_int32_t val);
+hal_int32_t UtilsJsonGetInt(cJSON *root, hal_char_t *field, hal_uint32_t field_len, hal_int32_t *val);
 // void *UtilsJsonGetDouble(cJSON *json, hal_char_t *field, hal_double_t val);
 // void *UtilsJsonGetString(cJSON *json, hal_char_t *field, hal_char_t val);
 
