@@ -174,7 +174,60 @@ int cJSON_GetItemIntValue_va(cJSON *json, int n, ...)
     js = cJSON_GetItem_valist(json, n, list);
     va_end(list);
 
-    return js->valueint;
+    if (js && cJSON_Number == js->type) {
+        return js->valueint;
+    }
+    return -1;
 }
+
+#define comac_args_seqs() \
+    39, 38, 37, 36, 35, 34, 33, 32, 31, 30, \
+    29, 28, 27, 26, 25, 24, 23, 22, 21, 20, \
+    19, 18, 17, 16, 15, 14, 13, 12, 11, 10, \
+    9,   8,  7,  6,  5,  4,  3,  2,  1,  0
+
+#define comac_arg_n( \
+        _0,   _1,  _2,  _3,  _4,  _5,  _6,  _7,  _8,  _9, \
+        _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, \
+        _20, _21, _22, _23, _24, _25, _26, _27, _28, _29, \
+        _30, _31, _32, _33, _34, _35, _36, _37, _38, _39, \
+        \
+        _N, ...) _N
+
+#define comac_get_args_cnt(...) comac_arg_n(__VA_ARGS__)
+
+/**
+ *  comac_argc: calculate macro args' count, maxim to 36
+ */
+#define comac_argc(...) comac_get_args_cnt(0, ##__VA_ARGS__, comac_args_seqs())
+
+#define cJSON_GetItemIntValue(error_val, json, x...) cJSON_GetItemIntValue_va(json, error_val, comac_argc(x), x)
+
+hal_char_t text_json[]="{\n\
+	\"image\": {\n\
+		\"width\":  800,\n\
+		\"height\": 600,\n\
+		\"title\":  \"View from 15th Floor\",\n\
+		\"thumbnail\": {\n\
+			\"url\":    \"http:/*www.example.com/image/481989943\",\n\
+			\"height\": 125,\n\
+			\"width\":  \"100\"\n\
+		},\n\
+		\"int\": [1, 2, 3, 4],\n\
+		\"double\": [1.1, 0.2, 0.3],\n\
+		\"string\": [\"haha\", \"heihei\"]\n\
+	}\n\
+}";
+
+void json_test(void)
+{
+    cJSON *root = cJSON_Parse(text_json);
+
+    int height = cJSON_GetItemIntValue(-1, root, "image", "thumbnail", "height");
+    printf("Height: %d \n", height);
+
+    cJSON_Delete(root);
+}
+
 #endif
 
