@@ -29,7 +29,11 @@ CFLAGS_COM  += -fPIC
 CFLAGS_COM  += -Wno-unused-parameter
 CFLAGS_COM  += -I$(top_srcdir)/include
 
-SOURCES_COM  = utils_demo.c utils_json.c
+SOURCES_COM  = utils_demo.c
+
+if COMPILE_WITH_LIBCJSON_UTILS
+SOURCES_COM	+= utils_json.c
+endif
 
 AM_CFLAGS 		     = $(CFLAGS_COM)
 libutils_la_LDFLAGS  = $(LDFLAGS_COM)

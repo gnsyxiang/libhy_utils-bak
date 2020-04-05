@@ -18,7 +18,11 @@
 #     last modified: 21/03 2020 14:09
 # ===============================================================
 
-HEADERS_COM = utils_demo.h utils_json.h
+HEADERS_COM 	 = utils_demo.h
+
+if COMPILE_WITH_LIBCJSON_UTILS
+HEADERS_COM 	+= utils_json.h
+endif
 
 noinst_HEADERS  =
 include_HEADERS = $(HEADERS_COM)
