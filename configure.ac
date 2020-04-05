@@ -66,17 +66,17 @@ AC_ARG_WITH([libhal],
              fi]
             )
 
-trylibcjsondir=""
-AC_ARG_WITH([libcjson],
-            [  --with-libcjson=PATH     Specify path to libcjson installation ],
-            [if test "x$withval" != "xno" ; then
-             trylibcjsondir=$withval
-             fi]
-            )
-
 dnl ------------------------------------------------------
 dnl libcjson detection.
 if test "x$enable_libcjson" = "xyes"; then
+    trylibcjsondir=""
+    AC_ARG_WITH([libcjson],
+                [  --with-libcjson=PATH     Specify path to libcjson installation ],
+                [if test "x$withval" != "xno" ; then
+                 trylibcjsondir=$withval
+                 fi]
+                )
+
     AC_CACHE_CHECK([for libcjson directory],
                    [ac_cv_libcjson_dir],
                    [saved_LIBS="$LIBS"
