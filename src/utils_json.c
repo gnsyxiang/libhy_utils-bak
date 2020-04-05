@@ -44,7 +44,7 @@ static hal_int32_t _get_index(hal_char_t *fmt)
 
 static hal_char_t *_field_fmt_init(const hal_char_t *field, hal_uint32_t field_len)
 {
-    hal_char_t *field_fmt = Hal_calloc(1, field_len);
+    hal_char_t *field_fmt = Hal_calloc(1, ALIGN4(field_len) + ALIGN4(1));
     if (NULL == field_fmt) {
         HalLogE("calloc failed \n");
         return NULL;
