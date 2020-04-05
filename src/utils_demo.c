@@ -17,8 +17,10 @@
  * 
  *     last modified: 21/03 2020 14:13
  */
-#include "hal/hal_config.h"
 #include "utils_demo.h"
+
+#include "hal/hal_type.h"
+#include "hal/hal_log.h"
 
 void UtilsDemoFunc(void)
 {
