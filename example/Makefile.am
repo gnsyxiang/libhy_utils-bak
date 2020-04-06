@@ -27,9 +27,6 @@ hal_ld_com += -lutils
 bin_PROGRAMS 	=
 
 if COMPILE_WITH_LIBCJSON_UTILS
-configdir=${prefix}/config
-config_DATA=cjson.config
-
 bin_PROGRAMS 	+= cjson
 cjson_SOURCES	 = cjson.c
 cjson_LDADD   	 = $(hal_ld_com) -lcjson

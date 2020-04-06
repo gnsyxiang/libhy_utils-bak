@@ -91,7 +91,7 @@ static void _test_json_str(void)
     cJSON_Delete(root);
 }
 
-#define JSON_CONFIG_FILE "cjson.config"
+#define JSON_CONFIG_FILE "../res/cjson.config"
 
 static void _test_3(void)
 {
