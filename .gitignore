@@ -51,5 +51,5 @@ configure.scan
 libtool
 stamp-h1
 example/demo
-example/json
+example/cjson
 

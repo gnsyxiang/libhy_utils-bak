@@ -21,7 +21,7 @@
 HEADERS_COM 	 = utils_demo.h
 
 if COMPILE_WITH_LIBCJSON_UTILS
-HEADERS_COM 	+= utils_json.h
+HEADERS_COM 	+= utils_cjson.h
 endif
 
 noinst_HEADERS  =
