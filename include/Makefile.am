@@ -25,5 +25,8 @@ HEADERS_COM 	+= utils_cjson.h
 endif
 
 noinst_HEADERS  =
-include_HEADERS = $(HEADERS_COM)
+
+halincludedir = $(includedir)/utils
+
+halinclude_HEADERS = $(HEADERS_COM)
 
