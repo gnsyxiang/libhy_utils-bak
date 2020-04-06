@@ -45,6 +45,8 @@ static void _test_1(cJSON *root)
     if (0 == UtilsJsonGetString(root, str_val, field, Hal_strlen(field))) {
         HalLogD("hello, %s \n", str_val);
     }
+
+    printf("\n\n");
 }
 
 static void _test_2(cJSON *root)
@@ -68,6 +70,8 @@ static void _test_2(cJSON *root)
     if (0 == UtilsJsonGetString(root, str_val, field, Hal_strlen(field))) {
         HalLogD("string val: %s \n", str_val);
     }
+
+    printf("\n\n");
 }
 
 static void _test_json_str(void)
@@ -97,11 +101,25 @@ static void _test_3(void)
 {
     hal_char_t *field = NULL;
     hal_int32_t int_val = 0;
+    hal_double_t double_val = 0.0;
+    hal_char_t str_val[16] = {0};
 
     field = "image.int[2]";
     if (0 == UtilsJsonFileGetInt(JSON_CONFIG_FILE, &int_val, field, Hal_strlen(field))) {
         HalLogD("int val: %d \n", int_val);
     }
+
+    field = "image.double[2]";
+    if (0 == UtilsJsonFileGetDouble(JSON_CONFIG_FILE, &double_val, field, Hal_strlen(field))) {
+        HalLogD("double val: %f \n", double_val);
+    }
+
+    field = "image.string[1]";
+    if (0 == UtilsJsonFileGetString(JSON_CONFIG_FILE, str_val, field, Hal_strlen(field))) {
+        HalLogD("string val: %s \n", str_val);
+    }
+
+    printf("\n\n");
 }
 
 static void _test_json_file(void)

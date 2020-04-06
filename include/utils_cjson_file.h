@@ -33,11 +33,11 @@ void UtilsJsonFilePutRoot(cJSON **root);
 hal_int32_t UtilsJsonFileGetInt(hal_char_t *file, hal_int32_t *val, 
                                 hal_char_t *field, hal_uint32_t field_len);
 
-// hal_int32_t UtilsJsonFileGetDouble(hal_char_t *file, hal_double_t *val,
-                                   // hal_char_t *field, hal_uint32_t field_len);
-//
-// hal_int32_t UtilsJsonFileGetString(hal_char_t *file, hal_char_t *val,
-                                   // hal_char_t *field, hal_uint32_t field_len);
+hal_int32_t UtilsJsonFileGetDouble(hal_char_t *file, hal_double_t *val,
+                                   hal_char_t *field, hal_uint32_t field_len);
+
+hal_int32_t UtilsJsonFileGetString(hal_char_t *file, hal_char_t *val,
+                                   hal_char_t *field, hal_uint32_t field_len);
 
 #ifdef __cplusplus
 }

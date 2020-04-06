@@ -98,8 +98,12 @@ void UtilsJsonFilePutRoot(cJSON **root)
     *root = NULL;
 }
 
-hal_int32_t UtilsJsonFileGetInt(hal_char_t *file, hal_int32_t *val, 
-        hal_char_t *field, hal_uint32_t field_len)
+typedef hal_int32_t (*file_get_cb_t)(cJSON *root, void *val, hal_char_t *field,
+                                     hal_uint32_t field_len);
+
+static hal_int32_t _file_get_com(hal_char_t *file, void *val, 
+                                 hal_char_t *field, hal_uint32_t field_len,
+                                 file_get_cb_t file_get_cb)
 {
     if (NULL == file || NULL == val) {
         HalLogE("the paran is NULL \n");
@@ -112,13 +116,36 @@ hal_int32_t UtilsJsonFileGetInt(hal_char_t *file, hal_int32_t *val,
         return -1;
     }
 
-    if (0 != UtilsJsonGetInt(root, val, field, field_len)) {
-        HalLogE("parse int json failed \n");
-        return -1;
+    if (NULL != file_get_cb) {
+        if (0 != file_get_cb(root, val, field, field_len)) {
+            HalLogE("parse int json failed \n");
+            return -1;
+        }
     }
 
     UtilsJsonFilePutRoot(&root);
 
     return 0;
+}
+
+hal_int32_t UtilsJsonFileGetInt(hal_char_t *file, hal_int32_t *val, 
+                                hal_char_t *field, hal_uint32_t field_len)
+{
+    return _file_get_com(file, val, field, field_len, 
+                         (file_get_cb_t)UtilsJsonGetInt);
+}
+
+hal_int32_t UtilsJsonFileGetDouble(hal_char_t *file, hal_double_t *val,
+                                   hal_char_t *field, hal_uint32_t field_len)
+{
+    return _file_get_com(file, val, field, field_len, 
+                         (file_get_cb_t)UtilsJsonGetDouble);
+}
+
+hal_int32_t UtilsJsonFileGetString(hal_char_t *file, hal_char_t *val,
+                                   hal_char_t *field, hal_uint32_t field_len)
+{
+    return _file_get_com(file, val, field, field_len, 
+                         (file_get_cb_t)UtilsJsonGetString);
 }
 
