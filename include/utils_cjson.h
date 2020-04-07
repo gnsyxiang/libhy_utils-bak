@@ -2,7 +2,7 @@
  *
  * Release under GPL-3.0.
  * 
- * @file    utils_json.h
+ * @file    utils_cjson.h
  * @brief   
  * @author  gnsyxiang <gnsyxiang@163.com>
  * @date    03/04 2020 22:31
@@ -17,15 +17,15 @@
  * 
  *     last modified: 03/04 2020 22:31
  */
-#ifndef __UTILS_INCLUDE_UTILS_JSON_H_
-#define __UTILS_INCLUDE_UTILS_JSON_H_
+#ifndef __UTILS_INCLUDE_UTILS_CJSON_H_
+#define __UTILS_INCLUDE_UTILS_CJSON_H_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include "hal/hal_type.h"
-#include "cJSON.h"
+#include "cjson/cJSON.h"
 
 hal_int32_t UtilsJsonGetInt(cJSON *root, hal_int32_t *val, 
                             hal_char_t *field, hal_uint32_t field_len);
@@ -39,5 +39,5 @@ hal_int32_t UtilsJsonGetString(cJSON *root, hal_char_t *val,
 }
 #endif
 
-#endif // __UTILS_INCLUDE_UTILS_JSON_H_
+#endif // __UTILS_INCLUDE_UTILS_CJSON_H_
 

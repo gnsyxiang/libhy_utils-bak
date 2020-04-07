@@ -32,7 +32,7 @@ CFLAGS_COM  += -I$(top_srcdir)/include
 SOURCES_COM  = utils_demo.c
 
 if COMPILE_WITH_LIBCJSON_UTILS
-SOURCES_COM	+= utils_json.c
+SOURCES_COM	+= utils_cjson.c utils_cjson_file.c
 endif
 
 AM_CFLAGS 		     = $(CFLAGS_COM)

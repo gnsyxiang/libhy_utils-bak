@@ -27,10 +27,10 @@ hal_ld_com += -lutils
 bin_PROGRAMS 	=
 
 if COMPILE_WITH_LIBCJSON_UTILS
-bin_PROGRAMS 	+= json
-json_SOURCES	 = json.c -lcjson
-json_LDADD   	 = $(hal_ld_com)
-json_CFLAGS  	 = $(AM_CFLAGS_COM) $(CFLAGS_COM)
+bin_PROGRAMS 	+= cjson
+cjson_SOURCES	 = cjson.c
+cjson_LDADD   	 = $(hal_ld_com)
+cjson_CFLAGS  	 = $(AM_CFLAGS_COM) $(CFLAGS_COM)
 endif
 
 bin_PROGRAMS	+= demo
