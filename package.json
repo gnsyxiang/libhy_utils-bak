@@ -22,7 +22,7 @@
   },
   "homepage": "https://github.com/gnsyxiang/libutils#readme",
   "devDependencies": {
-    "cz-conventional-changelog": "^3.0.2"
+    "cz-conventional-changelog": "^3.1.0"
   },
   "config": {
     "commitizen": {

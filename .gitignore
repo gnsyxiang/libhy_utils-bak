@@ -1,6 +1,55 @@
+# ===============================================================
+# 
+# Release under GPL-3.0.
+# 
+# @file    .gitignore
+# @brief   
+# @author  gnsyxiang <gnsyxiang@163.com>
+# @date    05/04 2020 11:54
+# @version v0.0.1
+# 
+# @since    note
+# @note     note
+# 
+#     change log:
+#     NO.     Author              Date            Modified
+#     00      zhenquan.qiu        05/04 2020      create the file
+# 
+#     last modified: 05/04 2020 11:54
+# ===============================================================
 
+# ignore pattern
+cscope.*
+
+*.o
+*.in
+*.la
+*.lo
+config.*
+Makefile
 
 # ignore dir
+.SpaceVim.d/
 node_modules/
 
+m4/
+build-aux/
+autom4te.cache/
+.deps/
+.libs/
+3rd_lib/
+build/
+install/
+
 # ignore files
+.clang
+
+aclocal.m4
+autoscan.log
+configure
+configure.scan
+libtool
+stamp-h1
+example/demo
+example/cjson
+
