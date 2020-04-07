@@ -25,7 +25,7 @@ extern "C" {
 #endif
 
 #include "hal/hal_type.h"
-#include "cJSON.h"
+#include "cjson/cJSON.h"
 
 hal_int32_t UtilsJsonGetInt(cJSON *root, hal_int32_t *val, 
                             hal_char_t *field, hal_uint32_t field_len);

@@ -29,7 +29,7 @@ bin_PROGRAMS 	=
 if COMPILE_WITH_LIBCJSON_UTILS
 bin_PROGRAMS 	+= cjson
 cjson_SOURCES	 = cjson.c
-cjson_LDADD   	 = $(hal_ld_com) -lcjson
+cjson_LDADD   	 = $(hal_ld_com)
 cjson_CFLAGS  	 = $(AM_CFLAGS_COM) $(CFLAGS_COM)
 endif
 

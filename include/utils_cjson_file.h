@@ -25,7 +25,7 @@ extern "C" {
 #endif
 
 #include "hal/hal_type.h"
-#include "cJSON.h"
+#include "cjson/cJSON.h"
 
 cJSON *UtilsJsonFileGetRoot(hal_char_t *file);
 void UtilsJsonFilePutRoot(cJSON **root);
