@@ -24,6 +24,8 @@
 #include "hal/hal_mem.h"
 #include "hal/hal_log.h"
 
+static hal_int32_t cjson_hook_flag = 0;
+
 static hal_int32_t _get_index(hal_char_t *fmt)
 {
     hal_int32_t index;
@@ -65,6 +67,14 @@ static inline void _field_fmt_final(hal_char_t **field_tmp)
 
 static cJSON *_get_item(cJSON *root, const char *field, hal_uint32_t field_len)
 {
+    if (0 == cjson_hook_flag) {
+        cjson_hook_flag = 1;
+
+        cJSON_Hooks hooks;
+        hooks.malloc_fn = Hal_malloc;
+        hooks.free_fn   = Hal_free;
+        cJSON_InitHooks(&hooks);
+    }
     hal_char_t *field_fmt = _field_fmt_init(field, field_len);
     hal_char_t *field_fmt_p = field_fmt;
 
