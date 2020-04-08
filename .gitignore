@@ -43,6 +43,8 @@ install/
 
 # ignore files
 .clang
+package-lock.json
+tags
 
 aclocal.m4
 autoscan.log
@@ -50,6 +52,7 @@ configure
 configure.scan
 libtool
 stamp-h1
-example/demo
 example/cjson
+example/list
+
 

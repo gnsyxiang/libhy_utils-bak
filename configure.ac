@@ -21,37 +21,9 @@ AC_SUBST(age)
 
 AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 AM_SILENT_RULES([yes])
-
-# Checks for programs.
-AC_PROG_CXX
-AC_PROG_AWK
-AC_PROG_CC
-AC_PROG_CPP
-AC_PROG_INSTALL
-AC_PROG_LN_S
-AC_PROG_MAKE_SET
-AC_PROG_MKDIR_P
 AM_PROG_AR
+
 LT_INIT
-
-# Checks for libraries.
-AC_CHECK_LIB([hal], [HalThreadCreate])
-
-# Checks for header files.
-AC_CHECK_HEADERS([stdlib.h string.h])
-
-# Checks for typedefs, structures, and compiler characteristics.
-AC_TYPE_SIZE_T
-AC_C_INLINE
-AC_TYPE_OFF_T
-
-# Checks for library functions.
-
-AC_CONFIG_FILES([Makefile
-                 example/Makefile
-                 include/Makefile
-                 res/Makefile
-                 src/Makefile])
 
 AC_ARG_ENABLE([libcjson],
               [AS_HELP_STRING([--enable-libcjson], [using libcjson for config file] [[default=no]])],
@@ -212,5 +184,37 @@ if test $ac_cv_libhal_dir != "(system)"; then
     fi
 fi
 
-AC_OUTPUT
+# Checks for programs.
+AC_PROG_CXX
+AC_PROG_AWK
+AC_PROG_CC
+AC_PROG_CPP
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_MAKE_SET
+# AC_PROG_RANLIB
+AC_PROG_MKDIR_P
 
+# Checks for libraries.
+AC_CHECK_LIB([cjson], [cJSON_Parse])
+AC_CHECK_LIB([hal], [HalThreadCreate])
+
+# Checks for header files.
+AC_CHECK_HEADERS([fcntl.h stddef.h stdlib.h string.h])
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_C_INLINE
+AC_TYPE_MODE_T
+AC_TYPE_OFF_T
+AC_TYPE_SIZE_T
+AC_TYPE_SSIZE_T
+
+# Checks for library functions.
+
+AC_CONFIG_FILES([Makefile
+                 example/Makefile
+                 include/Makefile
+                 res/Makefile
+                 src/Makefile])
+
+AC_OUTPUT
