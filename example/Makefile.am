@@ -38,3 +38,8 @@ demo_SOURCES 	 = demo.c
 demo_LDADD   	 = $(hal_ld_com)
 demo_CFLAGS  	 = $(AM_CFLAGS_COM) $(CFLAGS_COM)
 
+bin_PROGRAMS	+= list
+list_SOURCES 	 = list.c
+list_LDADD   	 = $(hal_ld_com)
+list_CFLAGS  	 = $(AM_CFLAGS_COM) $(CFLAGS_COM)
+
