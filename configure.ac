@@ -5,7 +5,7 @@ AC_PREREQ([2.69])
 m4_include([m4/version.m4])
 
 AC_INIT([libutils], [VERSION_NUM], [gnsyxiang@163.com])
-AC_CONFIG_SRCDIR([src/utils_demo.c])
+AC_CONFIG_SRCDIR([include/utils_list.h])
 AC_CONFIG_HEADERS([config.h])
 
 AC_CONFIG_MACRO_DIR([m4])
@@ -36,7 +36,6 @@ LT_INIT
 
 # Checks for libraries.
 AC_CHECK_LIB([hal], [HalThreadCreate])
-AC_CHECK_LIB([utils], [UtilsDemoFunc])
 
 # Checks for header files.
 AC_CHECK_HEADERS([stdlib.h string.h])
