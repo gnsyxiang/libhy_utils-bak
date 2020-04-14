@@ -17,8 +17,8 @@
  * 
  *     last modified: 06/04 2020 18:16
  */
-#ifndef __UTILS_INCLUDE_UTILS_CJSON_FILE_H_
-#define __UTILS_INCLUDE_UTILS_CJSON_FILE_H_
+#ifndef __LIBUTILS_INCLUDE_UTILS_CJSON_FILE_H_
+#define __LIBUTILS_INCLUDE_UTILS_CJSON_FILE_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,5 +43,5 @@ hal_int32_t UtilsJsonFileGetString(hal_char_t *file, hal_char_t *val,
 }
 #endif
 
-#endif // __UTILS_INCLUDE_UTILS_CJSON_FILE_H_
+#endif // __LIBUTILS_INCLUDE_UTILS_CJSON_FILE_H_
 
