@@ -26,6 +26,11 @@ hal_ld_com += -lutils
 
 bin_PROGRAMS 	=
 
+bin_PROGRAMS	+= md5sum
+md5sum_SOURCES 	 = md5sum.c
+md5sum_LDADD   	 = $(hal_ld_com)
+md5sum_CFLAGS  	 = $(AM_CFLAGS_COM) $(CFLAGS_COM)
+
 if COMPILE_WITH_LIBCJSON_UTILS
 bin_PROGRAMS 	+= cjson
 cjson_SOURCES	 = cjson.c
