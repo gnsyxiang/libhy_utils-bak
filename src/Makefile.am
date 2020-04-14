@@ -29,7 +29,7 @@ CFLAGS_COM  += -fPIC
 CFLAGS_COM  += -Wno-unused-parameter
 CFLAGS_COM  += -I$(top_srcdir)/include
 
-SOURCES_COM  = 
+SOURCES_COM  = utils_md5sum.c
 
 if COMPILE_WITH_LIBCJSON_UTILS
 SOURCES_COM	+= utils_cjson.c utils_cjson_file.c
