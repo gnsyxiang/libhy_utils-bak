@@ -21,7 +21,7 @@
 
 #include "utils_md5sum.h"
 
-int main(int argc, const char *argv[])
+hal_int32_t main(hal_int32_t argc, const hal_char_t *argv[])
 {
     hal_uint8_t digest[16] = {0};
     hal_uint8_t md5sum[16] = {
