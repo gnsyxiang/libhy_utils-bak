@@ -18,7 +18,7 @@
 #     last modified: 21/03 2020 14:09
 # ===============================================================
 
-HEADERS_COM 	 = utils_list.h utils_md5sum.h
+HEADERS_COM 	 = utils_list.h utils_md5sum.h utils_hash.h
 
 if COMPILE_WITH_LIBCJSON_UTILS
 HEADERS_COM 	+= utils_cjson.h utils_cjson_file.h
