@@ -55,6 +55,8 @@ static void _test_key_val(void)
         UtilsHashAdd(handle, &hash_item);
     }
 
+    UtilsHashDump(handle);
+
     for (hal_int32_t i = 0; i < BUCKET_MAX_LEN; i++) {
         snprintf(key, 32, "key%d", i);
         snprintf(val, 32, "key%d", i);
