@@ -283,6 +283,21 @@ hal_int32_t UtilsHashItemDel(HashHandle_t handle, HashItem_t *hash_item)
     return _hash_find_item(handle, hash_item, _del_item, HANDLE_ITEM_SET);
 }
 
+static void _get_item_val(item_t *item, void *val)
+{
+    Hal_strncpy(val, item->val, Hal_strlen(item->val));
+}
+
+hal_int32_t UtilsHashItemGet(HashHandle_t handle, HashItem_t *hash_item)
+{
+    if (NULL == handle) {
+        HalLogE("the param is NULL \n");
+        return -1;
+    }
+
+    return _hash_find_item(handle, hash_item, _get_item_val, HANDLE_ITEM_GET);
+}
+
 hal_uint32_t UtilsHashGenerate(const hal_char_t *key)
 {
     if (NULL == key) {
