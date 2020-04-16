@@ -33,6 +33,12 @@ typedef struct item {
 } item_t;
 #define ITEM_LEN (sizeof(item_t))
 
+typedef struct {
+    HashConfig_t        config;
+    struct list_head    *bucket;
+} hash_context_t;
+#define HASH_CONTEXT_LEN (sizeof(hash_context_t))
+
 static inline item_t *_item_init(HashItem_t *hash_item)
 {
     item_t *item = Hal_calloc(1, ITEM_LEN);
@@ -72,11 +78,17 @@ static inline void _item_final(item_t **item_tmp)
     }
 }
 
-typedef struct {
-    HashConfig_t        config;
-    struct list_head    *bucket;
-} hash_context_t;
-#define HASH_CONTEXT_LEN (sizeof(hash_context_t))
+static inline void _del_all_item_in_list(hash_context_t *context)
+{
+    for (hal_uint32_t i = 0; i < context->config.bucket_max_len; i++) {
+        struct list_head *head_list = &context->bucket[i];
+        item_t *pos, *n;
+        list_for_each_entry_safe(pos, n, head_list, list) {
+            list_del(&pos->list);
+            _item_final(&pos);
+        }
+    }
+}
 
 static inline hash_context_t *_context_init(HashConfig_t *config)
 {
@@ -107,11 +119,13 @@ L_CONTEXT_INIT_1:
     return context;
 }
 
+
 static inline void _context_final(hash_context_t **context_tmp)
 {
     hash_context_t *context = *context_tmp;
     if (NULL != context) {
-        //FIXME 挂接的链表需要释放
+        _del_all_item_in_list(context);
+
         if (NULL != context->bucket) {
             Hal_free(context->bucket);
         }
