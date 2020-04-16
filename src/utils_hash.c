@@ -80,12 +80,22 @@ static inline void _item_final(item_t **item_tmp)
     }
 }
 
-static inline void _del_all_item_in_list(hash_context_t *context)
+static inline void _item_dump(item_t *item)
+{
+    HalLogT("key_hash: %u \n", item->key_hash);
+    HalLogT("val: %s \n", item->val);
+}
+
+typedef void (*dump_item_cb_t)(item_t *item);
+static inline void _del_all_item_in_list(hash_context_t *context, dump_item_cb_t dump_item_cb)
 {
     item_t *pos, *n;
     for (hal_uint32_t i = 0; i < context->config.bucket_max_len; i++) {
         list_for_each_entry_safe(pos, n, &context->bucket[i], list) {
             list_del(&pos->list);
+            if (NULL != dump_item_cb) {
+                dump_item_cb(pos);
+            }
             _item_final(&pos);
         }
     }
@@ -125,7 +135,7 @@ static inline void _context_final(hash_context_t **context_tmp)
 {
     hash_context_t *context = *context_tmp;
     if (NULL != context) {
-        _del_all_item_in_list(context);
+        _del_all_item_in_list(context, NULL);
 
         if (NULL != context->bucket) {
             Hal_free(context->bucket);
@@ -247,6 +257,18 @@ hal_int32_t UtilsHashDel(HashHandle_t handle, HashItem_t *hash_item)
     }
 
     return ret;
+}
+
+void UtilsHashDump(HashHandle_t handle)
+{
+    if (NULL == handle) {
+        HalLogE("the param is NULL \n");
+        return ;
+    }
+
+    hash_context_t *context = handle;
+
+    _del_all_item_in_list(context, _item_dump);
 }
 
 hal_uint32_t UtilsHash(const hal_char_t *key)

@@ -47,6 +47,8 @@ void UtilsHashDestroy(HashHandle_t handle);
 hal_int32_t UtilsHashAdd(HashHandle_t handle, HashItem_t *hash_item);
 hal_int32_t UtilsHashDel(HashHandle_t handle, HashItem_t *hash_item);
 
+void UtilsHashDump(HashHandle_t handle);
+
 #ifdef __cplusplus
 }
 #endif
