@@ -62,6 +62,15 @@ static void _test_key_val(void)
         snprintf(val, 32, "key%d", i);
 
         hash_item.key = key;
+        UtilsHashItemGet(handle, &hash_item);
+        printf("val: %s \n", hash_item.val);
+    }
+
+    for (hal_int32_t i = 0; i < BUCKET_MAX_LEN; i++) {
+        snprintf(key, 32, "key%d", i);
+        snprintf(val, 32, "key%d", i);
+
+        hash_item.key = key;
         hash_item.val = val;
         UtilsHashItemDel(handle, &hash_item);
     }
