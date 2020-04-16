@@ -26,7 +26,31 @@ extern "C" {
 
 #include "hal/hal_type.h"
 
+/**
+ * @brief 哈希链表中的一个表项
+ * label: 一个表项的标签，最大长度详见HashConfig_t
+ * content: 一个表项的内容，最大长度详见HashConfig_t
+ */
+typedef struct {
+    hal_char_t  *key;
+    hal_char_t  *val;
+} HashItem_t;
+#define HASH_ITEM_LEN (sizeof(HashItem_t))
+
+typedef struct {
+    hal_uint32_t        bucket_max_len;
+} HashConfig_t;
+#define HASH_CONFIG_LEN (sizeof(HashConfig_t))
+
+typedef void *HashHandle_t;
+
 hal_uint32_t UtilsHash(const hal_char_t *key);
+
+HashHandle_t UtilsHashCreate(HashConfig_t *config);
+void UtilsHashDestroy(HashHandle_t handle);
+
+hal_int32_t UtilsHashAdd(HashHandle_t handle, HashItem_t *hash_item);
+hal_int32_t UtilsHashDel(HashHandle_t handle, HashItem_t *hash_item);
 
 #ifdef __cplusplus
 }
