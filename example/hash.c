@@ -28,10 +28,10 @@ static void _test_hash(void)
     static hal_char_t *str3 = "hehe";
     static hal_char_t *str4 = "hehe2";
 
-    HalLogT("str1: %s,\t str1: %u \n", str1, UtilsHash(str1));
-    HalLogT("str2: %s,\t str2: %u \n", str2, UtilsHash(str2));
-    HalLogT("str3: %s,\t str3: %u \n", str3, UtilsHash(str3));
-    HalLogT("str4: %s,\t str4: %u \n", str4, UtilsHash(str4));
+    HalLogT("str1: %s,\t str1: %u \n", str1, UtilsHashGenerate(str1));
+    HalLogT("str2: %s,\t str2: %u \n", str2, UtilsHashGenerate(str2));
+    HalLogT("str3: %s,\t str3: %u \n", str3, UtilsHashGenerate(str3));
+    HalLogT("str4: %s,\t str4: %u \n", str4, UtilsHashGenerate(str4));
 }
 
 static void _test_key_val(void)
@@ -52,7 +52,7 @@ static void _test_key_val(void)
 
         hash_item.key = key;
         hash_item.val = val;
-        UtilsHashAdd(handle, &hash_item);
+        UtilsHashItemAdd(handle, &hash_item);
     }
 
     UtilsHashDump(handle);
@@ -63,7 +63,7 @@ static void _test_key_val(void)
 
         hash_item.key = key;
         hash_item.val = val;
-        UtilsHashDel(handle, &hash_item);
+        UtilsHashItemDel(handle, &hash_item);
     }
 
     UtilsHashDestroy(handle);

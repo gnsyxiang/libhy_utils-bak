@@ -39,15 +39,14 @@ typedef struct {
 
 typedef void *HashHandle_t;
 
-hal_uint32_t UtilsHash(const hal_char_t *key);
+hal_uint32_t UtilsHashGenerate(const hal_char_t *key);
 
 HashHandle_t UtilsHashCreate(HashConfig_t *config);
 void UtilsHashDestroy(HashHandle_t handle);
-
-hal_int32_t UtilsHashAdd(HashHandle_t handle, HashItem_t *hash_item);
-hal_int32_t UtilsHashDel(HashHandle_t handle, HashItem_t *hash_item);
-
 void UtilsHashDump(HashHandle_t handle);
+
+hal_int32_t UtilsHashItemAdd(HashHandle_t handle, HashItem_t *hash_item);
+hal_int32_t UtilsHashItemDel(HashHandle_t handle, HashItem_t *hash_item);
 
 #ifdef __cplusplus
 }

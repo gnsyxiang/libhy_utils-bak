@@ -55,7 +55,7 @@ static inline item_t *_item_init(HashItem_t *hash_item)
         goto L_ITEM_INIT_2;
     }
 
-    item->key_hash = UtilsHash(hash_item->key);
+    item->key_hash = UtilsHashGenerate(hash_item->key);
     Hal_strncpy(item->val, hash_item->val, len);
 
     return item;
@@ -168,6 +168,18 @@ void UtilsHashDestroy(HashHandle_t handle)
     _context_final(&context);
 }
 
+void UtilsHashDump(HashHandle_t handle)
+{
+    if (NULL == handle) {
+        HalLogE("the param is NULL \n");
+        return ;
+    }
+
+    hash_context_t *context = handle;
+
+    _del_all_item_in_list(context, _item_dump);
+}
+
 static hal_int32_t _key_to_index(HashConfig_t *config, const hal_char_t* key)
 {
     if (NULL == key) {
@@ -205,7 +217,7 @@ static void _item_replace_val(item_t *item, HashItem_t *hash_item)
     }
 }
 
-hal_int32_t UtilsHashAdd(HashHandle_t handle, HashItem_t *hash_item)
+hal_int32_t UtilsHashItemAdd(HashHandle_t handle, HashItem_t *hash_item)
 {
     if (NULL == handle || NULL == hash_item) {
         HalLogE("the param is NULL \n");
@@ -213,7 +225,7 @@ hal_int32_t UtilsHashAdd(HashHandle_t handle, HashItem_t *hash_item)
     }
 
     hash_context_t *context = handle;
-    hal_uint32_t key_hash   = UtilsHash(hash_item->key);
+    hal_uint32_t key_hash   = UtilsHashGenerate(hash_item->key);
     hal_int32_t index       = _key_to_index(&context->config, hash_item->key);
 
     hal_int32_t find_flag = 0;
@@ -234,7 +246,7 @@ hal_int32_t UtilsHashAdd(HashHandle_t handle, HashItem_t *hash_item)
     return HAL_NO_ERR;
 }
 
-hal_int32_t UtilsHashDel(HashHandle_t handle, HashItem_t *hash_item)
+hal_int32_t UtilsHashItemDel(HashHandle_t handle, HashItem_t *hash_item)
 {
     if (NULL == handle) {
         HalLogE("the param is NULL \n");
@@ -242,7 +254,7 @@ hal_int32_t UtilsHashDel(HashHandle_t handle, HashItem_t *hash_item)
     }
 
     hash_context_t *context = handle;
-    hal_uint32_t key_hash   = UtilsHash(hash_item->key);
+    hal_uint32_t key_hash   = UtilsHashGenerate(hash_item->key);
     hal_int32_t index       = _key_to_index(&context->config, hash_item->key);
 
     hal_int32_t ret = -1;
@@ -259,19 +271,7 @@ hal_int32_t UtilsHashDel(HashHandle_t handle, HashItem_t *hash_item)
     return ret;
 }
 
-void UtilsHashDump(HashHandle_t handle)
-{
-    if (NULL == handle) {
-        HalLogE("the param is NULL \n");
-        return ;
-    }
-
-    hash_context_t *context = handle;
-
-    _del_all_item_in_list(context, _item_dump);
-}
-
-hal_uint32_t UtilsHash(const hal_char_t *key)
+hal_uint32_t UtilsHashGenerate(const hal_char_t *key)
 {
     if (NULL == key) {
         HalLogE("hash key input is NULL \n");
