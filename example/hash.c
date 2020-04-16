@@ -21,15 +21,8 @@
 
 #include "utils_hash.h"
 
-hal_int32_t main(hal_int32_t argc, const hal_char_t *argv[])
+static void _test_hash(void)
 {
-    LogConfig_t log_config;
-    log_config.level        = LOG_LEVEL_VERBOSE;
-    log_config.color_flag   = LOG_COLOR_ON;
-    log_config.buf_len      = 1024;
-
-    HalLogInit(&log_config);
-
     static hal_char_t *str1 = "haha";
     static hal_char_t *str2 = "haha1";
     static hal_char_t *str3 = "hehe";
@@ -39,6 +32,52 @@ hal_int32_t main(hal_int32_t argc, const hal_char_t *argv[])
     HalLogT("str2: %s,\t str2: %u \n", str2, UtilsHash(str2));
     HalLogT("str3: %s,\t str3: %u \n", str3, UtilsHash(str3));
     HalLogT("str4: %s,\t str4: %u \n", str4, UtilsHash(str4));
+}
+
+static void _test_key_val(void)
+{
+#define BUCKET_MAX_LEN (16)
+    HashConfig_t config;
+    config.bucket_max_len = BUCKET_MAX_LEN;
+
+    HashHandle_t handle = UtilsHashCreate(&config);
+
+    HashItem_t hash_item;
+    hal_char_t key[32] = {0};
+    hal_char_t val[32] = {0};
+
+    for (hal_int32_t i = 0; i < BUCKET_MAX_LEN; i++) {
+        snprintf(key, 32, "key%d", i);
+        snprintf(val, 32, "key%d", i);
+
+        hash_item.key = key;
+        hash_item.val = val;
+        UtilsHashAdd(handle, &hash_item);
+    }
+
+    for (hal_int32_t i = 0; i < BUCKET_MAX_LEN; i++) {
+        snprintf(key, 32, "key%d", i);
+        snprintf(val, 32, "key%d", i);
+
+        hash_item.key = key;
+        hash_item.val = val;
+        UtilsHashDel(handle, &hash_item);
+    }
+
+    UtilsHashDestroy(handle);
+}
+
+hal_int32_t main(hal_int32_t argc, const hal_char_t *argv[])
+{
+    LogConfig_t log_config;
+    log_config.level        = LOG_LEVEL_VERBOSE;
+    log_config.color_flag   = LOG_COLOR_ON;
+    log_config.buf_len      = 1024;
+
+    HalLogInit(&log_config);
+
+    _test_hash();
+    _test_key_val();
 
     HalLogFinal();
 
