@@ -35,6 +35,7 @@ typedef struct item {
 
 typedef struct {
     HashConfig_t        config;
+
     struct list_head    *bucket;
 } hash_context_t;
 #define HASH_CONTEXT_LEN (sizeof(hash_context_t))
@@ -73,6 +74,7 @@ static inline void _item_final(item_t **item_tmp)
             Hal_free(item->val);
             item->val = NULL;
         }
+
         Hal_free(item);
         *item_tmp = NULL;
     }
@@ -80,10 +82,9 @@ static inline void _item_final(item_t **item_tmp)
 
 static inline void _del_all_item_in_list(hash_context_t *context)
 {
+    item_t *pos, *n;
     for (hal_uint32_t i = 0; i < context->config.bucket_max_len; i++) {
-        struct list_head *head_list = &context->bucket[i];
-        item_t *pos, *n;
-        list_for_each_entry_safe(pos, n, head_list, list) {
+        list_for_each_entry_safe(pos, n, &context->bucket[i], list) {
             list_del(&pos->list);
             _item_final(&pos);
         }
@@ -159,14 +160,13 @@ void UtilsHashDestroy(HashHandle_t handle)
 
 static hal_int32_t _key_to_index(HashConfig_t *config, const hal_char_t* key)
 {
-    hal_int32_t index, len;
     if (NULL == key) {
         HalLogE("the param is NULL \n");
         return -1;
     }
 
-    len = Hal_strlen(key);
-    index = (hal_int32_t)key[0];
+    hal_int32_t len   = Hal_strlen(key);
+    hal_int32_t index = (hal_int32_t)key[0];
 
     for (hal_int32_t i = 1; i < len; ++i) {
         index *= 1103515245 + (hal_int32_t)key[i];
@@ -203,14 +203,12 @@ hal_int32_t UtilsHashAdd(HashHandle_t handle, HashItem_t *hash_item)
     }
 
     hash_context_t *context = handle;
-    hal_int32_t index = _key_to_index(&context->config, hash_item->key);
-    hal_uint32_t key_hash = UtilsHash(hash_item->key);
-
-    struct list_head *head_list = &context->bucket[index];
+    hal_uint32_t key_hash   = UtilsHash(hash_item->key);
+    hal_int32_t index       = _key_to_index(&context->config, hash_item->key);
 
     hal_int32_t find_flag = 0;
     item_t *pos;
-    list_for_each_entry(pos, head_list, list) {
+    list_for_each_entry(pos, &context->bucket[index], list) {
         if (pos->key_hash == key_hash) {
             find_flag = 1;
             _item_replace_val(pos, hash_item);
@@ -220,7 +218,7 @@ hal_int32_t UtilsHashAdd(HashHandle_t handle, HashItem_t *hash_item)
 
     if (0 == find_flag) {
         item_t *item = _item_init(hash_item);
-        list_add_tail(&item->list, head_list);
+        list_add_tail(&item->list, &context->bucket[index]);
     }
 
     return HAL_NO_ERR;
@@ -234,14 +232,12 @@ hal_int32_t UtilsHashDel(HashHandle_t handle, HashItem_t *hash_item)
     }
 
     hash_context_t *context = handle;
-    hal_int32_t index = _key_to_index(&context->config, hash_item->key);
-    hal_uint32_t key_hash = UtilsHash(hash_item->key);
-
-    struct list_head *head_list = &context->bucket[index];
+    hal_uint32_t key_hash   = UtilsHash(hash_item->key);
+    hal_int32_t index       = _key_to_index(&context->config, hash_item->key);
 
     hal_int32_t ret = -1;
     item_t *pos, *n;
-    list_for_each_entry_safe(pos, n, head_list, list) {
+    list_for_each_entry_safe(pos, n, &context->bucket[index], list) {
         if (pos->key_hash == key_hash) {
             ret = 0;
             list_del(&pos->list);

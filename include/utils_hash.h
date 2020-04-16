@@ -26,11 +26,6 @@ extern "C" {
 
 #include "hal/hal_type.h"
 
-/**
- * @brief 哈希链表中的一个表项
- * label: 一个表项的标签，最大长度详见HashConfig_t
- * content: 一个表项的内容，最大长度详见HashConfig_t
- */
 typedef struct {
     hal_char_t  *key;
     hal_char_t  *val;
