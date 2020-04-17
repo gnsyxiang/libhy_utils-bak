@@ -27,12 +27,19 @@ extern "C" {
 #include "hal/hal_type.h"
 
 typedef struct {
-    hal_char_t  *key;
-    hal_char_t  *val;
+    hal_char_t          *key;
+    hal_char_t          *val;
+    hal_uint32_t        offset;
 } HashItem_t;
 #define HASH_ITEM_LEN (sizeof(HashItem_t))
 
+typedef enum {
+    HASH_VAL_FLAG,
+    HASH_OFFSET_FLAG,
+} HashValOffsetFlag_t;
+
 typedef struct {
+    hal_uint32_t        val_offset_flag;
     hal_uint32_t        bucket_max_len;
 } HashConfig_t;
 #define HASH_CONFIG_LEN (sizeof(HashConfig_t))

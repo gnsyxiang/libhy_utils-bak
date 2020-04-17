@@ -25,9 +25,11 @@
 #include "utils_hash.h"
 #include "utils_list.h"
 
+#define HASH_OFFSET_LEN (sizeof(hal_uint32_t))
+
 typedef struct item {
     hal_uint32_t        key_hash;
-    hal_char_t          *val;
+    hal_char_t *val;
 
     struct list_head    list;
 } item_t;
@@ -40,7 +42,7 @@ typedef struct {
 } hash_context_t;
 #define HASH_CONTEXT_LEN (sizeof(hash_context_t))
 
-static inline item_t *_item_init(HashItem_t *hash_item)
+static inline item_t *_item_init(HashConfig_t *config, HashItem_t *hash_item)
 {
     item_t *item = Hal_calloc(1, ITEM_LEN);
     if (NULL == item) {
@@ -48,15 +50,25 @@ static inline item_t *_item_init(HashItem_t *hash_item)
         goto L_ITEM_INIT_1;
     }
 
-    hal_uint32_t len = Hal_strlen(hash_item->val);
-    item->val = Hal_calloc(1, ALIGN4_UP(len));
-    if (NULL == item) {
-        HalLogE("hal calloc faild \n");
-        goto L_ITEM_INIT_2;
+    if (HASH_VAL_FLAG == config->val_offset_flag) {
+        hal_uint32_t len = Hal_strlen(hash_item->val);
+        item->val = Hal_calloc(1, ALIGN4_UP(len));
+        if (NULL == item) {
+            HalLogE("hal calloc faild \n");
+            goto L_ITEM_INIT_2;
+        }
+        Hal_strncpy(item->val, hash_item->val, len);
+    } else {
+        hal_uint32_t len = HASH_OFFSET_LEN;
+        item->val = Hal_calloc(1, len);
+        if (NULL == item) {
+            HalLogE("hal calloc faild \n");
+            goto L_ITEM_INIT_2;
+        }
+        Hal_memcpy(item->val, &hash_item->offset, len);
     }
 
     item->key_hash = UtilsHashGenerate(hash_item->key);
-    Hal_strncpy(item->val, hash_item->val, len);
 
     return item;
 L_ITEM_INIT_2:
@@ -80,13 +92,16 @@ static inline void _item_final(item_t **item_tmp)
     }
 }
 
-static inline void _item_dump(item_t *item, void *args)
+static inline void _item_dump(HashConfig_t *config, item_t *item, void *args)
 {
-    HalLogT("key_hash: %u \n", item->key_hash);
-    HalLogT("val: %s \n", item->val);
+    if (HASH_VAL_FLAG == config->val_offset_flag) {
+        HalLogT("key_hash: %u, \tval: %s \n", item->key_hash, (hal_char_t *)item->val);
+    } else {
+        HalLogT("key_hash: %u, \tval: %d \n", item->key_hash, *(hal_uint32_t *)item->val);
+    }
 }
 
-typedef void (*handle_item_cb_t)(item_t *item, void *args);
+typedef void (*handle_item_cb_t)(HashConfig_t *config, item_t *item, void *args);
 static inline void _del_all_item_in_list(hash_context_t *context, handle_item_cb_t handle_item_cb)
 {
     item_t *pos, *n;
@@ -94,7 +109,7 @@ static inline void _del_all_item_in_list(hash_context_t *context, handle_item_cb
         list_for_each_entry_safe(pos, n, &context->bucket[i], list) {
             list_del(&pos->list);
             if (NULL != handle_item_cb) {
-                handle_item_cb(pos, NULL);
+                handle_item_cb(&context->config, pos, NULL);
             }
             _item_final(&pos);
         }
@@ -129,7 +144,6 @@ L_CONTEXT_INIT_2:
 L_CONTEXT_INIT_1:
     return context;
 }
-
 
 static inline void _context_final(hash_context_t **context_tmp)
 {
@@ -219,9 +233,13 @@ static hal_int32_t _hash_find_item(HashHandle_t handle, HashItem_t *hash_item,
             find_flag = 1;
             if (NULL != handle_item_cb) {
                 if (type == HANDLE_ITEM_GET) {
-                    handle_item_cb(pos, pos->val);
+                    handle_item_cb(&context->config, pos, pos->val);
                 } else {
-                    handle_item_cb(pos, hash_item->val);
+                    if (HASH_VAL_FLAG == context->config.val_offset_flag) {
+                        handle_item_cb(&context->config, pos, hash_item->val);
+                    } else {
+                        handle_item_cb(&context->config, pos, &hash_item->offset);
+                    }
                 }
             }
             break;
@@ -230,20 +248,28 @@ static hal_int32_t _hash_find_item(HashHandle_t handle, HashItem_t *hash_item,
     return find_flag;
 }
 
-static void _replace_item_val(item_t *item, void *val)
+static void _replace_item_val(HashConfig_t *config, item_t *item, void *val)
 {
-    hal_uint32_t len = Hal_strlen(val);
+    if (HASH_VAL_FLAG == config->val_offset_flag) {
+        hal_uint32_t len = Hal_strlen(val);
 
-    if (Hal_strlen(val) != len) {
-        Hal_free(val);
+        if (Hal_strlen(val) != len) {
+            Hal_free(val);
 
-        hal_char_t *val_new = Hal_calloc(1, ALIGN4_UP(len));
-        if (NULL == val_new) {
-            HalLogE("hal calloc faild \n");
+            hal_char_t *val_new = Hal_calloc(1, ALIGN4_UP(len));
+            if (NULL == val_new) {
+                HalLogE("hal calloc faild \n");
+            }
+
+            Hal_strncpy(val_new, val, len);
+            item->val = val;
         }
-
-        Hal_strncpy(val_new, val, len);
-        item->val = val;
+    } else {
+        hal_uint32_t val_old = *(hal_uint32_t *)(item->val);
+        hal_uint32_t val_new = *(hal_uint32_t *)val;
+        if (val_old != val_new) {
+            val_old = val_new;
+        }
     }
 }
 
@@ -260,14 +286,14 @@ hal_int32_t UtilsHashItemAdd(HashHandle_t handle, HashItem_t *hash_item)
     if (0 == find_flag) {
         hash_context_t *context = handle;
         hal_int32_t index = _key_to_index(&context->config, hash_item->key);
-        item_t *item = _item_init(hash_item);
+        item_t *item = _item_init(&context->config, hash_item);
         list_add_tail(&item->list, &context->bucket[index]);
     }
 
     return HAL_NO_ERR;
 }
 
-static void _del_item(item_t *item, void *val)
+static void _del_item(HashConfig_t *config, item_t *item, void *val)
 {
     list_del(&item->list);
     _item_final(&item);
@@ -283,9 +309,18 @@ hal_int32_t UtilsHashItemDel(HashHandle_t handle, HashItem_t *hash_item)
     return _hash_find_item(handle, hash_item, _del_item, HANDLE_ITEM_SET);
 }
 
-static void _get_item_val(item_t *item, void *val)
+static void _get_item_val(HashConfig_t *config, item_t *item, void *val)
 {
-    Hal_strncpy(val, item->val, Hal_strlen(item->val));
+    printf("--1\n");
+    if (HASH_VAL_FLAG == config->val_offset_flag) {
+    printf("--2\n");
+        Hal_strncpy(val, item->val, Hal_strlen(item->val));
+    } else {
+    printf("--3\n");
+        printf("-------offset: %d \n", *(hal_uint32_t *)item->val);
+        Hal_memcpy(val, item->val, HASH_OFFSET_LEN);
+    }
+    printf("--4\n");
 }
 
 hal_int32_t UtilsHashItemGet(HashHandle_t handle, HashItem_t *hash_item)
@@ -295,6 +330,7 @@ hal_int32_t UtilsHashItemGet(HashHandle_t handle, HashItem_t *hash_item)
         return -1;
     }
 
+    printf("--0\n");
     return _hash_find_item(handle, hash_item, _get_item_val, HANDLE_ITEM_GET);
 }
 
