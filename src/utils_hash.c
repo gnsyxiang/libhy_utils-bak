@@ -107,11 +107,9 @@ static inline void _del_all_item_in_list(hash_context_t *context, handle_item_cb
     item_t *pos, *n;
     for (hal_uint32_t i = 0; i < context->config.bucket_max_len; i++) {
         list_for_each_entry_safe(pos, n, &context->bucket[i], list) {
-            list_del(&pos->list);
             if (NULL != handle_item_cb) {
                 handle_item_cb(&context->config, pos, NULL);
             }
-            _item_final(&pos);
         }
     }
 }
@@ -233,7 +231,7 @@ static hal_int32_t _hash_find_item(HashHandle_t handle, HashItem_t *hash_item,
             find_flag = 1;
             if (NULL != handle_item_cb) {
                 if (type == HANDLE_ITEM_GET) {
-                    handle_item_cb(&context->config, pos, pos->val);
+                    handle_item_cb(&context->config, pos, hash_item->val);
                 } else {
                     if (HASH_VAL_FLAG == context->config.val_offset_flag) {
                         handle_item_cb(&context->config, pos, hash_item->val);
@@ -311,16 +309,11 @@ hal_int32_t UtilsHashItemDel(HashHandle_t handle, HashItem_t *hash_item)
 
 static void _get_item_val(HashConfig_t *config, item_t *item, void *val)
 {
-    printf("--1\n");
     if (HASH_VAL_FLAG == config->val_offset_flag) {
-    printf("--2\n");
         Hal_strncpy(val, item->val, Hal_strlen(item->val));
     } else {
-    printf("--3\n");
-        printf("-------offset: %d \n", *(hal_uint32_t *)item->val);
         Hal_memcpy(val, item->val, HASH_OFFSET_LEN);
     }
-    printf("--4\n");
 }
 
 hal_int32_t UtilsHashItemGet(HashHandle_t handle, HashItem_t *hash_item)
@@ -330,7 +323,6 @@ hal_int32_t UtilsHashItemGet(HashHandle_t handle, HashItem_t *hash_item)
         return -1;
     }
 
-    printf("--0\n");
     return _hash_find_item(handle, hash_item, _get_item_val, HANDLE_ITEM_GET);
 }
 
