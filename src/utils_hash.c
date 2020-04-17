@@ -25,11 +25,16 @@
 #include "utils_hash.h"
 #include "utils_list.h"
 
+enum {
+    ITEM_SET_VAL,
+    ITEM_GET_VAL,
+};
+
 #define HASH_OFFSET_LEN (sizeof(hal_uint32_t))
 
 typedef struct item {
     hal_uint32_t        key_hash;
-    hal_char_t *val;
+    void                *val;
 
     struct list_head    list;
 } item_t;
@@ -42,7 +47,10 @@ typedef struct {
 } hash_context_t;
 #define HASH_CONTEXT_LEN (sizeof(hash_context_t))
 
-static inline item_t *_item_init(HashConfig_t *config, HashItem_t *hash_item)
+typedef void (*handle_item_cb_t)(HashConfig_t *config, item_t *item, void *args);
+static hal_int32_t _key_to_index(HashConfig_t *config, const hal_char_t* key);
+
+static item_t *_item_init(HashConfig_t *config, HashItem_t *hash_item)
 {
     item_t *item = Hal_calloc(1, ITEM_LEN);
     if (NULL == item) {
@@ -95,14 +103,23 @@ static inline void _item_final(item_t **item_tmp)
 static inline void _item_dump(HashConfig_t *config, item_t *item, void *args)
 {
     if (HASH_VAL_FLAG == config->val_offset_flag) {
-        HalLogT("key_hash: %u, \tval: %s \n", item->key_hash, (hal_char_t *)item->val);
+        HalLogT("key_hash: %u, \tval: %s \n", 
+                item->key_hash, (hal_char_t *)item->val);
     } else {
-        HalLogT("key_hash: %u, \tval: %d \n", item->key_hash, *(hal_uint32_t *)item->val);
+        HalLogT("key_hash: %u, \tval: %d \n", 
+                item->key_hash, *(hal_uint32_t *)item->val);
     }
 }
 
-typedef void (*handle_item_cb_t)(HashConfig_t *config, item_t *item, void *args);
-static inline void _del_all_item_in_list(hash_context_t *context, handle_item_cb_t handle_item_cb)
+static inline void 
+_del_item_from_list(HashConfig_t *config, item_t *item, void *val)
+{
+    list_del(&item->list);
+    _item_final(&item);
+}
+
+static void 
+_traverse_item_list(hash_context_t *context, handle_item_cb_t handle_item_cb)
 {
     item_t *pos, *n;
     for (hal_uint32_t i = 0; i < context->config.bucket_max_len; i++) {
@@ -114,7 +131,42 @@ static inline void _del_all_item_in_list(hash_context_t *context, handle_item_cb
     }
 }
 
-static inline hash_context_t *_context_init(HashConfig_t *config)
+static inline void _call_cb(hash_context_t *context, 
+        handle_item_cb_t handle_item_cb, item_t *pos, HashItem_t *hash_item)
+{
+    if (HASH_VAL_FLAG == context->config.val_offset_flag) {
+        handle_item_cb(&context->config, pos, hash_item->val);
+    } else {
+        handle_item_cb(&context->config, pos, &hash_item->offset);
+    }
+}
+
+static hal_int32_t _find_item_from_list(HashHandle_t handle, HashItem_t *hash_item,
+        handle_item_cb_t handle_item_cb, hal_int32_t type)
+{
+    hash_context_t *context = handle;
+    hal_uint32_t key_hash   = UtilsHashGenerate(hash_item->key);
+    hal_int32_t index       = _key_to_index(&context->config, hash_item->key);
+
+    hal_int32_t find_flag = 0;
+    item_t *pos, *n;
+    list_for_each_entry_safe(pos, n, &context->bucket[index], list) {
+        if (pos->key_hash == key_hash) {
+            find_flag = 1;
+            if (NULL != handle_item_cb) {
+                if (type == ITEM_GET_VAL) {
+                    _call_cb(context, handle_item_cb, pos, hash_item);
+                } else {
+                    _call_cb(context, handle_item_cb, pos, hash_item);
+                }
+            }
+            break;
+        }
+    }
+    return find_flag;
+}
+
+static hash_context_t *_context_init(HashConfig_t *config)
 {
     hash_context_t *context = Hal_calloc(1, HASH_CONTEXT_LEN);
     if (NULL == context) {
@@ -143,11 +195,11 @@ L_CONTEXT_INIT_1:
     return context;
 }
 
-static inline void _context_final(hash_context_t **context_tmp)
+static void _context_final(hash_context_t **context_tmp)
 {
     hash_context_t *context = *context_tmp;
     if (NULL != context) {
-        _del_all_item_in_list(context, NULL);
+        _traverse_item_list(context, _del_item_from_list);
 
         if (NULL != context->bucket) {
             Hal_free(context->bucket);
@@ -189,7 +241,7 @@ void UtilsHashDump(HashHandle_t handle)
 
     hash_context_t *context = handle;
 
-    _del_all_item_in_list(context, _item_dump);
+    _traverse_item_list(context, _item_dump);
 }
 
 static hal_int32_t _key_to_index(HashConfig_t *config, const hal_char_t* key)
@@ -212,41 +264,8 @@ static hal_int32_t _key_to_index(HashConfig_t *config, const hal_char_t* key)
     return index;
 }
 
-typedef enum {
-    HANDLE_ITEM_GET,
-    HANDLE_ITEM_SET,
-} handle_item_type;
-
-static hal_int32_t _hash_find_item(HashHandle_t handle, HashItem_t *hash_item,
-        handle_item_cb_t handle_item_cb, hal_int32_t type)
-{
-    hash_context_t *context = handle;
-    hal_uint32_t key_hash   = UtilsHashGenerate(hash_item->key);
-    hal_int32_t index       = _key_to_index(&context->config, hash_item->key);
-
-    hal_int32_t find_flag = 0;
-    item_t *pos;
-    list_for_each_entry(pos, &context->bucket[index], list) {
-        if (pos->key_hash == key_hash) {
-            find_flag = 1;
-            if (NULL != handle_item_cb) {
-                if (type == HANDLE_ITEM_GET) {
-                    handle_item_cb(&context->config, pos, hash_item->val);
-                } else {
-                    if (HASH_VAL_FLAG == context->config.val_offset_flag) {
-                        handle_item_cb(&context->config, pos, hash_item->val);
-                    } else {
-                        handle_item_cb(&context->config, pos, &hash_item->offset);
-                    }
-                }
-            }
-            break;
-        }
-    }
-    return find_flag;
-}
-
-static void _replace_item_val(HashConfig_t *config, item_t *item, void *val)
+static inline void 
+_replace_item_val(HashConfig_t *config, item_t *item, void *val)
 {
     if (HASH_VAL_FLAG == config->val_offset_flag) {
         hal_uint32_t len = Hal_strlen(val);
@@ -279,7 +298,7 @@ hal_int32_t UtilsHashItemAdd(HashHandle_t handle, HashItem_t *hash_item)
     }
 
     hal_int32_t find_flag = 0;
-    find_flag = _hash_find_item(handle, hash_item, _replace_item_val, HANDLE_ITEM_SET);
+    find_flag = _find_item_from_list(handle, hash_item, _replace_item_val, ITEM_SET_VAL);
 
     if (0 == find_flag) {
         hash_context_t *context = handle;
@@ -291,12 +310,6 @@ hal_int32_t UtilsHashItemAdd(HashHandle_t handle, HashItem_t *hash_item)
     return HAL_NO_ERR;
 }
 
-static void _del_item(HashConfig_t *config, item_t *item, void *val)
-{
-    list_del(&item->list);
-    _item_final(&item);
-}
-
 hal_int32_t UtilsHashItemDel(HashHandle_t handle, HashItem_t *hash_item)
 {
     if (NULL == handle) {
@@ -304,13 +317,13 @@ hal_int32_t UtilsHashItemDel(HashHandle_t handle, HashItem_t *hash_item)
         return -1;
     }
 
-    return _hash_find_item(handle, hash_item, _del_item, HANDLE_ITEM_SET);
+    return _find_item_from_list(handle, hash_item, _del_item_from_list, ITEM_SET_VAL);
 }
 
-static void _get_item_val(HashConfig_t *config, item_t *item, void *val)
+static inline void _get_item_val(HashConfig_t *config, item_t *item, void *val)
 {
     if (HASH_VAL_FLAG == config->val_offset_flag) {
-        Hal_strncpy(val, item->val, Hal_strlen(item->val));
+        Hal_strncpy(val, item->val, Hal_strlen((hal_char_t *)item->val));
     } else {
         Hal_memcpy(val, item->val, HASH_OFFSET_LEN);
     }
@@ -323,7 +336,7 @@ hal_int32_t UtilsHashItemGet(HashHandle_t handle, HashItem_t *hash_item)
         return -1;
     }
 
-    return _hash_find_item(handle, hash_item, _get_item_val, HANDLE_ITEM_GET);
+    return _find_item_from_list(handle, hash_item, _get_item_val, ITEM_GET_VAL);
 }
 
 hal_uint32_t UtilsHashGenerate(const hal_char_t *key)
