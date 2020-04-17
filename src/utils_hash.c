@@ -119,19 +119,17 @@ _del_item_from_list(HashConfig_t *config, item_t *item, void *val)
     _item_final(&item);
 }
 
-static void 
-_traverse_item_list(hash_context_t *context, handle_item_cb_t handle_item_cb)
+static void _traverse_item_list(hash_context_t *context, 
+        handle_item_cb_t handle_item_cb, hal_uint32_t index)
 {
     item_t *pos, *n;
-    for (hal_uint32_t i = 0; i < context->config.bucket_max_len; i++) {
-        HalMutexLock(context->bucket_mutex[i]);
-        list_for_each_entry_safe(pos, n, &context->bucket_list[i], list) {
-            if (NULL != handle_item_cb) {
-                handle_item_cb(&context->config, pos, NULL);
-            }
+    HalMutexLock(context->bucket_mutex[index]);
+    list_for_each_entry_safe(pos, n, &context->bucket_list[index], list) {
+        if (NULL != handle_item_cb) {
+            handle_item_cb(&context->config, pos, NULL);
         }
-        HalMutexUnLock(context->bucket_mutex[i]);
     }
+    HalMutexUnLock(context->bucket_mutex[index]);
 }
 
 static inline void _call_cb(hash_context_t *context, 
@@ -216,9 +214,10 @@ static void _context_final(hash_context_t **context_tmp)
     if (NULL != context) {
         hal_uint32_t len = context->config.bucket_max_len;
 
-        _traverse_item_list(context, _del_item_from_list);
 
         for (hal_uint32_t i = 0; i < len; i++) {
+            _traverse_item_list(context, _del_item_from_list, i);
+
             if (NULL != context->bucket_mutex[i]) {
                 HalMutexDestroy(context->bucket_mutex[i]);
             }
@@ -268,7 +267,9 @@ void UtilsHashDump(HashHandle_t handle)
 
     hash_context_t *context = handle;
 
-    _traverse_item_list(context, _item_dump);
+    for (hal_uint32_t i = 0; i < context->config.bucket_max_len; i++) {
+        _traverse_item_list(context, _item_dump, i);
+    }
 }
 
 static hal_int32_t _key_to_index(HashConfig_t *config, const hal_char_t* key)
