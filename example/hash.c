@@ -17,17 +17,18 @@
  * 
  *     last modified: 15/04 2020 22:51
  */
+#include <time.h>
+
 #include "hal/hal_log.h"
 #include "hal/hal_string.h"
 #include "hal/hal_mem.h"
 
 #include "utils_hash.h"
 
-typedef void (*handle_item_cb_t)
-    (HashHandle_t handle, HashItem_t *hash_item, hal_uint32_t index);
-
 #define BUCKET_MAX_LEN  (16)
-#define STR_VAL_LEN     (32)
+#define STR_VAL_LEN     (64)
+
+typedef void (*handle_item_cb_t) (HashHandle_t handle, HashItem_t *hash_item);
 
 static void _test_hash(void)
 {
@@ -43,57 +44,43 @@ static void _test_hash(void)
     HalLogT("str4: %s,\t str4: %u \n", str4, UtilsHashGenerate(str4));
 }
 
-static void 
-_add_item_offset(HashHandle_t handle, HashItem_t *hash_item, hal_uint32_t index)
-{
-    hash_item->offset = index;
-    UtilsHashItemAdd(handle, hash_item);
-}
-
-static void 
-_get_item_offset(HashHandle_t handle, HashItem_t *hash_item, hal_uint32_t index)
-{
-    UtilsHashItemGet(handle, hash_item);
-    printf("offset: %d \n", hash_item->offset);
-}
-
-static void 
-_add_item_val(HashHandle_t handle, HashItem_t *hash_item, hal_uint32_t index)
+static void _add_item(HashHandle_t handle, HashItem_t *hash_item)
 {
     hal_char_t val[STR_VAL_LEN] = {0};
-    snprintf(val, STR_VAL_LEN, "hello world, %d", index);
+    snprintf(val, STR_VAL_LEN, "hello world, %ld", time(NULL));
     hash_item->val = val;
+
     UtilsHashItemAdd(handle, hash_item);
 }
 
-static void 
-_get_item_val(HashHandle_t handle, HashItem_t *hash_item, hal_uint32_t index)
+static void _get_item_val(HashHandle_t handle, HashItem_t *hash_item)
 {
     hal_char_t val[STR_VAL_LEN] = {0};
     hash_item->val = val;
     UtilsHashItemGet(handle, hash_item);
-    printf("val: %s \n", hash_item->val);
+
+    printf("val: %s \n", (hal_char_t *)hash_item->val);
 }
 
-static void 
-_del_item(HashHandle_t handle, HashItem_t *hash_item, hal_uint32_t index)
+static void _del_item(HashHandle_t handle, HashItem_t *hash_item)
 {
     UtilsHashItemDel(handle, hash_item);
 }
 
-static void _handle_item_com(hal_uint32_t bucket_max_len, 
-        handle_item_cb_t handle_item_cb, 
-        HashHandle_t handle, HashItem_t *hash_item)
+static void _handle_item_com(HashHandle_t     handle, 
+                             handle_item_cb_t handle_item_cb, 
+                             HashItem_t       *hash_item,
+                             hal_int32_t      len)
 {
     hal_char_t key[STR_VAL_LEN] = {0};
 
-    for (hal_uint32_t i = 0; i < bucket_max_len; i++) {
+    for (hal_int32_t i = 0; i < len; i++) {
         Hal_memset(hash_item, '\0', HASH_ITEM_LEN);
         snprintf(key, STR_VAL_LEN, "key%d", i);
         hash_item->key = key;
 
         if (NULL != handle_item_cb) {
-            handle_item_cb(handle, hash_item, i);
+            handle_item_cb(handle, hash_item);
         }
     }
 }
@@ -104,30 +91,14 @@ static void _test_key_val(void)
 
     HashConfig_t config;
     config.bucket_max_len  = BUCKET_MAX_LEN;
-    config.val_offset_flag = HASH_VAL_FLAG;
     HashHandle_t handle = UtilsHashCreate(&config);
 
-    _handle_item_com(BUCKET_MAX_LEN, _add_item_val, handle, &hash_item);
+    hal_int32_t bucket_max_len = UtilsHashGetBucket(handle);
+
+    _handle_item_com(handle, _add_item,     &hash_item, 32);
     UtilsHashDump(handle);
-    _handle_item_com(BUCKET_MAX_LEN, _get_item_val, handle, &hash_item);
-    _handle_item_com(BUCKET_MAX_LEN, _del_item,     handle, &hash_item);
-
-    UtilsHashDestroy(handle);
-}
-
-static void _test_key_offset(void)
-{
-    HashItem_t hash_item;
-
-    HashConfig_t config;
-    config.bucket_max_len  = BUCKET_MAX_LEN;
-    config.val_offset_flag = HASH_OFFSET_FLAG;
-    HashHandle_t handle = UtilsHashCreate(&config);
-
-    _handle_item_com(BUCKET_MAX_LEN, _add_item_offset, handle, &hash_item);
-    UtilsHashDump(handle);
-    _handle_item_com(BUCKET_MAX_LEN, _get_item_offset, handle, &hash_item);
-    _handle_item_com(BUCKET_MAX_LEN, _del_item,        handle, &hash_item);
+    _handle_item_com(handle, _get_item_val, &hash_item, bucket_max_len);
+    _handle_item_com(handle, _del_item,     &hash_item, bucket_max_len);
 
     UtilsHashDestroy(handle);
 }
@@ -143,7 +114,6 @@ hal_int32_t main(hal_int32_t argc, const hal_char_t *argv[])
 
     _test_hash();
     _test_key_val();
-    _test_key_offset();
 
     HalLogFinal();
 
