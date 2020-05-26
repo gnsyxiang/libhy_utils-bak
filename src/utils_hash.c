@@ -31,7 +31,7 @@ typedef struct item {
     hal_uint32_t        key_hash;
     void                *val;
 
-    struct list_head    list;
+    struct hlist_node   list;
 } item_t;
 #define ITEM_LEN (sizeof(item_t))
 
@@ -39,7 +39,7 @@ typedef struct {
     HashConfig_t        config;
 
     ThreadMutexHandle_t *bucket_mutex;
-    struct list_head    *bucket_list;
+    struct hlist_head   *bucket_head;
 } hash_context_t;
 #define HASH_CONTEXT_LEN (sizeof(hash_context_t))
 
@@ -131,9 +131,10 @@ static void _traverse_item_list(hash_context_t *context,
         HalLogT("bucket: %d \n", index);
     }
 
-    item_t *pos, *n;
+    item_t *pos;
+    struct hlist_node *n;
     HalMutexLock(context->bucket_mutex[index]);
-    list_for_each_entry_safe(pos, n, &context->bucket_list[index], list) {
+    hlist_for_each_entry_safe(pos, n, &context->bucket_head[index], list) {
         if (NULL != handle_item_cb) {
             handle_item_cb(pos, NULL);
         }
@@ -151,9 +152,10 @@ static hal_int32_t _find_item_from_list(HashHandle_t handle,
     hal_uint32_t key_hash   = UtilsHashGenerate(hash_item->key);
     hal_int32_t index       = _key_to_index(context->config.bucket_max_len, hash_item->key);
 
-    item_t *pos, *n;
+    item_t *pos;
+    struct hlist_node *n;
     HalMutexLock(context->bucket_mutex[index]);
-    list_for_each_entry_safe(pos, n, &context->bucket_list[index], list) {
+    hlist_for_each_entry_safe(pos, n, &context->bucket_head[index], list) {
         if (pos->key_hash == key_hash) {
             find_flag = 1;
             if (NULL != handle_item_cb) {
@@ -177,8 +179,8 @@ static hash_context_t *_context_init(HashConfig_t *config)
     context->config = *config;
     hal_int32_t len = context->config.bucket_max_len;
 
-    context->bucket_list = Hal_calloc(1, len * sizeof(struct list_head));
-    if (NULL == context->bucket_list) {
+    context->bucket_head = Hal_calloc(1, len * sizeof(struct hlist_head));
+    if (NULL == context->bucket_head) {
         HalLogE("hal calloc faild \n");
         goto L_CONTEXT_INIT_2;
     }
@@ -191,12 +193,12 @@ static hash_context_t *_context_init(HashConfig_t *config)
 
     for (hal_int32_t i = 0; i < len; i++) {
         context->bucket_mutex[i] = HalMutexInit();
-        INIT_LIST_HEAD(&context->bucket_list[i]);
+        INIT_HLIST_HEAD(&context->bucket_head[i]);
     }
 
     return context;
 L_CONTEXT_INIT_3:
-    Hal_free(context->bucket_list);
+    Hal_free(context->bucket_head);
 L_CONTEXT_INIT_2:
     Hal_free(context);
     context = NULL;
@@ -223,9 +225,9 @@ static void _context_final(hash_context_t **context_tmp)
             context->bucket_mutex = NULL;
         }
 
-        if (NULL != context->bucket_list) {
-            Hal_free(context->bucket_list);
-            context->bucket_list = NULL;
+        if (NULL != context->bucket_head) {
+            Hal_free(context->bucket_head);
+            context->bucket_head = NULL;
         }
 
         Hal_free(context);
@@ -275,13 +277,13 @@ static inline void _add_item_to_list(HashHandle_t handle, HashItem_t *hash_item)
     item_t *item      = _item_init(&context->config, hash_item);
 
     HalMutexLock(context->bucket_mutex[index]);
-    list_add_tail(&item->list, &context->bucket_list[index]);
+    hlist_add_head(&item->list, &context->bucket_head[index]);
     HalMutexUnLock(context->bucket_mutex[index]);
 }
 
 static inline void _del_item_from_list(item_t *pos, HashItem_t *item)
 {
-    list_del(&pos->list);
+    hlist_del(&pos->list);
     _item_final(&pos);
 }
 
