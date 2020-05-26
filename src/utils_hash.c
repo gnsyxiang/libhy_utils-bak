@@ -179,7 +179,7 @@ static hash_context_t *_context_init(HashConfig_t *config)
     context->config = *config;
     hal_int32_t len = context->config.bucket_max_len;
 
-    context->bucket_head = Hal_calloc(1, len * sizeof(struct list_head));
+    context->bucket_head = Hal_calloc(1, len * sizeof(struct hlist_head));
     if (NULL == context->bucket_head) {
         HalLogE("hal calloc faild \n");
         goto L_CONTEXT_INIT_2;
