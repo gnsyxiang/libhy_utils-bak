@@ -26,6 +26,11 @@ hal_ld_com += -lutils
 
 bin_PROGRAMS 	=
 
+bin_PROGRAMS	+= hash
+hash_SOURCES 	 = hash.c
+hash_LDADD   	 = $(hal_ld_com)
+hash_CFLAGS  	 = $(AM_CFLAGS_COM) $(CFLAGS_COM)
+
 bin_PROGRAMS	+= md5sum
 md5sum_SOURCES 	 = md5sum.c
 md5sum_LDADD   	 = $(hal_ld_com)
