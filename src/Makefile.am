@@ -22,14 +22,14 @@ lib_LTLIBRARIES = libutils.la
 
 LDFLAGS_COM  = -version-info @current@:@revision@:@age@
 LDFLAGS_COM += -rdynamic
-LDFLAGS_COM += -export-symbols-regex 'Utils*'
+LDFLAGS_COM += -export-symbols-regex 'Hy*'
 
 CFLAGS_COM   = $(AM_CFLAGS_COM)
 CFLAGS_COM  += -fPIC
 CFLAGS_COM  += -Wno-unused-parameter
 CFLAGS_COM  += -I$(top_srcdir)/include
 
-SOURCES_COM  = utils_md5sum.c
+SOURCES_COM  = hy_log.c
 
 if COMPILE_WITH_LIBCJSON_UTILS
 SOURCES_COM	+= utils_cjson.c utils_cjson_file.c
