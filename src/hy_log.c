@@ -52,7 +52,7 @@ void HyLogDestory(void)
     memset(&log_context, '\0', LOG_CONTEXT_T_LEN);
 }
 
-int32_t _log_write(uint8_t level, const char *tags, const char *func, uint32_t line, char *fmt, ...)
+int32_t HyLogWrite(uint8_t level, const char *tags, const char *func, uint32_t line, char *fmt, ...)
 {
     if (log_context.level < level) {
         return -1;

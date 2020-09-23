@@ -38,12 +38,12 @@ enum {
 };
 
 // 下面函数和宏为内部用函数，最好不要在外面使用
-int32_t _log_write(uint8_t level, const char *tags, const char *func, uint32_t line, char *fmt, ...);
+int32_t HyLogWrite(uint8_t level, const char *tags, const char *func, uint32_t line, char *fmt, ...);
 
 #define LOG(no_debug, level, fmt, ...)                                  \
     do {                                                                \
         if (no_debug) {                                                 \
-            _log_write(level, LOG_CATEGORY_TAG, __func__, __LINE__,     \
+            HyLogWrite(level, LOG_CATEGORY_TAG, __func__, __LINE__,     \
                     (char *)fmt, ##__VA_ARGS__);                        \
         }                                                               \
     } while (0)
