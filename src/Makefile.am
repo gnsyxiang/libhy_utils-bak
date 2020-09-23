@@ -29,7 +29,8 @@ CFLAGS_COM  += -fPIC
 CFLAGS_COM  += -Wno-unused-parameter
 CFLAGS_COM  += -I$(top_srcdir)/include
 
-SOURCES_COM  = hy_log.c
+SOURCES_COM  = hy_log.c \
+			   hy_fifo.c
 
 if COMPILE_WITH_LIBCJSON_UTILS
 SOURCES_COM	+= utils_cjson.c utils_cjson_file.c

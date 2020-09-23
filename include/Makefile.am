@@ -18,7 +18,8 @@
 #     last modified: 21/03 2020 14:09
 # ===============================================================
 
-HEADERS_COM 	 = hy_log.h
+HEADERS_COM 	 = hy_log.h \
+				   hy_fifo.h
 
 if COMPILE_WITH_LIBCJSON_UTILS
 HEADERS_COM 	+= utils_cjson.h utils_cjson_file.h
