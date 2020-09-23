@@ -26,10 +26,13 @@ extern "C" {
 
 #include <stdint.h>
 
-void HyFifoCreate(char *buf, uint32_t len);
-void HyFifoDestroy(void);
+void *HyFifoCreate(char *buf, uint32_t len);
+void HyFifoDestroy(void *handle);
 
-void HyFifoDump(void);
+uint32_t HyFifoInsertData(void *handle, char *buf, uint32_t len);
+uint32_t HyFifoGetData(void *handle, char *buf, uint32_t len);
+
+void HyFifoDump(void *handle);
 
 #ifdef __cplusplus
 }
