@@ -41,6 +41,41 @@ typedef struct {
 
 static fifo_context_t fifo_context;
 
+#define _print_hex_macro(buf, len)              \
+    do {                                        \
+        for (uint32_t i = 0; i < (len); i++) {  \
+            printf("%02x ", (buf)[i]);          \
+        }                                       \
+    } while (0)
+
+static inline void _fifo_print_all_buf(fifo_context_t *context)
+{
+    LOGD("len: %d \n", context->len);
+
+    printf("\n");
+    _print_hex_macro(context->buf, context->len);
+    printf("\n\n");
+}
+
+static inline void _fifo_print_content(fifo_context_t *context)
+{
+    LOGD("cnt: %d, head: %d, tail: %d \n", context->cnt, context->head, context->tail);
+
+    printf("\n");
+    if (context->tail >= context->head) {
+        if (context->tail + context->cnt <= context->len) {
+            _print_hex_macro(&context->buf[context->tail], context->cnt);
+        } else {
+            uint32_t tmp_len = context->len- context->tail;
+            _print_hex_macro(&context->buf[context->tail], tmp_len);
+            _print_hex_macro(context->buf, context->cnt - tmp_len);
+        }
+    } else {
+        _print_hex_macro(context->buf, context->cnt);
+    }
+    printf("\n\n");
+}
+
 void HyFifoDump(void *handle)
 {
     if (!handle) {
@@ -50,40 +85,8 @@ void HyFifoDump(void *handle)
 
     fifo_context_t *context = handle;
 
-    LOGD("len: %d \n", context->len);
-    printf("\n");
-    for (uint32_t i = 0; i < context->len; i++) {
-        printf("%02x ", context->buf[i]);
-    }
-    printf("\n\n");
-
-    LOGD("cnt: %d \n", context->cnt);
-    LOGD("head: %d \n", context->head);
-    LOGD("tail: %d \n", context->tail);
-
-    uint32_t i = 0;
-
-    printf("\n");
-    if (context->tail >= context->head) {
-        if (context->tail + context->cnt <= context->len) {
-            for (i = 0; i < context->cnt; i++) {
-                printf("%02x ", context->buf[context->tail + i]);
-            }
-        } else {
-            uint32_t tmp_len = context->len- context->tail;
-            for (i = 0; i < tmp_len; i++) {
-                printf("%02x ", context->buf[context->tail + i]);
-            }
-            for (i = 0; i < context->cnt - tmp_len; i++) {
-                printf("%02x ", context->buf[i]);
-            }
-        }
-    } else {
-        for (i = 0; i < context->cnt; i++) {
-            printf("%02x ", context->buf[i]);
-        }
-    }
-    printf("\n\n");
+    _fifo_print_all_buf(context);
+    _fifo_print_content(context);
 }
 
 uint32_t HyFifoInsertData(void *handle, char *buf, uint32_t len)
@@ -118,14 +121,8 @@ uint32_t HyFifoInsertData(void *handle, char *buf, uint32_t len)
     return len;
 }
 
-uint32_t HyFifoGetData(void *handle, char *buf, uint32_t len)
+static uint32_t _fifo_get_data_com(fifo_context_t *context, char *buf, uint32_t len)
 {
-    if (!handle) {
-        LOGE("the param is NULL \n");
-        return 0;
-    }
-
-    fifo_context_t *context = handle;
     if (len > context->cnt) {
         len = context->cnt;
     }
@@ -144,10 +141,23 @@ uint32_t HyFifoGetData(void *handle, char *buf, uint32_t len)
         memcpy(buf, &context->buf[context->tail], len);
     }
 
-    context->tail += len;
-    context->tail %= context->len;
+    return len;
+}
 
-    context->cnt -= len;
+uint32_t HyFifoGetData(void *handle, char *buf, uint32_t len)
+{
+    if (!handle) {
+        LOGE("the param is NULL \n");
+        return 0;
+    }
+
+    fifo_context_t *context = handle;
+    len = _fifo_get_data_com(context, buf, len);
+
+    context->cnt    -= len;
+    context->tail   += len;
+    context->tail   %= context->len;
+
     if (context->cnt <= 0) {
         context->cnt = 0;
     }
@@ -162,9 +172,7 @@ uint32_t HyFifoPeekData(void *handle, char *buf, uint32_t len)
         return 0;
     }
 
-    // fifo_context_t *context = handle;
-
-    return 1;
+    return _fifo_get_data_com((fifo_context_t *)handle, buf, len);
 }
 
 void *HyFifoCreate(char *buf, uint32_t len)
@@ -185,9 +193,4 @@ void HyFifoDestroy(void *handle)
 
     LOGD("fifo destroy successful \n");
 }
-
-
-
-
-
 

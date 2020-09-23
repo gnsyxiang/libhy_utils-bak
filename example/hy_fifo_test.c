@@ -51,6 +51,11 @@ int main(int argc, char const* argv[])
 
     HyFifoDump(fifo_handle);
 
+    len = HyFifoPeekData(fifo_handle, buf, 2);
+    LOGD("len: %d \n", len);
+
+    HyFifoDump(fifo_handle);
+
     HyFifoDestroy(fifo_handle);
 
     HyLogDestory();
