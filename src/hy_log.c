@@ -35,34 +35,18 @@ typedef struct {
 
 static log_context_t log_context;
 
-int32_t HyLogInit(char *buf, uint32_t len, uint8_t level)
-{
-    memset(&log_context, '\0', LOG_CONTEXT_T_LEN);
-
-    log_context.buf = buf;
-    log_context.len = len;
-
-    log_context.level = level;
-
-    return 0;
-}
-
-void HyLogDestory(void)
-{
-    memset(&log_context, '\0', LOG_CONTEXT_T_LEN);
-}
-
-int32_t HyLogWrite(uint8_t level, const char *tags, const char *func, uint32_t line, char *fmt, ...)
+int32_t HyLogWrite(uint8_t level, const char *tags, const char *func,
+        uint32_t line, char *fmt, ...)
 {
     if (log_context.level < level) {
         return -1;
     }
 
-    int32_t ret = 0;
-
+    uint32_t ret = 0;
     memset(log_context.buf, '\0', log_context.len);
 
-    ret += snprintf(log_context.buf + ret, log_context.len - ret, "[%s][%s %d] ", tags, func, line); 
+    ret += snprintf(log_context.buf + ret, log_context.len - ret,
+            "[%s][%s %d] ", tags, func, line); 
 
     va_list args;
     va_start(args, fmt);
@@ -73,6 +57,23 @@ int32_t HyLogWrite(uint8_t level, const char *tags, const char *func, uint32_t l
 
     return 0;
 }
+
+int32_t HyLogInit(char *buf, uint32_t len, uint8_t level)
+{
+    memset(&log_context, '\0', LOG_CONTEXT_T_LEN);
+
+    log_context.buf     = buf;
+    log_context.len     = len;
+    log_context.level   = level;
+
+    return 0;
+}
+
+void HyLogDestory(void)
+{
+    memset(&log_context, '\0', LOG_CONTEXT_T_LEN);
+}
+
 #else
 int32_t HyLogInit(char *buf, uint32_t len, uint8_t level) {return 0;}
 void HyLogDestory(void) {}
