@@ -26,9 +26,17 @@ extern "C" {
 
 #include <stdint.h>
 
+typedef enum {
+    HY_FIFO_INFO_LEN_TOTAL,
+    HY_FIFO_INFO_LEN_USED,
+    HY_FIFO_INFO_LEN_FREE,
+} HyFifoInfoType_t;
+
 void *HyFifoCreate(char *buf, uint32_t len);
 void HyFifoDestroy(void *handle);
+
 void HyFifoDump(void *handle);
+uint32_t HyFifoGetInfo(void *handle, HyFifoInfoType_t type);
 
 uint32_t HyFifoInsertData(void *handle, char *buf, uint32_t len);
 uint32_t HyFifoGetData(void *handle, char *buf, uint32_t len);

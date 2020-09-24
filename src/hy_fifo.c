@@ -124,6 +124,7 @@ uint32_t HyFifoInsertData(void *handle, char *buf, uint32_t len)
 static uint32_t _fifo_get_data_com(fifo_context_t *context, char *buf, uint32_t len)
 {
     if (len > context->cnt) {
+        LOGW("the len is too big, len: %d, cnt: %d \n", len, context->cnt);
         len = context->cnt;
     }
 
@@ -175,8 +176,41 @@ uint32_t HyFifoPeekData(void *handle, char *buf, uint32_t len)
     return _fifo_get_data_com((fifo_context_t *)handle, buf, len);
 }
 
+uint32_t HyFifoGetInfo(void *handle, HyFifoInfoType_t type)
+{
+    if (!handle) {
+        LOGE("the param is NULL \n");
+        return 0;
+    }
+
+    fifo_context_t *context = handle;
+    uint32_t len;
+
+    switch (type) {
+        case HY_FIFO_INFO_LEN_TOTAL:
+            len = context->len;
+            break;
+        case HY_FIFO_INFO_LEN_USED:
+            len = context->cnt;
+            break;
+        case HY_FIFO_INFO_LEN_FREE:
+            len = context->len - context->cnt;
+            break;
+        default:
+            LOGE("error case\n");
+            break;
+    }
+
+    return len;
+}
+
 void *HyFifoCreate(char *buf, uint32_t len)
 {
+    if (!buf || len <= 0) {
+        LOGE("the param is error \n");
+        return NULL;
+    }
+
     memset(&fifo_context, '\0', FIFO_CONTEXT_T_LEN);
 
     fifo_context.buf    = buf;
