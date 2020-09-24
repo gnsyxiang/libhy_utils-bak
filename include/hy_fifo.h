@@ -71,7 +71,7 @@ void HyFifoDump(void *handle);
  *
  * @return 返回大小
  */
-uint32_t HyFifoGetInfo(void *handle, HyFifoInfoType_t type);
+int32_t HyFifoGetInfo(void *handle, HyFifoInfoType_t type);
 
 /**
  * @brief 向fifo中插入数据

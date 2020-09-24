@@ -176,15 +176,15 @@ uint32_t HyFifoPeekData(void *handle, char *buf, uint32_t len)
     return _fifo_get_data_com((fifo_context_t *)handle, buf, len);
 }
 
-uint32_t HyFifoGetInfo(void *handle, HyFifoInfoType_t type)
+int32_t HyFifoGetInfo(void *handle, HyFifoInfoType_t type)
 {
     if (!handle) {
         LOGE("the param is NULL \n");
-        return 0;
+        return -1;
     }
 
     fifo_context_t *context = handle;
-    uint32_t len;
+    uint32_t len = 0;
 
     switch (type) {
         case HY_FIFO_INFO_LEN_TOTAL:

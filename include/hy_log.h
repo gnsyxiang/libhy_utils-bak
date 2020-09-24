@@ -33,13 +33,11 @@ extern "C" {
 /**
  * @brief 打印等级定义
  */
-typedef enum {
-    LOG_LEVEL_ERROR = 1,
-    LOG_LEVEL_WARNING,
-    LOG_LEVEL_DEBUG,
-    LOG_LEVEL_INFO,
-    LOG_LEVEL_MAX,
-} LogLevel_t;
+#define LOG_LEVEL_ERROR         (1)
+#define LOG_LEVEL_WARNING       (2)
+#define LOG_LEVEL_DEBUG         (3)
+#define LOG_LEVEL_INFO          (4)
+#define LOG_LEVEL_MAX           (5)
 
 /**
  * @brief 真实输出log函数
@@ -77,7 +75,7 @@ int32_t HyLogWrite(uint8_t level, const char *tags, const char *func,
  *
  * @param buf: 打印buf空间
  * @param len: 打印buf空间的总长度
- * @param level: 打印等级，详见LogLevel_t
+ * @param level: 打印等级，详见打印等级定义
  *
  * @return 成功返回0
  *
