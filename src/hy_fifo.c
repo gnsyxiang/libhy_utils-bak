@@ -29,18 +29,6 @@
     #define LOG_CATEGORY_TAG "hy_fifo"
 #endif
 
-typedef struct {
-    char        *buf;
-    uint32_t    len;
-
-    uint32_t    cnt;
-    int32_t    head;
-    int32_t    tail;
-} fifo_context_t;
-#define FIFO_CONTEXT_T_LEN  (sizeof(fifo_context_t))
-
-static fifo_context_t fifo_context;
-
 #define _print_hex_macro(buf, len)              \
     do {                                        \
         for (uint32_t i = 0; i < (len); i++) {  \
@@ -48,20 +36,18 @@ static fifo_context_t fifo_context;
         }                                       \
     } while (0)
 
-static inline void _fifo_print_all_buf(fifo_context_t *context)
+static inline void _fifo_print_all_buf(HyFifoContext_t *context)
 {
     LOGD("len: %d \n", context->len);
 
-    printf("\n");
     _print_hex_macro(context->buf, context->len);
-    printf("\n\n");
+    printf("\n");
 }
 
-static inline void _fifo_print_content(fifo_context_t *context)
+static inline void _fifo_print_content(HyFifoContext_t *context)
 {
     LOGD("cnt: %d, head: %d, tail: %d \n", context->cnt, context->head, context->tail);
 
-    printf("\n");
     if (context->tail >= context->head) {
         if (context->tail + context->cnt <= context->len) {
             _print_hex_macro(&context->buf[context->tail], context->cnt);
@@ -73,35 +59,35 @@ static inline void _fifo_print_content(fifo_context_t *context)
     } else {
         _print_hex_macro(context->buf, context->cnt);
     }
-    printf("\n\n");
+    printf("\n");
 }
 
-void HyFifoDump(void *handle)
+void HyFifoDump(HyFifoContext_t *context)
 {
-    if (!handle) {
+    if (!context) {
         LOGE("the param is NULL \n");
         return ;
     }
 
-    fifo_context_t *context = handle;
+    if (context->cnt <= 0) {
+        return;
+    }
 
     _fifo_print_all_buf(context);
     _fifo_print_content(context);
 }
 
-uint32_t HyFifoInsertData(void *handle, char *buf, uint32_t len)
+uint32_t HyFifoInsertData(HyFifoContext_t *context, char *buf, uint32_t len)
 {
-    if (!handle) {
+    if (!context) {
         LOGE("the param is NULL \n");
         return 0;
     }
 
-    fifo_context_t *context = handle;
-    uint32_t tmp_len = context->len - context->head;
-
-    if (context->head + len <= tmp_len) {
+    if (context->head + len <= context->len) {
         memcpy(&context->buf[context->head], buf, len);
     } else {
+        uint32_t tmp_len = context->len + context->head;
         memcpy(&context->buf[context->head], buf, tmp_len);
         memcpy(context->buf, buf + tmp_len, len - tmp_len);
     }
@@ -121,10 +107,10 @@ uint32_t HyFifoInsertData(void *handle, char *buf, uint32_t len)
     return len;
 }
 
-static uint32_t _fifo_get_data_com(fifo_context_t *context, char *buf, uint32_t len)
+static uint32_t _fifo_get_data_com(HyFifoContext_t *context, char *buf, uint32_t len)
 {
     if (len > context->cnt) {
-        LOGW("the len is too big, len: %d, cnt: %d \n", len, context->cnt);
+        LOGI("the len is too big, len: %d, cnt: %d \n", len, context->cnt);
         len = context->cnt;
     }
 
@@ -145,14 +131,13 @@ static uint32_t _fifo_get_data_com(fifo_context_t *context, char *buf, uint32_t 
     return len;
 }
 
-uint32_t HyFifoGetData(void *handle, char *buf, uint32_t len)
+uint32_t HyFifoGetData(HyFifoContext_t *context, char *buf, uint32_t len)
 {
-    if (!handle) {
+    if (!context) {
         LOGE("the param is NULL \n");
         return 0;
     }
 
-    fifo_context_t *context = handle;
     len = _fifo_get_data_com(context, buf, len);
 
     context->cnt    -= len;
@@ -166,24 +151,23 @@ uint32_t HyFifoGetData(void *handle, char *buf, uint32_t len)
     return len;
 }
 
-uint32_t HyFifoPeekData(void *handle, char *buf, uint32_t len)
+uint32_t HyFifoPeekData(HyFifoContext_t *context, char *buf, uint32_t len)
 {
-    if (!handle) {
+    if (!context) {
         LOGE("the param is NULL \n");
         return 0;
     }
 
-    return _fifo_get_data_com((fifo_context_t *)handle, buf, len);
+    return _fifo_get_data_com(context, buf, len);
 }
 
-int32_t HyFifoGetInfo(void *handle, HyFifoInfoType_t type)
+int32_t HyFifoGetInfo(HyFifoContext_t *context, HyFifoInfoType_t type)
 {
-    if (!handle) {
+    if (!context) {
         LOGE("the param is NULL \n");
         return -1;
     }
 
-    fifo_context_t *context = handle;
     uint32_t len = 0;
 
     switch (type) {
@@ -196,34 +180,47 @@ int32_t HyFifoGetInfo(void *handle, HyFifoInfoType_t type)
         case HY_FIFO_INFO_LEN_FREE:
             len = context->len - context->cnt;
             break;
-        default:
-            LOGE("error case\n");
-            break;
     }
 
     return len;
 }
 
-void *HyFifoCreate(char *buf, uint32_t len)
+void HyFifoClean(HyFifoContext_t *context)
 {
-    if (!buf || len <= 0) {
-        LOGE("the param is error \n");
-        return NULL;
+    if (!context) {
+        LOGE("the param is NULL \n");
+        return ;
     }
 
-    memset(&fifo_context, '\0', FIFO_CONTEXT_T_LEN);
-
-    fifo_context.buf    = buf;
-    fifo_context.len    = len;
-
-    LOGD("fifo create successful \n");
-
-    return (void *)&fifo_context;
+    memset(context->buf, '\0', context->len);
+    context->cnt    = 0;
+    context->head   = 0;
+    context->tail   = 0;
 }
 
-void HyFifoDestroy(void *handle)
+void HyFifoCreate(HyFifoContext_t *context, char *buf, uint32_t len)
 {
-    memset(handle, '\0', FIFO_CONTEXT_T_LEN);
+    if (!context || !buf || len <= 0) {
+        LOGE("the param is error \n");
+        return;
+    }
+
+    memset(context, '\0', HY_FIFO_CONTEXT_T_LEN);
+
+    context->buf    = buf;
+    context->len    = len;
+
+    LOGD("fifo create successful \n");
+}
+
+void HyFifoDestroy(HyFifoContext_t *context)
+{
+    if (!context) {
+        LOGE("the param is NULL \n");
+        return;
+    }
+
+    memset(context, '\0', HY_FIFO_CONTEXT_T_LEN);
 
     LOGD("fifo destroy successful \n");
 }

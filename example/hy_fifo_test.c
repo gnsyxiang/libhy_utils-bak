@@ -31,32 +31,38 @@
 #define LOG_BUF_LEN_MAX     (128)
 #define TEST_FIFO_BUF_LEN   (6)
 
+typedef struct {
+    char                fifo_buf[TEST_FIFO_BUF_LEN];
+    char                log_buf[LOG_BUF_LEN_MAX];
+    HyFifoContext_t     fifo;
+} main_context_t;
+
+static main_context_t main_context;
+
 int main(int argc, char const* argv[])
 {
-    char log_buf[LOG_BUF_LEN_MAX] = {0};
-    HyLogInit(log_buf, LOG_BUF_LEN_MAX, LOG_LEVEL_INFO);
+    HyLogInit(main_context.log_buf, LOG_BUF_LEN_MAX, LOG_LEVEL_INFO);
 
-    char fifo_buf[TEST_FIFO_BUF_LEN] = {0};
-    void *fifo_handle = HyFifoCreate(fifo_buf, TEST_FIFO_BUF_LEN);
+    HyFifoCreate(&main_context.fifo, main_context.fifo_buf, TEST_FIFO_BUF_LEN);
     uint32_t len = 0;
 
-    len = HyFifoInsertData(fifo_handle, "12345678", strlen("12345678"));
+    len = HyFifoInsertData(&main_context.fifo, "12345678", strlen("12345678"));
     LOGD("len: %d \n", len);
 
-    HyFifoDump(fifo_handle);
+    HyFifoDump(&main_context.fifo);
 
     char buf[TEST_FIFO_BUF_LEN] = {0};
-    len = HyFifoGetData(fifo_handle, buf, 2);
+    len = HyFifoGetData(&main_context.fifo, buf, 2);
     LOGD("len: %d \n", len);
 
-    HyFifoDump(fifo_handle);
+    HyFifoDump(&main_context.fifo);
 
-    len = HyFifoPeekData(fifo_handle, buf, 2);
+    len = HyFifoPeekData(&main_context.fifo, buf, 2);
     LOGD("len: %d \n", len);
 
-    HyFifoDump(fifo_handle);
+    HyFifoDump(&main_context.fifo);
 
-    HyFifoDestroy(fifo_handle);
+    HyFifoDestroy(&main_context.fifo);
 
     HyLogDestory();
 
