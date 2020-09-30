@@ -87,7 +87,7 @@ uint32_t HyFifoInsertData(HyFifoContext_t *context, char *buf, uint32_t len)
     if (context->head + len <= context->len) {
         memcpy(&context->buf[context->head], buf, len);
     } else {
-        uint32_t tmp_len = context->len + context->head;
+        uint32_t tmp_len = context->len - context->head;
         memcpy(&context->buf[context->head], buf, tmp_len);
         memcpy(context->buf, buf + tmp_len, len - tmp_len);
     }
