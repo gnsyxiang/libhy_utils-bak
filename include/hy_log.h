@@ -26,10 +26,11 @@ extern "C" {
 
 #include <stdint.h>
 
+// #define INTRANET_SERVER_TEST
+
 #define USE_DEBUG
 
 #ifdef USE_DEBUG
-
 /**
  * @brief 打印等级定义
  */
@@ -38,6 +39,10 @@ extern "C" {
 #define LOG_LEVEL_DEBUG         (3)
 #define LOG_LEVEL_INFO          (4)
 #define LOG_LEVEL_MAX           (5)
+
+// #define USE_LOG_LEVEL           (LOG_LEVEL_INFO)
+#define USE_LOG_LEVEL           (LOG_LEVEL_DEBUG)
+// #define USE_LOG_LEVEL           (LOG_LEVEL_WARNING)
 
 /**
  * @brief 真实输出log函数
@@ -68,22 +73,19 @@ int32_t HyLogWrite(uint8_t level, const char *tags, const char *func,
                     (char *)fmt, ##__VA_ARGS__);                        \
         }                                                               \
     } while (0)
+
+void PrintHex(const char *tag, const char *name, uint16_t line,
+        char *buf, int32_t len, int8_t flag);
 #endif
 
 /**
  * @brief 初始化log打印系统
  *
- * @param buf: 打印buf空间
- * @param len: 打印buf空间的总长度
- * @param level: 打印等级，详见打印等级定义
+ * @param level: 打印等级，详见LogLevel_t
  *
- * @return 成功返回0
- *
- * note: buf空间需要使用者维护的原因:
- * 1, 使用者知道该空间何时创建，何时释放
- * 2，对于单片机系统没有堆的概念，不能在内部使用malloc创建空间
+ * @return 成功返回句柄
  */
-int32_t HyLogInit(char *buf, uint32_t len, uint8_t level);
+void HyLogCreate(uint8_t level, uint32_t buf_len);
 
 /**
  * @brief 销毁log系统
@@ -98,17 +100,23 @@ void HyLogDestory(void);
     #define	LOGW(fmt, ...)  LOG(ALONE_DEBUG, LOG_LEVEL_WARNING,  fmt, ##__VA_ARGS__)
     #define	LOGD(fmt, ...)  LOG(ALONE_DEBUG, LOG_LEVEL_DEBUG,    fmt, ##__VA_ARGS__)
     #define	LOGI(fmt, ...)  LOG(ALONE_DEBUG, LOG_LEVEL_INFO,     fmt, ##__VA_ARGS__)
+    #define PRINT_HEX_ASCII(buf, len) PrintHex(LOG_CATEGORY_TAG, __func__, __LINE__, buf, len, 1)
+    #define PRINT_HEX(buf, len) PrintHex(LOG_CATEGORY_TAG, __func__, __LINE__, buf, len, 0)
 #else
 #ifdef INTRANET_SERVER_TEST
     #define	LOGE(fmt, ...)  printf(fmt, ##__VA_ARGS__)
     #define	LOGW(fmt, ...)  printf(fmt, ##__VA_ARGS__)
     #define	LOGD(fmt, ...)  printf(fmt, ##__VA_ARGS__)
     #define	LOGI(fmt, ...)  printf(fmt, ##__VA_ARGS__)
+    #define PRINT_HEX_ASCII(buf, len)
+    #define PRINT_HEX(buf, len)
 #else
     #define	LOGE(fmt, ...)
     #define	LOGW(fmt, ...)
     #define	LOGD(fmt, ...)
     #define	LOGI(fmt, ...)
+    #define PRINT_HEX_ASCII(buf, len)
+    #define PRINT_HEX(buf, len)
 #endif
 #endif
 
