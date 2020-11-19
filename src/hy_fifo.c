@@ -18,72 +18,149 @@
  *     last modified: 23/09 2020 16:02
  */
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "hy_fifo.h"
 
+// #include "hy_utils.h"
 #include "hy_log.h"
 
 #ifdef USE_DEBUG
     #define ALONE_DEBUG 1
     #define LOG_CATEGORY_TAG "hy_fifo"
+    // #define FIFO_PRINT_ALL
 #endif
 
-#define _print_hex_macro(buf, len)              \
-    do {                                        \
-        for (uint32_t i = 0; i < (len); i++) {  \
-            printf("%02x ", (buf)[i]);          \
-        }                                       \
-    } while (0)
+typedef struct {
+    uint32_t    cnt;
+    uint32_t    head;
+    uint32_t    tail;
 
-static inline void _fifo_print_all_buf(HyFifoContext_t *context)
+    uint32_t    len;
+    char        *buf;
+} fifo_context_t;
+#define FIFO_CONTEXT_T_LEN (sizeof(fifo_context_t))
+
+static fifo_context_t *_create_wrapper(uint32_t len)
 {
-    LOGD("len: %d \n", context->len);
+    fifo_context_t *context = calloc(1, FIFO_CONTEXT_T_LEN);
+    if (!context) {
+        LOGE("calloc faild \n");
+        return NULL;
+    }
 
-    _print_hex_macro(context->buf, context->len);
-    printf("\n");
+    context->buf = calloc(1, len);
+    if (!context->buf) {
+        LOGE("calloc faild \n");
+        free(context);
+        context = NULL;
+        return NULL;
+    }
+
+    context->len = len;
+
+    return context;
 }
 
-static inline void _fifo_print_content(HyFifoContext_t *context)
+static void _destroy_wrapper(fifo_context_t *context)
 {
-    LOGD("cnt: %d, head: %d, tail: %d \n", context->cnt, context->head, context->tail);
+    if (context->buf) {
+        free(context->buf);
+        context->buf = NULL;
+    }
+
+    if (context) {
+        free(context);
+        context = NULL;
+    }
+}
+
+static inline void _print_hex_ascii(char *buf, uint32_t len)
+{
+    for (uint32_t i = 0; i < len; i++) {
+        if (buf[i] == 0x0d || buf[i] == 0x0a || buf[i] < 32 || buf[i] >= 127) {
+            printf("%02x[ ]  ", (uint8_t)buf[i]);
+        } else {
+            printf("%02x[%c]  ", (uint8_t)buf[i], (uint8_t)buf[i]);
+        }
+    }
+}
+
+#ifdef FIFO_PRINT_ALL
+static inline void _print_all_buf(fifo_context_t *context)
+{
+    LOGE("len: %d \n", context->len);
+
+    _print_hex_ascii(context->buf, context->len);
+    printf("\n");
+}
+#endif
+
+static inline void _print_content(fifo_context_t *context)
+{
+    LOGE("cnt: %d, head: %d, tail: %d \n", context->cnt, context->head, context->tail);
 
     if (context->tail >= context->head) {
         if (context->tail + context->cnt <= context->len) {
-            _print_hex_macro(&context->buf[context->tail], context->cnt);
+            _print_hex_ascii(&context->buf[context->tail], context->cnt);
         } else {
             uint32_t tmp_len = context->len- context->tail;
-            _print_hex_macro(&context->buf[context->tail], tmp_len);
-            _print_hex_macro(context->buf, context->cnt - tmp_len);
+            _print_hex_ascii(&context->buf[context->tail], tmp_len);
+            _print_hex_ascii(context->buf, context->cnt - tmp_len);
         }
     } else {
-        _print_hex_macro(context->buf, context->cnt);
+        _print_hex_ascii(&context->buf[context->tail], context->cnt);
     }
     printf("\n");
 }
 
-void HyFifoDump(HyFifoContext_t *context)
+static void _dump_wrapper(fifo_context_t *context)
 {
-    if (!context) {
-        LOGE("the param is NULL \n");
-        return ;
-    }
-
     if (context->cnt <= 0) {
+        LOGE("the len is zero\n");
         return;
     }
 
-    _fifo_print_all_buf(context);
-    _fifo_print_content(context);
+#ifdef FIFO_PRINT_ALL
+    _print_all_buf(context);
+#endif
+    _print_content(context);
 }
 
-uint32_t HyFifoInsertData(HyFifoContext_t *context, char *buf, uint32_t len)
+static inline void _clean_wrapper(fifo_context_t *context)
 {
-    if (!context) {
-        LOGE("the param is NULL \n");
-        return 0;
+    memset(context->buf, '\0', context->len);
+
+    context->cnt    = 0;
+    context->head   = 0;
+    context->tail   = 0;
+}
+
+static int32_t _get_info_wrapper(fifo_context_t *context, HyFifoInfoType_t type)
+{
+    uint32_t len = 0;
+
+    switch (type) {
+        case HY_FIFO_TOTAL_LEN:
+            len = context->len;
+            break;
+        case HY_FIFO_USED_LEN:
+            len = context->cnt;
+            break;
+        case HY_FIFO_FREE_LEN:
+            len = context->len - context->cnt;
+            break;
+        default:
+            LOGE("the type is ERROR, type: %d \n", type);
+            break;
     }
 
+    return len;
+}
+
+static uint32_t _insert_wrapper(fifo_context_t *context, const char *buf, uint32_t len)
+{
     if (context->head + len <= context->len) {
         memcpy(&context->buf[context->head], buf, len);
     } else {
@@ -101,16 +178,31 @@ uint32_t HyFifoInsertData(HyFifoContext_t *context, char *buf, uint32_t len)
     }
 
     if (context->cnt > context->len) {
+        LOGE("the cnt is error, context_cnt: %d, context_len: %d \n", context->cnt, context->len);
         context->cnt = context->len;
     }
 
     return len;
 }
 
-static uint32_t _fifo_get_data_com(HyFifoContext_t *context, char *buf, uint32_t len)
+static uint32_t _update_tail_wrapper(fifo_context_t *context, uint32_t len)
 {
     if (len > context->cnt) {
-        LOGI("the len is too big, len: %d, cnt: %d \n", len, context->cnt);
+        LOGE("the len is error, len: %d, fifo_cnt: %d \n", len, context->cnt);
+        return 0;
+    }
+
+    context->cnt    -= len;
+    context->tail   += len;
+    context->tail   %= context->len;
+
+    return len;
+}
+
+static uint32_t _get_data_com(fifo_context_t *context, char *buf, uint32_t len)
+{
+    if (len > context->cnt) {
+        // LOGE("the len is too big, len: %d, cnt: %d \n", len, context->cnt);
         len = context->cnt;
     }
 
@@ -131,97 +223,111 @@ static uint32_t _fifo_get_data_com(HyFifoContext_t *context, char *buf, uint32_t
     return len;
 }
 
-uint32_t HyFifoGetData(HyFifoContext_t *context, char *buf, uint32_t len)
+static uint32_t _get_data_wrapper(fifo_context_t *context, const char *buf, uint32_t len)
 {
-    if (!context) {
-        LOGE("the param is NULL \n");
-        return 0;
-    }
-
-    len = _fifo_get_data_com(context, buf, len);
+    len = _get_data_com(context, (char *)buf, len);
 
     context->cnt    -= len;
     context->tail   += len;
     context->tail   %= context->len;
 
-    if (context->cnt <= 0) {
-        context->cnt = 0;
-    }
-
     return len;
 }
 
-uint32_t HyFifoPeekData(HyFifoContext_t *context, char *buf, uint32_t len)
+static inline uint32_t _peek_data_wrapper(fifo_context_t *context, const char *buf, uint32_t len)
 {
-    if (!context) {
-        LOGE("the param is NULL \n");
-        return 0;
-    }
-
-    return _fifo_get_data_com(context, buf, len);
+    return _get_data_com(context, (char *)buf, len);
 }
 
-int32_t HyFifoGetInfo(HyFifoContext_t *context, HyFifoInfoType_t type)
+//-------------------------------------------------------------
+
+void *HyFifoCreate(uint32_t len)
 {
-    if (!context) {
-        LOGE("the param is NULL \n");
+    if (len <= 0) {
+        LOGE("the param is NULL, len: %d \n", len);
+        return NULL;
+    }
+
+    return _create_wrapper(len);
+}
+
+void HyFifoDestroy(void *handle)
+{
+    if (!handle) {
+        LOGE("the param is NULL, handle: %p \n", handle);
+        return;
+    }
+
+    _destroy_wrapper((fifo_context_t *)handle);
+}
+
+void HyFifoDump(void *handle)
+{
+    if (!handle) {
+        LOGE("the param is NULL, handle: %p \n", handle);
+        return;
+    }
+
+    _dump_wrapper((fifo_context_t *)handle);
+}
+
+void HyFifoClean(void *handle)
+{
+    if (!handle) {
+        LOGE("the param is NULL, handle: %p \n", handle);
+        return;
+    }
+
+    _clean_wrapper((fifo_context_t *)handle);
+}
+
+int32_t HyFifoGetInfo(void *handle, HyFifoInfoType_t type)
+{
+    if (!handle) {
+        LOGE("the param is NULL, handle: %p \n", handle);
         return -1;
     }
 
-    uint32_t len = 0;
-
-    switch (type) {
-        case HY_FIFO_INFO_LEN_TOTAL:
-            len = context->len;
-            break;
-        case HY_FIFO_INFO_LEN_USED:
-            len = context->cnt;
-            break;
-        case HY_FIFO_INFO_LEN_FREE:
-            len = context->len - context->cnt;
-            break;
-    }
-
-    return len;
+    return _get_info_wrapper((fifo_context_t *)handle, type);
 }
 
-void HyFifoClean(HyFifoContext_t *context)
+uint32_t HyFifoInsertData(void *handle, const char *buf, uint32_t len)
 {
-    if (!context) {
-        LOGE("the param is NULL \n");
-        return ;
+    if (!handle || !buf || 0 == len) {
+        LOGE("the param is NULL, handle: %p, buf: %p, len: %d \n", handle, buf, len);
+        return 0;
     }
 
-    memset(context->buf, '\0', context->len);
-    context->cnt    = 0;
-    context->head   = 0;
-    context->tail   = 0;
+    return _insert_wrapper((fifo_context_t *)handle, buf, len);
 }
 
-void HyFifoCreate(HyFifoContext_t *context, char *buf, uint32_t len)
+uint32_t HyFifoUpdateTail(void *handle, uint32_t len)
 {
-    if (!context || !buf || len <= 0) {
-        LOGE("the param is error \n");
-        return;
+    if (!handle || 0 == len) {
+        LOGE("the param is NULL, handle: %p, len: %d \n", handle, len);
+        return 0;
     }
 
-    memset(context, '\0', HY_FIFO_CONTEXT_T_LEN);
-
-    context->buf    = buf;
-    context->len    = len;
-
-    LOGD("fifo create successful \n");
+    return _update_tail_wrapper((fifo_context_t *)handle, len);
 }
 
-void HyFifoDestroy(HyFifoContext_t *context)
+uint32_t HyFifoGetData(void *handle, const char *buf, uint32_t len)
 {
-    if (!context) {
-        LOGE("the param is NULL \n");
-        return;
+    if (!handle || !buf || 0 == len) {
+        LOGE("the param is NULL, handle: %p, buf: %p, len: %d \n", handle, buf, len);
+        return 0;
     }
 
-    memset(context, '\0', HY_FIFO_CONTEXT_T_LEN);
+    return _get_data_wrapper((fifo_context_t *)handle, buf, len);
+}
 
-    LOGD("fifo destroy successful \n");
+uint32_t HyFifoPeekData(void *handle, const char *buf, uint32_t len)
+{
+    if (!handle || !buf || 0 == len) {
+        LOGE("the param is NULL, handle: %p, buf: %p, len: %d \n", handle, buf, len);
+        return 0;
+    }
+
+    return _peek_data_wrapper((fifo_context_t *)handle, buf, len);
 }
 
