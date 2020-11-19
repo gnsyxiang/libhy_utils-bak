@@ -20,8 +20,9 @@
 
 ACLOCAL_AMFLAGS = -I m4
 
-AM_CFLAGS_COM  = $(ACLOCAL_AMFLAGS)
-AM_CFLAGS_COM += -pipe -W -Wall -Werror
+AM_CFLAGS_COM = $(ACLOCAL_AMFLAGS) \
+				-pipe -W -Wall -Werror \
+				-Wno-unused-parameter
 export AM_CFLAGS_COM
 
 dist_doc_DATA = README.md

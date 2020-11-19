@@ -20,17 +20,19 @@
 
 lib_LTLIBRARIES = libutils.la
 
-LDFLAGS_COM  = -version-info @current@:@revision@:@age@
-LDFLAGS_COM += -rdynamic
-LDFLAGS_COM += -export-symbols-regex 'Hy*'
+LDFLAGS_COM = -version-info @current@:@revision@:@age@ \
+			  -rdynamic \
+	          -export-symbols-regex 'Hy*'
 
-CFLAGS_COM   = $(AM_CFLAGS_COM)
-CFLAGS_COM  += -fPIC
-CFLAGS_COM  += -Wno-unused-parameter
-CFLAGS_COM  += -I$(top_srcdir)/include
+CFLAGS_COM = $(AM_CFLAGS_COM) \
+			 -fPIC \
+			 -I$(top_srcdir)/include
 
-SOURCES_COM  = hy_log.c \
-			   hy_fifo.c
+SOURCES_COM = hy_utils.c \
+			  hy_file.c \
+			  hy_uart.c \
+			  hy_fifo.c \
+			  hy_log.c
 
 if COMPILE_WITH_LIBCJSON_UTILS
 SOURCES_COM	+= utils_cjson.c utils_cjson_file.c

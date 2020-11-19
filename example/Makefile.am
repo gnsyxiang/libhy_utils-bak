@@ -18,11 +18,11 @@
 #     last modified: 21/03 2020 14:10
 # ===============================================================
 
-CFLAGS_COM  = -I$(top_srcdir)/include
-CFLAGS_COM += -Wno-unused-parameter
+CFLAGS_COM = -I$(top_srcdir)/include \
+			 -Wno-error=stringop-truncation
 
-hal_ld_com  = -L$(top_builddir)/src/.libs
-hal_ld_com += -lutils
+hal_ld_com = -L$(top_builddir)/src/.libs \
+			 -lutils -lpthread
 
 bin_PROGRAMS 	=
 
@@ -32,6 +32,11 @@ cjson_SOURCES	 = cjson.c
 cjson_LDADD   	 = $(hal_ld_com)
 cjson_CFLAGS  	 = $(AM_CFLAGS_COM) $(CFLAGS_COM)
 endif
+
+bin_PROGRAMS			+= hy_uart_test
+hy_uart_test_SOURCES 	 = hy_uart_test.c
+hy_uart_test_LDADD   	 = $(hal_ld_com)
+hy_uart_test_CFLAGS  	 = $(AM_CFLAGS_COM) $(CFLAGS_COM)
 
 bin_PROGRAMS			+= hy_fifo_test
 hy_fifo_test_SOURCES 	 = hy_fifo_test.c
