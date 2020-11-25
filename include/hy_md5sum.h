@@ -2,7 +2,7 @@
  *
  * Release under GPL-3.0.
  * 
- * @file    utils_md5sum.h
+ * @file    hy_md5sum.h
  * @brief   
  * @author  gnsyxiang <gnsyxiang@163.com>
  * @date    14/04 2020 14:46
@@ -17,22 +17,23 @@
  * 
  *     last modified: 14/04 2020 14:46
  */
-#ifndef __LIBUTILS_INCLUDE_UTILS_MD5SUM_H_
-#define __LIBUTILS_INCLUDE_UTILS_MD5SUM_H_
+#ifndef __LIBUTILS_INCLUDE_HY_MD5SUM_H_
+#define __LIBUTILS_INCLUDE_HY_MD5SUM_H_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "hal/hal_type.h"
+#include <stdint.h>
+#include <stddef.h>
 
-#define MD5SUM_LEN  (16)
+#define MD5SUM_LEN (16)
 
-void UtilsMd5sum(const hal_uint8_t *msg, size_t msg_len, hal_uint8_t digest[MD5SUM_LEN]);
+void HyMd5sum(const uint8_t *msg, size_t msg_len, uint8_t digest[MD5SUM_LEN]);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // __LIBUTILS_INCLUDE_UTILS_MD5SUM_H_
+#endif
 

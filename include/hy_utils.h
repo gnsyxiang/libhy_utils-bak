@@ -40,12 +40,10 @@ void HyBufUnionDestroy(BufUnion_t *buf_union);
 void HyIpStr2Int(const char *ip_str, uint32_t *ip_num);
 void HyIpInt2Str(uint32_t ip_num, char *ip_str, uint8_t ip_str_len);
 
-#define HY_UTILS_COPY(name, macro, name_len)                                \
-    do {                                                                    \
-        memset((name), '\0', (name_len));                                   \
-        uint32_t str_len = strlen((macro));                                 \
-        uint32_t len = (str_len > (name_len)) ? (name_len) - 1 : str_len;   \
-        strncpy((name), (macro), len);                                      \
+#define HY_UTILS_COPY(name, macro, name_len)        \
+    do {                                            \
+        memset((name), '\0', (name_len));           \
+        strncpy((name), (macro), name_len - 1);     \
     } while (0)
 
 #ifdef __cplusplus
