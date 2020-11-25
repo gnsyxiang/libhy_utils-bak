@@ -18,8 +18,7 @@
 #     last modified: 21/03 2020 14:10
 # ===============================================================
 
-CFLAGS_COM = -I$(top_srcdir)/include \
-			 -Wno-error=stringop-truncation
+CFLAGS_COM = -I$(top_srcdir)/include
 
 hal_ld_com = -L$(top_builddir)/src/.libs \
 			 -lutils -lpthread
@@ -33,17 +32,24 @@ cjson_LDADD   	 = $(hal_ld_com)
 cjson_CFLAGS  	 = $(AM_CFLAGS_COM) $(CFLAGS_COM)
 endif
 
-bin_PROGRAMS			+= hy_uart_test
-hy_uart_test_SOURCES 	 = hy_uart_test.c
-hy_uart_test_LDADD   	 = $(hal_ld_com)
-hy_uart_test_CFLAGS  	 = $(AM_CFLAGS_COM) $(CFLAGS_COM)
-
 bin_PROGRAMS			+= hy_fifo_test
 hy_fifo_test_SOURCES 	 = hy_fifo_test.c
 hy_fifo_test_LDADD   	 = $(hal_ld_com)
 hy_fifo_test_CFLAGS  	 = $(AM_CFLAGS_COM) $(CFLAGS_COM)
 
-bin_PROGRAMS			+= list 
-list_SOURCES 	 	 	 = list.c
-list_LDADD   	 	 	 = $(hal_ld_com)
-list_CFLAGS  	 	 	 = $(AM_CFLAGS_COM) $(CFLAGS_COM)
+bin_PROGRAMS			+= hy_list_test 
+hy_list_test_SOURCES 	 = hy_list_test.c
+hy_list_test_LDADD   	 = $(hal_ld_com)
+hy_list_test_CFLAGS  	 = $(AM_CFLAGS_COM) $(CFLAGS_COM)
+
+bin_PROGRAMS			+= hy_md5sum_test 
+hy_md5sum_test_SOURCES 	 = hy_md5sum_test.c
+hy_md5sum_test_LDADD   	 = $(hal_ld_com)
+hy_md5sum_test_CFLAGS  	 = $(AM_CFLAGS_COM) $(CFLAGS_COM)
+
+bin_PROGRAMS			+= hy_uart_test
+hy_uart_test_SOURCES 	 = hy_uart_test.c
+hy_uart_test_LDADD   	 = $(hal_ld_com)
+hy_uart_test_CFLAGS  	 = $(AM_CFLAGS_COM) $(CFLAGS_COM)
+
+
