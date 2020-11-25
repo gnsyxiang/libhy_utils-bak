@@ -105,11 +105,12 @@ CFLAGS_COM = $(AM_CFLAGS_COM) \
 			 -fPIC \
 			 -I$(top_srcdir)/include
 
-SOURCES_COM = hy_utils.c \
+SOURCES_COM = hy_fifo.c \
 			  hy_file.c \
+			  hy_log.c \
+			  hy_md5sum.c \
 			  hy_uart.c \
-			  hy_fifo.c \
-			  hy_log.c
+			  hy_utils.c
 
 if COMPILE_WITH_LIBCJSON_UTILS
 SOURCES_COM	+= utils_cjson.c utils_cjson_file.c

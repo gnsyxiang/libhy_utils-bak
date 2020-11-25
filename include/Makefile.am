@@ -18,14 +18,17 @@
 #     last modified: 21/03 2020 14:09
 # ===============================================================
 
-HEADERS_COM = hy_utils.h \
+HEADERS_COM = hy_fifo.h \
 			  hy_file.h \
+			  hy_list.h \
+			  hy_log.h \
+			  hy_md5sum.h \
+			  hy_type.h \
 			  hy_uart.h \
-			  hy_fifo.h \
-			  hy_log.h
+			  hy_utils.h
 
 if COMPILE_WITH_LIBCJSON_UTILS
-HEADERS_COM 	+= utils_cjson.h utils_cjson_file.h
+HEADERS_COM += utils_cjson.h utils_cjson_file.h
 endif
 
 noinst_HEADERS  =
