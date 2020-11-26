@@ -1,3 +1,0 @@
-[submodule "libhal"]
-	path = libhal
-	url = git@github.com:gnsyxiang/libhal.git
