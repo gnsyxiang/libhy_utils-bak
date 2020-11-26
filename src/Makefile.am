@@ -113,7 +113,7 @@ SOURCES_COM = hy_fifo.c \
 			  hy_utils.c
 
 if COMPILE_WITH_LIBCJSON_UTILS
-SOURCES_COM	+= utils_cjson.c utils_cjson_file.c
+SOURCES_COM	+= hy_cjson.c hy_cjson_file.c
 endif
 
 AM_CFLAGS 		     = $(CFLAGS_COM)

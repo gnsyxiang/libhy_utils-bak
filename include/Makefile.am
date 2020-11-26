@@ -28,7 +28,7 @@ HEADERS_COM = hy_fifo.h \
 			  hy_utils.h
 
 if COMPILE_WITH_LIBCJSON_UTILS
-HEADERS_COM += utils_cjson.h utils_cjson_file.h
+HEADERS_COM += hy_cjson.h hy_cjson_file.h
 endif
 
 noinst_HEADERS  =

@@ -26,10 +26,10 @@ hal_ld_com = -L$(top_builddir)/src/.libs \
 bin_PROGRAMS 	=
 
 if COMPILE_WITH_LIBCJSON_UTILS
-bin_PROGRAMS 	+= cjson
-cjson_SOURCES	 = cjson.c
-cjson_LDADD   	 = $(hal_ld_com)
-cjson_CFLAGS  	 = $(AM_CFLAGS_COM) $(CFLAGS_COM)
+bin_PROGRAMS 	+= hy_cjson_test
+hy_cjson_test_SOURCES	 = hy_cjson_test.c
+hy_cjson_test_LDADD   	 = $(hal_ld_com)
+hy_cjson_test_CFLAGS  	 = $(AM_CFLAGS_COM) $(CFLAGS_COM)
 endif
 
 bin_PROGRAMS			+= hy_fifo_test
