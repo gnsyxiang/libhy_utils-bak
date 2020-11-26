@@ -146,7 +146,8 @@ AC_CACHE_CHECK(
          fi
          # Can I compile and link it?
          AC_TRY_LINK(
-            [#include <stdio.h> #include <hal_config.h>],
+            [#include <stdio.h>
+             #include "hal/hal_thread.h"],
             [HalThreadCreate(NULL);],
             [libhal_linked=yes],
             [libhal_linked=no])
