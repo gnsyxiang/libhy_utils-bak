@@ -18,6 +18,7 @@
  *     last modified: 08/04 2020 16:12
  */
 #include <stdio.h>
+#include <stdint.h>
 
 #include "hy_list.h"
 
@@ -30,7 +31,7 @@ struct msg {
     struct list_head list;
 };
 
-int32_t main(int32_t argc, const hal_char_t *argv[])
+int32_t main(int32_t argc, const char *argv[])
 {
     INIT_LIST_HEAD(&g_list_head);
 

@@ -2,8 +2,9 @@
 #ifndef _LINUX_LIST_H
 #define _LINUX_LIST_H
 
-#include "hal/hal_type.h"
-
+#ifndef NULL
+#define NULL (void *)0
+#endif
 // import from include/linux/types.h
 struct list_head {
     struct list_head *next, *prev;
