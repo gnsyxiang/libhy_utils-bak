@@ -2,7 +2,7 @@
  * 
  * Release under GPL-3.0.
  * 
- * @file    utils_cjson.c
+ * @file    hy_cjson.c
  * @brief   
  * @author  gnsyxiang <gnsyxiang@163.com>
  * @date    03/04 2020 22:32
@@ -17,21 +17,28 @@
  * 
  *     last modified: 03/04 2020 22:32
  */
-#include "utils_cjson.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
-#include "hal/hal_type.h"
-#include "hal/hal_string.h"
-#include "hal/hal_mem.h"
-#include "hal/hal_log.h"
+#include "hy_cjson.h"
 
-static hal_int32_t cjson_hook_flag = 0;
+#include "hy_type.h"
+#include "hy_log.h"
 
-static hal_int32_t _get_index(hal_char_t *fmt)
+#ifdef USE_DEBUG
+    #define ALONE_DEBUG 1
+    #define LOG_CATEGORY_TAG "hy_cjson"
+#endif
+
+static int32_t cjson_hook_flag = 0;
+
+static int32_t _get_index(char *fmt)
 {
-    hal_int32_t index;
-    hal_char_t *start = Hal_strstr(fmt, "[");
+    int32_t index;
+    char *start = strstr(fmt, "[");
     if (NULL != start) {
-        hal_char_t *end = Hal_strstr(fmt, "]");
+        char *end = strstr(fmt, "]");
         if (NULL != end) {
             *start = *end = '\0';
             start++;
@@ -44,54 +51,54 @@ static hal_int32_t _get_index(hal_char_t *fmt)
     return -1;
 }
 
-static hal_char_t *_field_fmt_init(const hal_char_t *field, hal_uint32_t field_len)
+static char *_field_fmt_init(const char *field, uint32_t field_len)
 {
-    hal_char_t *field_fmt = Hal_calloc(1, ALIGN4(field_len) + ALIGN4(1));
+    char *field_fmt = calloc(1, ALIGN4(field_len) + ALIGN4(1));
     if (NULL == field_fmt) {
-        HalLogE("calloc failed \n");
+        LOGE("calloc failed \n");
         return NULL;
     }
-    Hal_strncpy(field_fmt, field, field_len);
+    strncpy(field_fmt, field, field_len);
 
     return field_fmt;
 }
 
-static inline void _field_fmt_final(hal_char_t **field_tmp)
+static inline void _field_fmt_final(char **field_tmp)
 {
-    hal_char_t *field = *field_tmp;
+    char *field = *field_tmp;
     if (NULL != field) {
-        Hal_free(field);
+        free(field);
         *field_tmp = NULL;
     }
 }
 
-static cJSON *_get_item(cJSON *root, const char *field, hal_uint32_t field_len)
+static cJSON *_get_item(cJSON *root, const char *field, uint32_t field_len)
 {
     if (0 == cjson_hook_flag) {
         cjson_hook_flag = 1;
 
         cJSON_Hooks hooks;
-        hooks.malloc_fn = Hal_malloc;
-        hooks.free_fn   = Hal_free;
+        hooks.malloc_fn = malloc;
+        hooks.free_fn   = free;
         cJSON_InitHooks(&hooks);
     }
-    hal_char_t *field_fmt = _field_fmt_init(field, field_len);
-    hal_char_t *field_fmt_p = field_fmt;
+    char *field_fmt = _field_fmt_init(field, field_len);
+    char *field_fmt_p = field_fmt;
 
-    for (hal_uint32_t i = 0; i < field_len; i++) {
+    for (uint32_t i = 0; i < field_len; i++) {
         if ('.' == field_fmt[i]) {
             field_fmt[i] = '\0';
         }
     }
 
-    hal_uint32_t offset = 0;
-    hal_int32_t index = 0;
+    uint32_t offset = 0;
+    int32_t index = 0;
     cJSON *child = NULL;
     cJSON *parent = root;
-    hal_int32_t field_len_tmp = field_len;
+    int32_t field_len_tmp = field_len;
 
     while (field_len_tmp > 0) {
-        offset = Hal_strlen(field_fmt) + 1;
+        offset = strlen(field_fmt) + 1;
         index = _get_index(field_fmt);
 
         child = cJSON_GetObjectItem(parent, field_fmt);
@@ -116,16 +123,16 @@ L_GET_ITEM_1:
     return child;
 }
 
-void *_get_item_com(cJSON *root, hal_char_t *field, hal_uint32_t field_len)
+void *_get_item_com(cJSON *root, char *field, uint32_t field_len)
 {
     if (NULL == root || NULL == field || field_len <= 0) {
-        HalLogE("the param is NULL \n");
+        LOGE("the param is NULL \n");
         return NULL;
     }
 
     cJSON *item = _get_item(root, field, field_len);
     if (NULL == item) {
-        HalLogE("get item is NULL \n");
+        LOGE("get item is NULL \n");
         return  NULL;
     }
 
@@ -136,14 +143,13 @@ void *_get_item_com(cJSON *root, hal_char_t *field, hal_uint32_t field_len)
     ({                                                          \
         cJSON *item = _get_item_com(root, field, field_len);    \
         if (NULL == item || val_type != item->type) {           \
-            HalLogE("the cJSON type error \n");                 \
-            return  HAL_INVALID_PARAM_ERR;                      \
+            LOGE("the cJSON type error \n");                    \
+            return -1;                                          \
         }                                                       \
         item;                                                   \
     })
 
-hal_int32_t UtilsJsonGetInt(cJSON *root, hal_int32_t *val, 
-                            hal_char_t *field, hal_uint32_t field_len)
+int32_t HyJsonGetInt(cJSON *root, int32_t *val, char *field, uint32_t field_len)
 {
     cJSON *item = _get_item_com_macro(root, field, field_len, cJSON_Number);
 
@@ -151,11 +157,10 @@ hal_int32_t UtilsJsonGetInt(cJSON *root, hal_int32_t *val,
         *val = item->valueint;
     }
 
-    return HAL_NO_ERR;
+    return 0;
 }
 
-hal_int32_t UtilsJsonGetDouble(cJSON *root, hal_double_t *val, 
-                               hal_char_t *field, hal_uint32_t field_len)
+int32_t HyJsonGetDouble(cJSON *root, double *val, char *field, uint32_t field_len)
 {
     cJSON *item = _get_item_com_macro(root, field, field_len, cJSON_Number);
 
@@ -163,19 +168,19 @@ hal_int32_t UtilsJsonGetDouble(cJSON *root, hal_double_t *val,
         *val = item->valuedouble;
     }
 
-    return HAL_NO_ERR;
+    return 0;
 }
 
-hal_int32_t UtilsJsonGetString(cJSON *root, hal_char_t *val, 
-                               hal_char_t *field, hal_uint32_t field_len)
+int32_t HyJsonGetString(cJSON *root, char *val, char *field, uint32_t field_len)
 {
     cJSON *item = _get_item_com_macro(root, field, field_len, cJSON_String);
 
     if (NULL != val) {
-        Hal_strncpy(val, item->valuestring, Hal_strlen(item->valuestring));
+        // strncpy(val, item->valuestring, strlen(item->valuestring));
+        strcpy(val, item->valuestring);
     }
 
-    return HAL_NO_ERR;
+    return 0;
 }
 
 #if 0
@@ -245,7 +250,7 @@ int cJSON_GetItemIntValue_va(cJSON *json, int n, ...)
 
 #define cJSON_GetItemIntValue(error_val, json, x...) cJSON_GetItemIntValue_va(json, error_val, comac_argc(x), x)
 
-hal_char_t text_json[]="{\n\
+char text_json[]="{\n\
 	\"image\": {\n\
 		\"width\":  800,\n\
 		\"height\": 600,\n\

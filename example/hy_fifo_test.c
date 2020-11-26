@@ -20,8 +20,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "hy_log.h"
 #include "hy_fifo.h"
+#include "hy_log.h"
 
 #ifdef USE_DEBUG
     #define ALONE_DEBUG 1
