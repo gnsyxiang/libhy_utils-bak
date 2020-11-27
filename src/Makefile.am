@@ -109,6 +109,7 @@ SOURCES_COM = hy_fifo.c \
 			  hy_file.c \
 			  hy_log.c \
 			  hy_md5sum.c \
+			  hy_time.c \
 			  hy_uart.c \
 			  hy_utils.c
 
