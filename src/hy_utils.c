@@ -19,6 +19,7 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "hy_utils.h"
 
@@ -103,5 +104,32 @@ void HyIpInt2Str(uint32_t ip_num, char *ip_str, uint8_t ip_str_len)
     }
     ip_str[len - 1] = '\0';
     // printf("ip_str: %s, ip_num: %08x, %u \r\n", ip_str, ip_num, ip_num);
+}
+
+uint32_t HyBinaryStr2Dec(char *binary_str, uint8_t len)
+{
+    uint32_t dec_num = 0;
+    for (int i = 0; i < len; i++) {
+        char buf[2] = {0};
+        snprintf(buf, 2, "%c", binary_str[i]);
+        // LOGD("buf: %s, %d, %02x \r\n", buf, atoi(buf), atoi(buf) << (len - 1 - i));
+        dec_num |= atoi(buf) << (len - 1 - i);
+    }
+    // LOGD("dec_num: %02x \r\n", dec_num);
+    return dec_num;
+}
+
+void HyDec2BinaryStr(char *binary_str, uint8_t str_len, uint8_t num, uint32_t dec_num)
+{
+    uint8_t len = 0;
+    memset(binary_str, '\0', str_len);
+    for (int i = 0; i < num; i++) {
+        if (dec_num & 0x1) {
+            len += snprintf(binary_str + len, str_len - len, "1");
+        } else {
+            len += snprintf(binary_str + len, str_len - len, "0");
+        }
+        dec_num >>= 1;
+    }
 }
 

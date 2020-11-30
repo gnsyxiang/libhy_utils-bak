@@ -40,6 +40,9 @@ void HyBufUnionDestroy(BufUnion_t *buf_union);
 void HyIpStr2Int(const char *ip_str, uint32_t *ip_num);
 void HyIpInt2Str(uint32_t ip_num, char *ip_str, uint8_t ip_str_len);
 
+uint32_t HyBinaryStr2Dec(char *binary_str, uint8_t len);
+void HyDec2BinaryStr(char *binary_str, uint8_t str_len, uint8_t num, uint32_t dec_num);
+
 #define HY_UTILS_COPY(name, macro, name_len)        \
     do {                                            \
         memset((name), '\0', (name_len));           \
