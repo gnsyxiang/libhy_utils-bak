@@ -21,7 +21,12 @@
 CFLAGS_COM = -I$(top_srcdir)/include
 
 hal_ld_com = -L$(top_builddir)/src/.libs \
-			 -lutils -lpthread
+			 -lutils
+
+if COMPILE_WITH_MCU_VERSION
+else
+hal_ld_com += -lpthread
+endif
 
 bin_PROGRAMS 	=
 
@@ -47,9 +52,11 @@ hy_md5sum_test_SOURCES 	 = hy_md5sum_test.c
 hy_md5sum_test_LDADD   	 = $(hal_ld_com)
 hy_md5sum_test_CFLAGS  	 = $(AM_CFLAGS_COM) $(CFLAGS_COM)
 
+if COMPILE_WITH_MCU_VERSION
+else
 bin_PROGRAMS			+= hy_uart_test
 hy_uart_test_SOURCES 	 = hy_uart_test.c
 hy_uart_test_LDADD   	 = $(hal_ld_com)
 hy_uart_test_CFLAGS  	 = $(AM_CFLAGS_COM) $(CFLAGS_COM)
-
+endif
 

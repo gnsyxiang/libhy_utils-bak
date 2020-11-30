@@ -7,7 +7,7 @@ m4_define(
                 trylibcjsondir=""
                 AC_ARG_WITH(
                     [libcjson],
-                    [  --with-libcjson=PATH     Specify path to libcjson installation ],
+                    [  --with-libcjson=PATH    Specify path to libcjson installation ],
                     [
                         if test "x$withval" != "xno" ; then
                             trylibcjsondir=$withval

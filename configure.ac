@@ -31,9 +31,15 @@ AC_ARG_ENABLE([libcjson],
               )
 AM_CONDITIONAL([COMPILE_WITH_LIBCJSON_UTILS], [test "x$enable_libcjson" = "xyes"])
 
+AC_ARG_ENABLE([mcu],
+              [AS_HELP_STRING([--enable-mcu], [building mcu version] [[default=no]])],
+              [AC_DEFINE(HAVE_MCU_VERSION, 1, [building mcu version])]
+              )
+AM_CONDITIONAL([COMPILE_WITH_MCU_VERSION], [test "x$enable_mcu" = "xyes"])
+
 trylibhaldir=""
 AC_ARG_WITH([libhal],
-            [  --with-libhal=PATH       Specify path to libhal installation ],
+            [  --with-libhal=PATH      Specify path to libhal installation ],
             [if test "x$withval" != "xno" ; then
              trylibhaldir=$withval
              fi]
@@ -54,10 +60,12 @@ AC_PROG_MAKE_SET
 AC_PROG_MKDIR_P
 
 # Checks for libraries.
-AC_CHECK_LIB([cjson], [cJSON_Parse])
+AC_CHECK_LIB([cjson], [cJSON_Version])
+AC_CHECK_LIB([pthread], [pthread_create])
+AC_CHECK_LIB([utils], [HyLogInit])
 
 # Checks for header files.
-AC_CHECK_HEADERS([fcntl.h stddef.h stdint.h stdlib.h string.h termios.h unistd.h])
+AC_CHECK_HEADERS([fcntl.h stddef.h stdint.h stdlib.h string.h sys/time.h termios.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE
@@ -70,12 +78,11 @@ AC_TYPE_UINT32_T
 AC_TYPE_UINT8_T
 
 # Checks for library functions.
-AC_CHECK_FUNCS([memset strstr])
+AC_CHECK_FUNCS([gettimeofday memset strstr])
 
 AC_CONFIG_FILES([Makefile
                  example/Makefile
                  include/Makefile
                  res/Makefile
                  src/Makefile])
-
 AC_OUTPUT

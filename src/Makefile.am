@@ -110,8 +110,12 @@ SOURCES_COM = hy_fifo.c \
 			  hy_log.c \
 			  hy_md5sum.c \
 			  hy_time.c \
-			  hy_uart.c \
 			  hy_utils.c
+
+if COMPILE_WITH_MCU_VERSION
+else
+SOURCES_COM	+= hy_uart.c
+endif
 
 if COMPILE_WITH_LIBCJSON_UTILS
 SOURCES_COM	+= hy_cjson.c hy_cjson_file.c
