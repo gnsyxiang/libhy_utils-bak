@@ -45,4 +45,13 @@ build/
 *.lo
 *.la
 
+#----------------
+# ignore for keil
+#----------------
+keil_project/Listings/
+keil_project/Objects/
+keil_project/libutils.uvgui.*
+
+
+
 
