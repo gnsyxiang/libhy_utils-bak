@@ -22,7 +22,7 @@ m4_define(
                         saved_LDFLAGS="$LDFLAGS"
                         saved_CPPFLAGS="$CPPFLAGS"
                         le_found=no
-                        for ledir in $trylibcjsondir "" $prefix /usr/local ; do
+                        for ledir in $trylibcjsondir "" $prefix /usr/local ~/data/usr/local ; do
                             LDFLAGS="$saved_LDFLAGS"
                             LIBS="$saved_LIBS -lcjson"
                             # Skip the directory if it isn't there.
