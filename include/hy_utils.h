@@ -29,7 +29,7 @@ extern "C" {
 typedef void (*HyUtilsProcess_t)(void);
 
 typedef struct {
-    void        *buf;
+    char        *buf;
     uint32_t    len;
 } BufUnion_t;
 #define BUF_UNION_T_LEN (sizeof(BufUnion_t))
