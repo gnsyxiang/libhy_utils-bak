@@ -30,8 +30,6 @@
     #define LOG_CATEGORY_TAG "hy_utils"
 #endif
 
-#define IP_DOT_LEN (4)
-
 BufUnion_t *HyBufUnionCreate(uint32_t len)
 {
     if (len <= 0) {

@@ -37,6 +37,7 @@ typedef struct {
 BufUnion_t *HyBufUnionCreate(uint32_t len);
 void HyBufUnionDestroy(BufUnion_t *buf_union);
 
+#define IP_DOT_LEN (4)
 void HyIpStr2Int(const char *ip_str, uint32_t *ip_num);
 void HyIpInt2Str(uint32_t ip_num, char *ip_str, uint8_t ip_str_len);
 
