@@ -131,3 +131,11 @@ void HyDec2BinaryStr(char *binary_str, uint8_t str_len, uint8_t num, uint32_t de
     }
 }
 
+void HyHex2Int2Str(char *str, uint8_t str_len, char *addr, uint8_t addr_len)
+{
+    uint8_t len = 0;
+    for (int i = 0; i < addr_len; i++) {
+        len += snprintf(str + len, str_len - len, "%03d", addr[i]);
+    }
+}
+
