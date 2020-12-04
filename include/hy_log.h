@@ -26,24 +26,6 @@ extern "C" {
 
 #include <stdint.h>
 
-// #define INTRANET_SERVER_TEST
-
-#define USE_DEBUG
-
-#ifdef USE_DEBUG
-/**
- * @brief 打印等级定义
- */
-#define LOG_LEVEL_ERROR         (1)
-#define LOG_LEVEL_WARNING       (2)
-#define LOG_LEVEL_DEBUG         (3)
-#define LOG_LEVEL_INFO          (4)
-#define LOG_LEVEL_MAX           (5)
-
-// #define USE_LOG_LEVEL           (LOG_LEVEL_INFO)
-#define USE_LOG_LEVEL           (LOG_LEVEL_DEBUG)
-// #define USE_LOG_LEVEL           (LOG_LEVEL_WARNING)
-
 /**
  * @brief 真实输出log函数
  *
@@ -61,6 +43,9 @@ extern "C" {
 int32_t HyLogWrite(uint8_t level, const char *tags, const char *func,
         uint32_t line, char *fmt, ...);
 
+void PrintHex(const char *tag, const char *name, uint16_t line,
+        char *buf, int32_t len, int8_t flag);
+
 /**
  * @brief 输出log宏转义
  *
@@ -74,9 +59,18 @@ int32_t HyLogWrite(uint8_t level, const char *tags, const char *func,
         }                                                               \
     } while (0)
 
-void PrintHex(const char *tag, const char *name, uint16_t line,
-        char *buf, int32_t len, int8_t flag);
-#endif
+//------------------------------------------------------------------------------
+
+/**
+ * @brief 打印等级定义
+ */
+#define LOG_LEVEL_ERROR         (1)
+#define LOG_LEVEL_WARNING       (2)
+#define LOG_LEVEL_DEBUG         (3)
+#define LOG_LEVEL_INFO          (4)
+#define LOG_LEVEL_MAX           (5)
+
+#define USE_LOG_LEVEL           (LOG_LEVEL_DEBUG)
 
 /**
  * @brief 初始化log打印系统
@@ -103,21 +97,12 @@ void HyLogDestory(void);
     #define PRINT_HEX_ASCII(buf, len) PrintHex(LOG_CATEGORY_TAG, __func__, __LINE__, buf, len, 1)
     #define PRINT_HEX(buf, len) PrintHex(LOG_CATEGORY_TAG, __func__, __LINE__, buf, len, 0)
 #else
-#ifdef INTRANET_SERVER_TEST
-    #define	LOGE(fmt, ...)  printf(fmt, ##__VA_ARGS__)
-    #define	LOGW(fmt, ...)  printf(fmt, ##__VA_ARGS__)
-    #define	LOGD(fmt, ...)  printf(fmt, ##__VA_ARGS__)
-    #define	LOGI(fmt, ...)  printf(fmt, ##__VA_ARGS__)
-    #define PRINT_HEX_ASCII(buf, len)
-    #define PRINT_HEX(buf, len)
-#else
     #define	LOGE(fmt, ...)
     #define	LOGW(fmt, ...)
     #define	LOGD(fmt, ...)
     #define	LOGI(fmt, ...)
     #define PRINT_HEX_ASCII(buf, len)
     #define PRINT_HEX(buf, len)
-#endif
 #endif
 
 #ifdef __cplusplus

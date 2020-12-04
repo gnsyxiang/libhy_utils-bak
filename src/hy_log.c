@@ -131,9 +131,11 @@ void PrintHex(const char *tag, const char *name, uint16_t line,
     printf("\r\n");
 }
 #else
-void HyLogInit(uint8_t level, uint32_t buf_len) {return;}
+void HyLogCreate(uint8_t level, uint32_t buf_len) {return;}
 void HyLogDestory(void) {}
 int32_t HyLogWrite(uint8_t level, const char *tags, const char *func,
         uint32_t line, char *fmt, ...) {return 0;}
+void PrintHex(const char *tag, const char *name, uint16_t line,
+        char *buf, int32_t len, int8_t flag) {}
 #endif
 
