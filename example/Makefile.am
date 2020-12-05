@@ -37,6 +37,11 @@ hy_cjson_test_LDADD   	 = $(hal_ld_com)
 hy_cjson_test_CFLAGS  	 = $(AM_CFLAGS_COM) $(CFLAGS_COM)
 endif
 
+bin_PROGRAMS			+= hy_socket_test
+hy_socket_test_SOURCES 	 = hy_socket_test.c
+hy_socket_test_LDADD   	 = $(hal_ld_com)
+hy_socket_test_CFLAGS  	 = $(AM_CFLAGS_COM) $(CFLAGS_COM)
+
 bin_PROGRAMS			+= hy_fifo_test
 hy_fifo_test_SOURCES 	 = hy_fifo_test.c
 hy_fifo_test_LDADD   	 = $(hal_ld_com)

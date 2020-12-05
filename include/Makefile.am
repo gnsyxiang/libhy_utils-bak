@@ -30,6 +30,7 @@ HEADERS_COM = hy_fifo.h \
 if COMPILE_WITH_MCU_VERSION
 else
 HEADERS_COM += hy_uart.h \
+			   hy_socket.h \
 			   hy_pthread.h
 endif
 

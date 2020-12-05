@@ -115,6 +115,7 @@ SOURCES_COM = hy_fifo.c \
 if COMPILE_WITH_MCU_VERSION
 else
 SOURCES_COM	+= hy_uart.c \
+			   hy_socket.c \
 			   hy_pthread.c
 endif
 
