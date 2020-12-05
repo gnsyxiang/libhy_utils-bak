@@ -26,11 +26,11 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <pthread.h>
 #include <semaphore.h>
 
 #include "hy_uart.h"
 
+#include "hy_pthread.h"
 #include "hy_type.h"
 #include "hy_file.h"
 #include "hy_log.h"
@@ -40,31 +40,10 @@
     #define LOG_CATEGORY_TAG "hy_uart"
 #endif
 
-typedef void *(*HyPthreadLoopCb_t)(void *args);
-typedef struct {
-    pthread_t           pthread_id;
-    HyPthreadLoopCb_t   loop_cb;
-    int                 loop_flag;
-} HyPthread_t;
-
-void HyPthreadCreate(HyPthread_t *pthread, void *args)
-{
-    pthread->loop_flag = 1;
-    pthread_create(&pthread->pthread_id, NULL, pthread->loop_cb, args);
-}
-
-void HyPthreadDestroy(HyPthread_t *pthread)
-{
-    pthread->loop_flag = 0;
-    if (0 != pthread_join(pthread->pthread_id, NULL)) {
-        LOGE("pthread_join error \n");
-    }
-}
-
 typedef struct {
     HyUartHandleCb_t    handle_cb;
     int                 fd;
-    HyPthread_t         read_thread;
+    void                *pthread_handle;
 } hy_uart_context_t;
 
 static int _set_param(int fd, HyUartConfig_t *uart_config)
@@ -183,26 +162,19 @@ static int _init_uart(HyUartConfig_t *uart_config)
     return fd;
 }
 
-static void *_read_loop_cb(void *args)
+static void _read_loop_cb(void *args)
 {
 #define BUF_LEN (1024)
     char buf[BUF_LEN] = {0};
     uint32_t ret;
 
     hy_uart_context_t *context = args;
-    HyPthread_t *pthread = &context->read_thread;
     HyUartHandleCb_t *handle_cb = &context->handle_cb;
 
-    while (pthread->loop_flag) {
-        memset(buf, '\0', BUF_LEN);
-        ret = read(context->fd, buf, BUF_LEN);
-        if (ret > 0 && handle_cb->read_cb) {
-            handle_cb->read_cb(buf, ret, handle_cb->args);
-        }
+    ret = read(context->fd, buf, BUF_LEN);
+    if (ret > 0 && handle_cb->read_cb) {
+        handle_cb->read_cb(buf, ret, handle_cb->args);
     }
-
-    LOGD("read loop exit \n");
-    return NULL;
 }
 
 // --------------------------------------------------------
@@ -258,9 +230,14 @@ void *HyUartCreate(HyUartConfig_t *uart_config, HyUartHandleCb_t *handle_cb)
     if (handle_cb) {
         memcpy(&context->handle_cb, handle_cb, sizeof(*handle_cb));
 
-        HyPthread_t *pthread = &context->read_thread;
-        pthread->loop_cb = _read_loop_cb;
-        HyPthreadCreate(pthread, context);
+        HyPthreadHandleCb_t handle_cb;
+        handle_cb.loop_cb = _read_loop_cb;
+        handle_cb.args    = context;
+        context->pthread_handle = HyPthreadCreate(&handle_cb);
+        if (!context->pthread_handle) {
+            LOGE("hy_pthread create faild \n");
+            return NULL;
+        }
     }
 
     return context;
@@ -272,10 +249,9 @@ void HyUartDestroy(void *handle)
         LOGE("the param is NULL \n");
         return ;
     }
-
     hy_uart_context_t *context = handle;
 
-    HyPthreadDestroy(&context->read_thread);
+    HyPthreadDestroy(&context->pthread_handle);
 
     if (context->fd) {
         close(context->fd);

@@ -25,8 +25,13 @@ HEADERS_COM = hy_fifo.h \
 			  hy_md5sum.h \
 			  hy_time.h \
 			  hy_type.h \
-			  hy_uart.h \
 			  hy_utils.h
+
+if COMPILE_WITH_MCU_VERSION
+else
+HEADERS_COM += hy_uart.h \
+			   hy_pthread.h
+endif
 
 if COMPILE_WITH_LIBCJSON_UTILS
 HEADERS_COM += hy_cjson.h hy_cjson_file.h
