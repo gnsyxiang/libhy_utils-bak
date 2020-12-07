@@ -36,7 +36,7 @@ void *HySocketCreate(HySocketConfig_t *socket_config);
 void HySocketDestroy(void *handle);
 
 int HySocketRead(void *handle, char *buf, uint32_t len);
-int HySocketWrite(void *handle, char *buf, uint32_t len);
+int HySocketWrite(void *handle, const char *buf, uint32_t len);
 
 #ifdef __cplusplus
 }

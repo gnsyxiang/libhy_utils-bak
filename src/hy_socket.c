@@ -98,7 +98,7 @@ int HySocketRead(void *handle, char *buf, uint32_t len)
     return ret;
 }
 
-int HySocketWrite(void *handle, char *buf, uint32_t len)
+int HySocketWrite(void *handle, const char *buf, uint32_t len)
 {
     if (!handle || !buf) {
         LOGE("the param is NULL \n");

@@ -44,7 +44,7 @@ int32_t HyLogWrite(uint8_t level, const char *tags, const char *func,
         uint32_t line, char *fmt, ...);
 
 void PrintHex(const char *tag, const char *name, uint16_t line,
-        char *buf, int32_t len, int8_t flag);
+        const char *buf, int32_t len, int8_t flag);
 
 /**
  * @brief 输出log宏转义

@@ -105,7 +105,7 @@ void HyLogDestory(void)
 }
 
 void PrintHex(const char *tag, const char *name, uint16_t line,
-        char *buf, int32_t len, int8_t flag)
+        const char *buf, int32_t len, int8_t flag)
 {
     if (len <= 0) {
         return;
@@ -136,6 +136,6 @@ void HyLogDestory(void) {}
 int32_t HyLogWrite(uint8_t level, const char *tags, const char *func,
         uint32_t line, char *fmt, ...) {return 0;}
 void PrintHex(const char *tag, const char *name, uint16_t line,
-        char *buf, int32_t len, int8_t flag) {}
+        const char *buf, int32_t len, int8_t flag) {}
 #endif
 
