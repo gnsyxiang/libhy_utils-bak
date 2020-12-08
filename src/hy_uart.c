@@ -179,7 +179,7 @@ static void _read_loop_cb(void *args)
 
 // --------------------------------------------------------
 
-uint32_t HyUartWrite(void *handle, void *buf, uint32_t len)
+uint32_t HyUartWrite(void *handle, const void *buf, uint32_t len)
 {
     if (!handle || !buf || 0 == len) {
         LOGE("the param is NULL \n");

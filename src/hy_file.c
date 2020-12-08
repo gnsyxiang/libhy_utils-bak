@@ -23,7 +23,7 @@
 
 #include "hy_file.h"
 
-uint32_t HyFileWrite(int fd, void *buf, uint32_t len)
+uint32_t HyFileWrite(int fd, const void *buf, uint32_t len)
 {
     int ret;
     size_t nleft;

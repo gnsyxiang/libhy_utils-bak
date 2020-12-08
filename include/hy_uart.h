@@ -96,7 +96,7 @@ typedef struct {
 void *HyUartCreate(HyUartConfig_t *uart_config, HyUartHandleCb_t *handle_cb);
 void HyUartDestroy(void *handle);
 
-uint32_t HyUartWrite(void *handle, void *buf, uint32_t len);
+uint32_t HyUartWrite(void *handle, const void *buf, uint32_t len);
 uint32_t HyUartRead(void *handle, void *buf, uint32_t len);
 
 #ifdef __cplusplus
