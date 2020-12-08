@@ -24,6 +24,7 @@
 
 #include "hy_fifo.h"
 
+#include "hy_utils.h"
 #include "hy_type.h"
 #include "hy_log.h"
 
@@ -180,7 +181,7 @@ uint32_t HyFifoUpdateOut(void *handle, uint32_t len)
 int32_t HyFifoGetInfo(void *handle, HyFifoInfoType_t type)
 {
     if (!handle) {
-        LOGE("the param is NULL, handle: %p \n", handle);
+        LOGE("the param is NULL \n");
         return -1;
     }
     fifo_context_t *context = handle;
@@ -257,8 +258,8 @@ void *HyFifoCreate(uint32_t size)
     }
 
     if (!is_power_of_2(size) || size > 0x80000000) {
-        LOGE("size must be power of 2.\n");
-        return NULL;
+        size = HyUtilsNumTo2N2(size);
+        LOGE("size must be power of 2, new size: %d \n", size);
     }
 
     fifo_context_t *context = calloc(1, sizeof(*context));
