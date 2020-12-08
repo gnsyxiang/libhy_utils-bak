@@ -139,3 +139,15 @@ void HyHex2Int2Str(char *str, uint8_t str_len, char *addr, uint8_t addr_len)
     }
 }
 
+uint32_t HyUtilsNumTo2N2(uint32_t num)
+{
+    uint32_t i = 1;
+    uint32_t num_tmp = num;
+
+    while (num >>= 1) {
+        i <<= 1;
+    }
+
+    return (i < num_tmp) ? i << 1 : i;
+}
+

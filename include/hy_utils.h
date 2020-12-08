@@ -46,6 +46,8 @@ void HyDec2BinaryStr(char *binary_str, uint8_t str_len, uint8_t num, uint32_t de
 
 void HyHex2Int2Str(char *str, uint8_t str_len, char *addr, uint8_t addr_len);
 
+uint32_t HyUtilsNumTo2N2(uint32_t num);
+
 #define HY_UTILS_COPY(name, macro, name_len)        \
     do {                                            \
         memset((name), '\0', (name_len));           \
