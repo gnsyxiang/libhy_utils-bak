@@ -19,6 +19,7 @@
  */
 #include <stdio.h>
 #include <sys/time.h>
+#include <errno.h>
 
 #include "hy_time.h"
 
@@ -37,5 +38,17 @@ time_t HyTimeGetTickMs(void)
     gettimeofday(&tv, NULL);
 
     return (take_multiplier_1000(tv.tv_sec) + take_integet_1000(tv.tv_usec));
+}
+
+void HyTimeDelayUs(uint32_t us)
+{
+    struct timeval tv;
+    tv.tv_sec   = 0;
+    tv.tv_usec  = us;
+
+    int err;
+    do {
+        err = select(0, NULL, NULL, NULL, &tv);
+    } while(err < 0 && errno == EINTR);
 }
 

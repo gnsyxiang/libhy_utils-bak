@@ -23,7 +23,6 @@ HEADERS_COM = hy_fifo.h \
 			  hy_list.h \
 			  hy_log.h \
 			  hy_md5sum.h \
-			  hy_time.h \
 			  hy_type.h \
 			  hy_utils.h
 
@@ -32,6 +31,7 @@ else
 HEADERS_COM += hy_uart.h \
 			   hy_socket.h \
 			   hy_signal.h \
+			   hy_time.h \
 			   hy_pthread.h
 endif
 

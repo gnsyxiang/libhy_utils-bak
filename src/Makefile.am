@@ -109,13 +109,13 @@ SOURCES_COM = hy_fifo.c \
 			  hy_file.c \
 			  hy_log.c \
 			  hy_md5sum.c \
-			  hy_time.c \
 			  hy_utils.c
 
 if COMPILE_WITH_MCU_VERSION
 else
 SOURCES_COM	+= hy_uart.c \
 			   hy_socket.c \
+			   hy_time.c \
 			   hy_signal.c \
 			   hy_pthread.c
 endif
