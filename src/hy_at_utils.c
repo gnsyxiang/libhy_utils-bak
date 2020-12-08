@@ -32,20 +32,19 @@
 #ifdef USE_DEBUG
     #define ALONE_DEBUG 1
     #define LOG_CATEGORY_TAG "at_utils"
-#ifdef __GNUC__
-    #define SAVE_TEST_DATA
-#endif
+    // #define SAVE_TEST_DATA
 #endif
 
 typedef struct {
-    AtHandleCb_t        handle_cb;
     struct list_head    write_list;
     void                *fifo_handle;
 
+    uint32_t            sys_tick;
+
     BufUnion_t          *buf_union;
     uint32_t            frame_sum;
+    uint16_t            offset_len;
 
-    uint32_t            sys_tick;
     int8_t              state;
     int8_t              busy_flag;
     uint8_t             parsing_flag;
@@ -56,86 +55,84 @@ typedef struct {
     char                *in_char;
     char                *out_char;
 #endif
+
+    AtHandleCb_t        handle_cb;
+    uint8_t             catch_str_cnt;
+    AtCatchStr_t        catch_str[0];
 } at_utils_context_t;
 
 #define _get_fifo_used_len() HyFifoGetInfo(context->fifo_handle, HY_FIFO_USED_LEN)
-#define _HANDLE_FRAME_CB(context, flag)                                             \
-    do {                                                                            \
-        AtHandleCb_t *handle_cb = &context->handle_cb;                              \
-        if (handle_cb->handle_frame_cb) {                                           \
-            handle_cb->handle_frame_cb(flag, &context->buf_union, handle_cb->args); \
-        }                                                                           \
-    } while (0)
 
 #if 1
 typedef struct {
     struct list_head    list;
-    AtUtilsCmd_t        cmd;
+    AtCmd_t             at_cmd;
     uint8_t             del_cnt;
-} at_cmd_t;
+} at_cmd_list_t;
 
-static at_cmd_t *_at_cmd_create(AtUtilsCmd_t *cmd)
+static at_cmd_list_t *_at_cmd_list_create(AtCmd_t *at_cmd)
 {
-    at_cmd_t *at_write_cmd = calloc(1, sizeof(*at_write_cmd));
-    if (!at_write_cmd) {
-        LOGE("calloc faild \r\n");
+    at_cmd_list_t *at_cmd_list = calloc(1, sizeof(*at_cmd_list));
+    if (!at_cmd_list) {
+        LOGE("calloc faild \n");
         return NULL;
     }
 
-    at_write_cmd->cmd.cmd = calloc(1, cmd->cmd_len + 1);
-    if (!at_write_cmd->cmd.cmd) {
-        LOGE("calloc faild \r\n");
-        free(at_write_cmd);
-        at_write_cmd = NULL;
+    uint32_t len = strlen(at_cmd->cmd);
+    at_cmd_list->at_cmd.cmd = calloc(1, len + 1);
+    if (!at_cmd_list->at_cmd.cmd) {
+        LOGE("calloc faild \n");
+        free(at_cmd_list);
+        at_cmd_list = NULL;
         return NULL;
     }
 
-    strncpy(at_write_cmd->cmd.cmd, cmd->cmd, cmd->cmd_len);
-    at_write_cmd->cmd.cmd_len = cmd->cmd_len;
+    strncpy(at_cmd_list->at_cmd.cmd, at_cmd->cmd, len);
+    at_cmd_list->del_cnt++;
 
-    if (cmd->data_len > 0) {
-        at_write_cmd->cmd.data = calloc(1, cmd->data_len);
-        if (!at_write_cmd->cmd.data) {
-            LOGE("calloc faild \r\n");
+    if (at_cmd->data_len > 0) {
+        at_cmd_list->at_cmd.data = calloc(1, at_cmd->data_len);
+        if (!at_cmd_list->at_cmd.data) {
+            LOGE("calloc faild \n");
             return NULL;
         }
-        memcpy(at_write_cmd->cmd.data, cmd->data, cmd->data_len);
-        at_write_cmd->cmd.data_len = cmd->data_len;
-        at_write_cmd->del_cnt++;
+        memcpy(at_cmd_list->at_cmd.data, at_cmd->data, at_cmd->data_len);
+        at_cmd_list->at_cmd.data_len = at_cmd->data_len;
+        at_cmd_list->del_cnt++;
     }
 
-    at_write_cmd->cmd.retry         = cmd->retry;
-    at_write_cmd->cmd.wait_time     = cmd->wait_time;
-    at_write_cmd->del_cnt++;
-    return at_write_cmd;
+    at_cmd_list->at_cmd.retry         = at_cmd->retry;
+    at_cmd_list->at_cmd.wait_time     = at_cmd->wait_time;
+
+    return at_cmd_list;
 }
 
-static void _at_cmd_destroy(at_cmd_t *at_cmd)
+static void _at_cmd_list_destroy(at_cmd_list_t *at_cmd_list)
 {
-    if (at_cmd) {
-        if (at_cmd->cmd.cmd) {
-            free(at_cmd->cmd.cmd);
-            at_cmd->cmd.cmd = NULL;
+    if (at_cmd_list) {
+        if (at_cmd_list->at_cmd.cmd) {
+            free(at_cmd_list->at_cmd.cmd);
+            at_cmd_list->at_cmd.cmd = NULL;
         }
 
-        if (at_cmd->cmd.data) {
-            free(at_cmd->cmd.data);
-            at_cmd->cmd.data = NULL;
+        if (at_cmd_list->at_cmd.data) {
+            free(at_cmd_list->at_cmd.data);
+            at_cmd_list->at_cmd.data = NULL;
         }
 
-        free(at_cmd);
-        at_cmd = NULL;
+        free(at_cmd_list);
+        at_cmd_list = NULL;
     }
 }
 #endif
 
 static void _destroy_cmd_list(at_utils_context_t *context, int8_t all_cmd)
 {
-    at_cmd_t *pos,*n;
+    at_cmd_list_t *pos, *n;
     list_for_each_entry_safe(pos, n, &context->write_list, list) {
         list_del(&pos->list);
-        LOGD("pos: %p, del cmd: %s \r\n", pos, pos->cmd);
-        _at_cmd_destroy(pos);
+        LOGD("pos: %p, del at_cmd: %s \n", pos, pos->at_cmd);
+        _at_cmd_list_destroy(pos);
         pos = NULL;
         if (!all_cmd) {
             break;
@@ -143,77 +140,63 @@ static void _destroy_cmd_list(at_utils_context_t *context, int8_t all_cmd)
     }
 }
 
-static void _destroy_wrapper(at_utils_context_t *context)
-{
-    if (context) {
-        if (context->fifo_handle) {
-            HyFifoDestroy(context->fifo_handle);
-            context->fifo_handle = NULL;
-        }
-
-        _destroy_cmd_list(context, 1);
-
-        free(context);
-        context = NULL;
-    }
-}
-
 static void _destroy_clean(at_utils_context_t *context)
 {
-    HyFifoClean(context->fifo_handle);
     _destroy_cmd_list(context, 1);
+    HyFifoClean(context->fifo_handle);
 
-    context->frame_sum      = 0;
-    context->state          = 0;
-    context->busy_flag      = 0;
-    context->parsing_flag   = 0;
+    BufUnion_t **ppbuf_union = &context->buf_union;
+    *ppbuf_union             = NULL;
+    context->sys_tick        = 0;
+    context->frame_sum       = 0;
+    context->offset_len      = 0;
+    context->state           = 0;
+    context->busy_flag       = 0;
+    context->parsing_flag    = 0;
 }
 
 static uint8_t _find_frame_tag(at_utils_context_t   *context,
-                               AtCatchStrParam_t    *catch_str_param,
                                char                 *buf,
                                uint16_t             buf_len,
-                               uint16_t             *offset_len,
                                uint8_t              flag)
 {
     AtCatchStr_t *catch_str = NULL;
     uint8_t ret = AT_STATE_IDLE;
 
     if (flag) {
-        for (int i = 0; i < catch_str_param->catch_str_cnt; i++) {
-            catch_str = &catch_str_param->catch_str[i];
-            uint16_t len = strlen(catch_str->recv_str);
-            // 从fifo获取的数据长度不足，等待有效数据（比如:
-            // buf为“+IPD”，则直接跳回）
-            if (catch_str->recv_str[0] == buf[0] && len > buf_len) {
+        for (int i = 0; i < context->catch_str_cnt; i++) {
+            catch_str = &context->catch_str[i];
+            uint16_t len = strlen(catch_str->catch_str);
+            // 从fifo获取的数据长度不足，等待有效数据（比如: buf为“+IPD”，则直接跳回）
+            if (catch_str->catch_str[0] == buf[0] && len > buf_len) {
                 ret = AT_STATE_READ_HEAD;
                 goto _ERR_FIND_FRAME_TAG;
             }
-            if (0 == memcmp(buf, catch_str->recv_str, len)) {
-                *offset_len = len;
+            if (0 == memcmp(buf, catch_str->catch_str, len)) {
+                context->offset_len = len;
                 ret         = catch_str->state;
 
-                LOGD("find '%s'\r\n", catch_str->recv_str);
+                LOGD("find '%s' \n", catch_str->catch_str);
                 goto _ERR_FIND_FRAME_TAG;
             }
         }
-        *offset_len = 1;
+        context->offset_len = 1;
     } else {
         uint32_t cnt = 0;
         while (cnt < buf_len) {
-            for (int i = 0; i < catch_str_param->catch_str_cnt; i++) {
-                catch_str = &catch_str_param->catch_str[i];
-                if (catch_str->recv_str[0] == buf[cnt]) {
-                    *offset_len = cnt;
+            for (int i = 0; i < context->catch_str_cnt; i++) {
+                catch_str = &context->catch_str[i];
+                if (catch_str->catch_str[0] == buf[cnt]) {
+                    context->offset_len = cnt;
                     ret         = AT_STATE_READ_HEAD;
 
-                    LOGI("find '%c', offset_len: %d, fifo_len: %d \r\n", buf[cnt], *offset_len, _get_fifo_used_len());
+                    LOGI("find '%c' \n", buf[cnt]);
                     goto _ERR_FIND_FRAME_TAG;
                 }
             }
             cnt++;
         }
-        *offset_len = cnt;
+        context->offset_len = cnt;
     }
 _ERR_FIND_FRAME_TAG:
     return ret;
@@ -246,12 +229,11 @@ static int8_t _handle_signal_cwjap_def(at_utils_context_t *context, const char *
 
     context->buf_union = HyBufUnionCreate(ret);
     if (!context->buf_union) {
-        LOGE("buf_union create faild \r\n");
+        LOGE("buf_union create faild \n");
         return ERR_FAILD;
     }
 
     HY_UTILS_COPY(context->buf_union->buf, tmp_buf, context->buf_union->len);
-    // LOGD("buf: %s, len: %d \r\n", context->buf_union->buf, context->buf_union->len);
 
     return ERR_OK;
 }
@@ -279,22 +261,22 @@ static inline uint16_t _get_ipd_data_len(char *buf, uint8_t len, uint16_t *index
     return ret;
 }
 
-#define _wait_read_fifo_data()                                      \
+static int8_t _handle_ipd_data(at_utils_context_t *context, char *buf, uint16_t len)
+{
+#define _WAIT_READ_FIFO_DATA()                                      \
     do {                                                            \
         uint8_t read_cnt = 0;                                       \
         while (_get_fifo_used_len() < factor) {                     \
             HyTimeDelayMs(5);                                       \
             if (read_cnt++ >= 5) {                                  \
-                LOGD("wait uart data \r\n");                        \
+                LOGD("wait uart data \n");                        \
                 break;                                              \
             }                                                       \
         }                                                           \
         context->parsing_flag = 1;                                  \
     } while (0)
-
-static int8_t _handle_ipd_data(at_utils_context_t *context, char *buf, uint16_t len, uint16_t *offset_len)
-{
 #define FRAME_IPD_LEN_MAX       strlen("+IPD,5120:")
+
     uint8_t ipd_format_len = 0;
     uint16_t data_len = 0;
     int8_t ret = ERR_FAILD;
@@ -302,63 +284,69 @@ static int8_t _handle_ipd_data(at_utils_context_t *context, char *buf, uint16_t 
 
     if (!context->buf_union) {
         ipd_format_len = _get_ipd_data_len(buf, len, &data_len);
-        LOGD("ipd_format_len: %d, socket len: %d \r\n", ipd_format_len, data_len);
+        LOGD("ipd_format_len: %d, socket len: %d \n", ipd_format_len, data_len);
 
         // 防御性判断，因为fifo开辟的空间有限，如果长时间输入数据就会造成错误帧的出现
         if (ipd_format_len >= FRAME_IPD_LEN_MAX
                 || data_len > 1024 || 0 == data_len) {
             // @FIXME 后期处理
-            LOGE("reset state, write fifo and read fifo\r\n");
+            LOGE("reset state, write fifo and read fifo\n");
             _destroy_clean(context);
             return ERR_FAILD;
         }
 
         context->buf_union = HyBufUnionCreate(data_len);
         if (!context->buf_union) {
-            LOGE("buf_union create faild \r\n");
+            LOGE("buf_union create faild \n");
             return ERR_FAILD;
         }
 
         if (context->buf_union->len + ipd_format_len <= len) {
             memcpy(context->buf_union->buf, buf + ipd_format_len, context->buf_union->len);
-            *offset_len = ipd_format_len + context->buf_union->len;
+            context->offset_len = ipd_format_len + context->buf_union->len;
             ret = ERR_OK;
         } else {
             memcpy(context->buf_union->buf, buf + ipd_format_len, len - ipd_format_len);
             context->frame_sum += (len - ipd_format_len);
-            *offset_len = len;
+            context->offset_len = len;
             factor = context->buf_union->len - (len - ipd_format_len);
-            LOGD("-1-factor: %d, fifo_len: %d, socket_len: %d, frame_len: %d \r\n",
-                    factor, _get_fifo_used_len(), context->buf_union->len, context->frame_sum);
-            _wait_read_fifo_data();
+            _WAIT_READ_FIFO_DATA();
         }
     } else {
         memcpy(context->buf_union->buf + context->frame_sum, buf, len);
         context->frame_sum += len;
-        *offset_len = len;
+        context->offset_len = len;
         if (context->frame_sum == context->buf_union->len) {
             ret = ERR_OK;
         } else {
             factor = context->buf_union->len - context->frame_sum; 
-            LOGD("-2-factor: %d, fifo_len: %d, socket_len: %d, frame_len: %d \r\n",
-                    factor, _get_fifo_used_len(), context->buf_union->len, context->frame_sum);
-            _wait_read_fifo_data();
+            _WAIT_READ_FIFO_DATA();
         }
     }
 
     return ret;
 }
 
-static uint8_t _read_handle(at_utils_context_t *context, AtCatchStrParam_t *catch_str_param)
+static uint8_t _read_handle(at_utils_context_t *context)
 {
+#define _HANDLE_FRAME_CB(context, flag)                                             \
+    do {                                                                            \
+        AtHandleCb_t *handle_cb = &context->handle_cb;                              \
+        BufUnion_t **ppbuf = &context->buf_union;                                   \
+        BufUnion_t *buf = *ppbuf;                                                   \
+        if (handle_cb->handle_frame_cb) {                                           \
+            handle_cb->handle_frame_cb(flag, &buf->buf, buf->len, handle_cb->args); \
+        }                                                                           \
+        HyBufUnionDestroy(buf);                                                     \
+        *ppbuf = NULL;                                                              \
+    } while (0)
 #define FACTOR_LEN (200)
+
     uint16_t len = 0;
     uint16_t factor = 0;
     uint8_t ret = 0;
-    at_cmd_t *pos;
+    at_cmd_list_t *pos;
     int8_t update_flag = 0;
-
-    static uint16_t offset_len = 0;
 
     do {
         char buf[FACTOR_LEN] = {0};
@@ -372,21 +360,19 @@ static uint8_t _read_handle(at_utils_context_t *context, AtCatchStrParam_t *catc
             }
         }
 
-        pos = list_first_entry(&context->write_list, at_cmd_t, list);
+        pos = list_first_entry(&context->write_list, at_cmd_list_t, list);
 
         len = HyFifoPeek(context->fifo_handle, buf, factor);
-        // LOGD("factor: %d, len: %d, state: %d, fifo_len: %d \r\n",
-                // factor, len, context->state, _get_fifo_used_len());
         // PRINT_HEX_ASCII(buf, len);
         if (0 == len) {
             context->state = AT_STATE_IDLE;
             if (context->buf_union) {
                 PRINT_HEX_ASCII(context->buf_union->buf, context->frame_sum);
                 if (!pos) {
-                    LOGD("pos time: %d \r\n", pos->cmd.wait_time);
+                    LOGD("pos time: %d \n", pos->at_cmd.wait_time);
                 }
             }
-            LOGD("peek fifo zero, factor: %d, fifo_len: %d \r\n", factor, _get_fifo_used_len());
+            LOGD("peek fifo zero, factor: %d \n", factor);
             break;
         }
 
@@ -399,17 +385,17 @@ static uint8_t _read_handle(at_utils_context_t *context, AtCatchStrParam_t *catc
         switch (context->state) {
             case AT_STATE_IDLE:
             case AT_STATE_READ:
-                context->state = _find_frame_tag(context, catch_str_param, buf, len, &offset_len, 0);
-                if (offset_len > 0) {
+                context->state = _find_frame_tag(context, buf, len, 0);
+                if (context->offset_len > 0) {
                     update_flag = 1;
                 }
                 break;
             case AT_STATE_READ_HEAD:
-                context->state = _find_frame_tag(context, catch_str_param, buf, len, &offset_len, 1);
-                if (AT_STATE_IDLE == context->state && offset_len) {
+                context->state = _find_frame_tag(context, buf, len, 1);
+                if (AT_STATE_IDLE == context->state && context->offset_len) {
                     if (_get_fifo_used_len() == 1 && buf[0] == '>') {
                         context->state = AT_STATE_READ_SEND;
-                        LOGE("only one byte, '>' \r\n");
+                        LOGE("only one byte, '>' \n");
                         break;
                     }
                     update_flag = 1;
@@ -425,7 +411,7 @@ static uint8_t _read_handle(at_utils_context_t *context, AtCatchStrParam_t *catc
                 context->state  = AT_STATE_READ;
                 break;
             case AT_STATE_READ_CLOSED:
-                LOGE("closed or error \r\n");
+                LOGE("closed or error \n");
                 context->parsing_flag   = 0;         // 一定要退出循环
                 ret                     = AT_STATE_READ_CLOSED;
                 update_flag             = 1;
@@ -434,15 +420,15 @@ static uint8_t _read_handle(at_utils_context_t *context, AtCatchStrParam_t *catc
             case AT_STATE_READ_FAILD:
                 HyFifoClean(context->fifo_handle);
                 ret = context->state;
-                if (--pos->cmd.retry == 0) {
-                    LOGE("faild exec %s", pos->cmd);
+                if (--pos->at_cmd.retry == 0) {
+                    LOGE("faild exec %s", pos->at_cmd);
                     ret = AT_STATE_READ_CLOSED;
                     _destroy_cmd_list(context, 0);
                 }
                 context->state = AT_STATE_WRITE;
                 break;
             case AT_STATE_READ_OK:
-                if (2 == context->busy_flag || 0 == pos->cmd.data_len) {
+                if (2 == context->busy_flag || 0 == pos->at_cmd.data_len) {
                     context->busy_flag  = 0;
                 }
                 if (--pos->del_cnt == 0) {
@@ -451,27 +437,26 @@ static uint8_t _read_handle(at_utils_context_t *context, AtCatchStrParam_t *catc
                 update_flag         = 1;
                 context->state      = AT_STATE_IDLE;
                 ret                 = AT_STATE_READ_OK;
-                LOGD("state: %d, busy_flag: %d\r\n", context->state, context->busy_flag);
                 break;
             case AT_STATE_READ_SEND:
                 update_flag     = 1;
                 context->state  = AT_STATE_WRITE_DATA;
                 break;
             case AT_STATE_READ_IPD_DATA:
-                if (ERR_OK == _handle_ipd_data(context, buf, len, &offset_len)) {
+                if (ERR_OK == _handle_ipd_data(context, buf, len)) {
                     context->frame_sum = 0;
                     context->parsing_flag   = 0;
                     context->state          = AT_STATE_IDLE;
                     _HANDLE_FRAME_CB(context, 1);
                 }
-                if (offset_len > 0) {
+                if (context->offset_len > 0) {
                     update_flag = 1;
                 }
                 break;
             case AT_STATE_READ_SIGNAL_CWJAP_DEF:
                 if (ERR_OK == _handle_signal_cwjap_def(context, buf, len)) {
                     update_flag = 1;
-                    offset_len = context->buf_union->len;
+                    context->offset_len = context->buf_union->len;
                     context->state = AT_STATE_IDLE;
                     _HANDLE_FRAME_CB(context, 0);
                 }
@@ -483,13 +468,13 @@ static uint8_t _read_handle(at_utils_context_t *context, AtCatchStrParam_t *catc
         if (update_flag) {
             update_flag = 0;
 #ifdef SAVE_TEST_DATA
-            HyFifoGet(context->fifo_handle, buf, offset_len);
-            memcpy(context->out_char + context->out_len, buf, offset_len);
-            context->out_len += offset_len;
+            HyFifoGet(context->fifo_handle, buf, context->offset_len);
+            memcpy(context->out_char + context->out_len, buf, context->offset_len);
+            context->out_len += context->offset_len;
 #else
-            HyFifoUpdateOut(context->fifo_handle, offset_len);
+            HyFifoUpdateOut(context->fifo_handle, context->offset_len);
 #endif
-            offset_len = 0;
+            context->offset_len = 0;
         }
 
         // 接着处理被打断的接收任务（esp8266里面有缓冲，
@@ -501,25 +486,22 @@ static uint8_t _read_handle(at_utils_context_t *context, AtCatchStrParam_t *catc
 
 static uint8_t _write_handle(at_utils_context_t *context)
 {
-    at_cmd_t *pos;
+    at_cmd_list_t *pos;
     AtHandleCb_t *handle_cb = NULL;
 
-    // LOGD("state: %d \r\n", context->state);
+    // LOGD("state: %d \n", context->state);
     switch (context->state) {
         case AT_STATE_WRITE:
             context->state = AT_STATE_WRITE_CMD;
             break;
         case AT_STATE_WRITE_CMD:
-            pos = list_first_entry(&context->write_list, at_cmd_t, list);
+            pos = list_first_entry(&context->write_list, at_cmd_list_t, list);
             handle_cb = &context->handle_cb;
             if (handle_cb->write_cb) {
-                LOGD("pos: %p, %d times, wait_time: %d, exec cmd: %s",
-                        pos, pos->cmd.retry, pos->cmd.wait_time, pos->cmd.cmd);
+                LOGD("pos: %p, %d times, wait_time: %d, cmd: %s",
+                        pos, pos->at_cmd.retry, pos->at_cmd.wait_time, pos->at_cmd.cmd);
 
-                BufUnion_t buf_union;
-                buf_union.buf = pos->cmd.cmd;
-                buf_union.len = pos->cmd.cmd_len;
-                handle_cb->write_cb(&buf_union, handle_cb->args);
+                handle_cb->write_cb(pos->at_cmd.cmd, strlen(pos->at_cmd.cmd), handle_cb->args);
                 context->sys_tick   = HyTimeGetTickMs();
             }
             context->state      = AT_STATE_WRITE_CMD_WAIT;
@@ -529,15 +511,12 @@ static uint8_t _write_handle(at_utils_context_t *context)
             context->state      = AT_STATE_READ;
             break;
         case AT_STATE_WRITE_DATA:
-            pos = list_first_entry(&context->write_list, at_cmd_t, list);
+            pos = list_first_entry(&context->write_list, at_cmd_list_t, list);
             handle_cb = &context->handle_cb;
             if (pos && handle_cb->write_cb) {
-                LOGD("pos: %p, write data: %d \r\n", pos, pos->cmd.data_len);
+                LOGD("pos: %p, cmd->data: %d \n", pos, pos->at_cmd.data_len);
 
-                BufUnion_t buf_union;
-                buf_union.buf = pos->cmd.data;
-                buf_union.len = pos->cmd.data_len;
-                handle_cb->write_cb(&buf_union, handle_cb->args);
+                handle_cb->write_cb(pos->at_cmd.data, pos->at_cmd.data_len, handle_cb->args);
                 context->sys_tick   = HyTimeGetTickMs();
                 context->busy_flag  = 2;
             }
@@ -547,17 +526,17 @@ static uint8_t _write_handle(at_utils_context_t *context)
     return 0;
 }
 
-uint8_t HyAtUtilsParseData(void *handle, AtCatchStrParam_t *catch_str_param)
+uint8_t HyAtUtilsParseData(void *handle)
 {
-    if (!handle || !catch_str_param) {
-        LOGE("the param is NULL, handle: %p, catch_str_param: %p \r\n", handle, catch_str_param);
+    if (!handle) {
+        LOGE("the param is NULL, handle: %p \n", handle);
         return 0;
     }
 
     at_utils_context_t *context = handle;
     uint8_t ret = 0;
 
-    // LOGD("state: %d \r\n", context->state);
+    // LOGD("state: %d \n", context->state);
     switch (context->state) {
         case AT_STATE_IDLE:
             if (_get_fifo_used_len() > 0) {
@@ -566,13 +545,13 @@ uint8_t HyAtUtilsParseData(void *handle, AtCatchStrParam_t *catch_str_param)
                 // 链表不为空，需要发送数据
                 if (!list_empty(&context->write_list)) {
                     // 规定的时间内没有返回，重新发送直到重启设备
-                    at_cmd_t *pos = list_first_entry(&context->write_list, at_cmd_t, list);
+                    at_cmd_list_t *pos = list_first_entry(&context->write_list, at_cmd_list_t, list);
                     if (pos) {
-                        if (HyTimeGetTickMs() - context->sys_tick > pos->cmd.wait_time) {
+                        if (HyTimeGetTickMs() - context->sys_tick > pos->at_cmd.wait_time) {
                             context->sys_tick   = HyTimeGetTickMs();
                             context->busy_flag = 0;
-                            if (0 == --pos->cmd.retry) {
-                                LOGE("%p, faild exec %s", pos, pos->cmd);
+                            if (0 == --pos->at_cmd.retry) {
+                                LOGE("pos: %p, faild exec %s", pos, pos->at_cmd);
                                 ret = AT_STATE_READ_CLOSED;
                                 break;
                             }
@@ -585,58 +564,58 @@ uint8_t HyAtUtilsParseData(void *handle, AtCatchStrParam_t *catch_str_param)
             }
             break;
         case AT_STATE_READ...AT_STATE_READ_MAX:
-            ret = _read_handle(context, catch_str_param);
+            ret = _read_handle(context);
             break;
         case AT_STATE_WRITE...AT_STATE_WRITE_MAX:
             ret = _write_handle(context);
             break;
         default:
-            LOGE("error case, state: %d \r\n", context->state);
+            LOGE("error case, state: %d \n", context->state);
             break;
     }
     return ret;
 }
 
-uint32_t HyAtUtilsWriteCmd(void *handle, AtUtilsCmd_t *cmd)
+uint32_t HyAtUtilsWriteCmd(void *handle, AtCmd_t *at_cmd)
 {
-    if (!handle || !cmd) {
-        LOGE("the param is NULL, handle: %p, cmd: %p, retry: %d \r\n", handle, cmd);
+    if (!handle || !at_cmd) {
+        LOGE("the param is NULL, handle: %p, at_cmd: %p, retry: %d \n", handle, at_cmd);
         return ERR_FAILD;
     }
 
-    at_cmd_t *at_cmd = _at_cmd_create(cmd);
-    if (!at_cmd) {
-        LOGE("at_cmd create faild \n");
+    at_cmd_list_t *at_cmd_list = _at_cmd_list_create(at_cmd);
+    if (!at_cmd_list) {
+        LOGE("at_cmd_list create faild \n");
         return ERR_FAILD;
     }
-    LOGD("pos: %p, add cmd: %s", at_cmd, at_cmd->cmd.cmd);
+    LOGD("pos: %p, add at_cmd: %s", at_cmd_list, at_cmd_list->at_cmd.cmd);
 
     at_utils_context_t *context = handle;
-    list_add_tail(&at_cmd->list, &context->write_list);
+    list_add_tail(&at_cmd_list->list, &context->write_list);
     return ERR_OK;
 }
 
-uint32_t HyAtUtilsRecvData(void *handle, BufUnion_t *buf_union)
+uint32_t HyAtUtilsPutData(void *handle, const char *buf, uint32_t len)
 {
-    if (!handle || !buf_union) {
-        LOGE("the param is NULL, handle: %p, buf_union: %p \r\n", handle, buf_union);
+    if (!handle || !buf) {
+        LOGE("the param is NULL, handle: %p, buf_union: %p \n", handle, buf);
         return 0;
     }
 
     at_utils_context_t *context = handle;
 
 #ifdef SAVE_TEST_DATA
-    memcpy(context->in_char + context->in_len, buf_union->buf, buf_union->len);
-    context->in_len += buf_union->len;
+    memcpy(context->in_char + context->in_len, buf, len);
+    context->in_len += len;
 #endif
 
-    return HyFifoPut(context->fifo_handle, buf_union->buf, buf_union->len);
+    return HyFifoPut(context->fifo_handle, buf, len);
 }
 
 void HyAtUtilsClean(void *handle)
 {
     if (!handle) {
-        LOGE("the param is NULL \r\n");
+        LOGE("the param is NULL \n");
         return ;
     }
 
@@ -646,11 +625,23 @@ void HyAtUtilsClean(void *handle)
 void HyAtUtilsDestroy(void *handle)
 {
     if (!handle) {
-        LOGE("the param is NULL \r\n");
+        LOGE("the param is NULL \n");
         return ;
     }
 
-    _destroy_wrapper((at_utils_context_t *)handle);
+    at_utils_context_t *context = handle;
+
+    if (context) {
+        if (context->fifo_handle) {
+            HyFifoDestroy(context->fifo_handle);
+            context->fifo_handle = NULL;
+        }
+
+        _destroy_cmd_list(context, 1);
+
+        free(context);
+        context = NULL;
+    }
 }
 
 #ifdef SAVE_TEST_DATA
@@ -667,12 +658,12 @@ static void _signal_cb(void *args)
 
     int in_fd = open("./in.hex", O_RDWR|O_CREAT|O_TRUNC, 0777);
     if (in_fd < 0) {
-        LOGE("open faild \r\n");
+        LOGE("open faild \n");
         return ;
     }
     int out_fd = open("./out.hex", O_RDWR|O_CREAT|O_TRUNC, 0777);
     if (out_fd < 0) {
-        LOGE("open faild \r\n");
+        LOGE("open faild \n");
         return ;
     }
 
@@ -687,32 +678,38 @@ static void _signal_cb(void *args)
 }
 #endif
 
-void *HyAtUtilsCreate(AtHandleCb_t *handle_cb, uint32_t read_fifo_len)
+void *HyAtUtilsCreate(AtHandleCb_t *handle_cb, AtCatchStr_t *catch_str, uint8_t catch_str_cnt, uint32_t fifo_len)
 {
-    if (!handle_cb || read_fifo_len <= 0) {
-        LOGE("the param is NULL \r\n");
+    if (!handle_cb || !catch_str || fifo_len <= 0) {
+        LOGE("the param is NULL \n");
         return NULL;
     }
 
-    at_utils_context_t *context = calloc(1, sizeof(*context));
+    uint32_t len = catch_str_cnt * sizeof(*catch_str);
+    at_utils_context_t *context = calloc(1, sizeof(*context) + len);
     if (!context) {
-        LOGE("calloc faild \r\n");
+        LOGE("calloc faild \n");
         return NULL;
     }
 
-    context->fifo_handle = HyFifoCreate(read_fifo_len);
+    context->fifo_handle = HyFifoCreate(fifo_len);
     if (!context->fifo_handle) {
-        LOGE("fifo create faild \r\n");
+        LOGE("fifo create faild \n");
         free(context);
         context = NULL;
         return NULL;
     }
 
     INIT_LIST_HEAD(&context->write_list);
-    memcpy(&context->handle_cb, handle_cb, sizeof(context->handle_cb));
+    memcpy(&context->handle_cb, handle_cb, sizeof(*handle_cb));
+
+    context->catch_str_cnt = catch_str_cnt;
+    for (int i = 0; i < catch_str_cnt; i++) {
+        memcpy(&context->catch_str[i], &catch_str[i], sizeof(*catch_str));
+    }
 
 #ifdef SAVE_TEST_DATA
-    if (read_fifo_len == 1024) {
+    if (fifo_len == 1024) {
         HySignalHandleCb_t signal_handle_cb;
         signal_handle_cb.handle_frame_cb = _signal_cb;
         signal_handle_cb.args            = context;
@@ -720,13 +717,13 @@ void *HyAtUtilsCreate(AtHandleCb_t *handle_cb, uint32_t read_fifo_len)
 
         context->in_char = calloc(10 * 1024 * 1024, sizeof(*context->in_char));
         if (!context->in_char) {
-            LOGE("calloc faild \r\n");
+            LOGE("calloc faild \n");
             return NULL;
         }
 
         context->out_char = calloc(10 * 1024 * 1024, sizeof(*context->out_char));
         if (!context->out_char) {
-            LOGE("calloc faild \r\n");
+            LOGE("calloc faild \n");
             return NULL;
         }
     }

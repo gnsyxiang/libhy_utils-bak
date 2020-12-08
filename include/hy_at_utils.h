@@ -53,41 +53,121 @@ enum {
     AT_STATE_WRITE_MAX,
 };
 
+/**
+ * @brief 捕获字符串结构体
+ *
+ * @param state: 被捕获字符串的状态
+ * @param catch_str: 被捕获字符串
+ */
 typedef struct {
     uint8_t     state;
-    char        *recv_str;
+    char        *catch_str;
 } AtCatchStr_t;
 
+/**
+ * @brief at指令
+ *
+ * @param cmd: at模块支持的指令
+ * @param data: 该指令所携带的数据
+ * @param data_len: 携带数据的长度
+ * @param wait_time: 该指令发出后所等待的时间
+ * @param retry: 该指令重试的次数
+ */
 typedef struct {
-    AtCatchStr_t    *catch_str;
-    uint8_t         catch_str_cnt;
-} AtCatchStrParam_t; 
+    char        *cmd;
+    char        *data;
+    uint16_t    data_len;
+    uint16_t    wait_time;
+    uint8_t     retry;
+} AtCmd_t;
 
-typedef void (*AtUtilsWriteCb_t)(BufUnion_t *buf_union, void *args);
-typedef void (*AtUtilsHandleFrameCb_t)(int8_t type, BufUnion_t **buf_union, void *args);
+/**
+ * @brief 发送数据的回调函数
+ *
+ * @param buf: 发送的数据
+ * @param len: 数据的长度
+ * @param args: 传递的参数
+ */
+typedef void (*AtUtilsWriteCb_t)(const char *buf, uint32_t len, void *args);
+
+/**
+ * @brief 帧的回调函数
+ *
+ * @param type: 返回帧的类型
+ * @param buf: 返回帧的数据
+ * @param len: 数据的长度
+ * @param args: 传递的参数
+ */
+typedef void (*AtUtilsHandleFrameCb_t)(int8_t type, char **buf, uint32_t len, void *args);
+
+/**
+ * @brief 回调函数结构体
+ * @param write_cb: 发送数据回调函数
+ * @param handle_frame_cb: 帧的回调函数
+ * @param args: 传递的参数
+ */
 typedef struct {
     AtUtilsWriteCb_t        write_cb;
     AtUtilsHandleFrameCb_t  handle_frame_cb;
     void                    *args;
 } AtHandleCb_t;
 
-void *HyAtUtilsCreate(AtHandleCb_t *handle_cb, uint32_t read_fifo_len);
+/**
+ * @brief 创建at处理框架
+ *
+ * @param handle_cb: 封装帧的回调函数和发送数据的回调函数
+ * @param catch_str: 被检测的字符串
+ * @param catch_str_cnt: 被检测的字符串的个数
+ * @param fifo_len: fifo的长度
+ *
+ * @return 操作句柄
+ */
+void *HyAtUtilsCreate(AtHandleCb_t *handle_cb,
+        AtCatchStr_t *catch_str, uint8_t catch_str_cnt, uint32_t fifo_len);
+
+/**
+ * @brief 销毁at处理框架
+ *
+ * @param handle: 操作句柄
+ */
 void HyAtUtilsDestroy(void *handle);
+
+/**
+ * @brief 清楚at处理框架的信息，使其回到创建初始状态
+ *
+ * @param handle: 操作句柄
+ */
 void HyAtUtilsClean(void *handle);
 
-typedef struct {
-    char        *cmd;
-    char        *data;
-    uint16_t    cmd_len;
-    uint16_t    data_len;
-    uint16_t    wait_time;
-    uint8_t     retry;
-} AtUtilsCmd_t;
+/**
+ * @brief at模块返回的数据写入到at处理框架中
+ *
+ * @param handle: 操作句柄
+ * @param buf: at模块的数据
+ * @param len: 数据的长度
+ *
+ * @return 成功写入的长度
+ */
+uint32_t HyAtUtilsPutData(void *handle, const char *buf, uint32_t len);
 
-uint32_t HyAtUtilsWriteCmd(void *handle, AtUtilsCmd_t *cmd);
-uint32_t HyAtUtilsRecvData(void *handle, BufUnion_t *buf_union);
+/**
+ * @brief 发送at指令到at处理框架中
+ *
+ * @param handle: 操作句柄
+ * @param at_cmd: 需要发送的指令
+ *
+ * @return 成功写入放回ERR_OK
+ */
+uint32_t HyAtUtilsWriteCmd(void *handle, AtCmd_t *at_cmd);
 
-uint8_t HyAtUtilsParseData(void *handle, AtCatchStrParam_t *catch_str_param);
+/**
+ * @brief 返回捕获到的字符串所对应的状态
+ *
+ * @param handle: 操作句柄
+ *
+ * @return 返回捕获字符串的对应状态
+ */
+uint8_t HyAtUtilsParseData(void *handle);
 
 #ifdef __cplusplus
 }
