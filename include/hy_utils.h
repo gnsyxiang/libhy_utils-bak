@@ -52,8 +52,6 @@ void HyHex2Int2Str(char *str, uint8_t str_len, char *addr, uint8_t addr_len);
         strncpy((name), (macro), name_len - 1);     \
     } while (0)
 
-#define min_macro(x, y) ((x) > (y) ? (y) : (x))
-
 #ifdef __cplusplus
 }
 #endif

@@ -24,7 +24,7 @@
 
 #include "hy_fifo.h"
 
-#include "hy_utils.h"
+#include "hy_type.h"
 #include "hy_log.h"
 
 #ifdef USE_DEBUG
@@ -253,6 +253,11 @@ void *HyFifoCreate(uint32_t size)
 {
     if (size <= 0) {
         LOGE("the param is NULL, len: %d \n", size);
+        return NULL;
+    }
+
+    if (!is_power_of_2(size) || size > 0x80000000) {
+        LOGE("size must be power of 2.\n");
         return NULL;
     }
 

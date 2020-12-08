@@ -68,6 +68,11 @@ typedef enum {
 
 #define BYTE_TEST_BIT(state, bit) ((state) & ((0x1) << (bit)))
 
+#define min_macro(x, y) ((x) < (y) ? (x) : (y))
+
+//判断x是否是2的次方
+#define is_power_of_2(x) ((x) != 0 && (((x) & ((x) - 1)) == 0))
+
 #ifdef __cplusplus
 }
 #endif
