@@ -26,6 +26,8 @@
 #include <signal.h>
 #include <string.h>
 
+#include "hy_signal.h"
+
 #include "hy_log.h"
 
 #ifdef USE_DEBUG
@@ -33,7 +35,14 @@
     #define LOG_CATEGORY_TAG "hy_signal"
 #endif
 
-static char *global_app_name;
+#define _COREDUMP_PATH_LEN_MAX (128)
+typedef struct {
+    HySignalHandleCb_t  handle_cb;
+    char                coredump_path[_COREDUMP_PATH_LEN_MAX];
+    char                *appname;
+} signal_context_t;
+
+static signal_context_t signal_context;
 
 static char *signal_str[] = {
     [1] = "SIGHUP",       [2] = "SIGINT",       [3] = "SIGQUIT",      [4] = "SIGILL",
@@ -54,8 +63,14 @@ static void sig_handler(int signo)
     char **strings = NULL;
     int i = 0;
 
+    signal_context_t *context = &signal_context;
+
     printf("\n\n[%s] %s(%d) crashed by signal %s.\n",
-           __func__, global_app_name, getpid(), signal_str[signo]);
+           __func__, context->appname, getpid(), signal_str[signo]);
+
+    if (context->handle_cb.handle_frame_cb) {
+        context->handle_cb.handle_frame_cb(context->handle_cb.args);
+    }
 
     printf("Call Trace:\n");
 #ifndef NO_backtrace
@@ -73,22 +88,28 @@ static void sig_handler(int signo)
     if (signo == SIGINT || signo == SIGUSR1 || signo == SIGUSR2) {
         exit(-1);
     } else {
-        system("mkdir -p /mnt/sdcard/coredump");
+        sprintf(cmd, "mkdir -p %s", context->coredump_path);
+        system(cmd);
         sprintf(cmd, "cat /proc/%d/maps", getpid());
         printf("Process maps:\n");
         system(cmd);
 
-        snprintf(cmd, 256, "cat /proc/%d/maps > /mnt/sdcard/coredump/%s.%d.maps",
-             getpid(), global_app_name, getpid());
+        snprintf(cmd, 256, "cat /proc/%d/maps > %s/%s.%d.maps",
+             getpid(), context->coredump_path, context->appname, getpid());
         system(cmd);
     }
 }
 
-void HySignalInit(const char *appname)
+void HySignalInit(const char *appname, const char *coredump_path, HySignalHandleCb_t *handle_cb)
 {
     static struct sigaction act;
 
-    global_app_name = strdup(appname);
+    signal_context_t *context = &signal_context;
+    memset(context, '\0', sizeof(*context));
+
+    context->appname    = strdup(appname);
+    memcpy(&context->handle_cb, handle_cb, sizeof(*handle_cb));
+    strcpy(context->coredump_path, coredump_path);
 
     act.sa_flags = SA_RESETHAND;
     sigemptyset(&act.sa_mask);
