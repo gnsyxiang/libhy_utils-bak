@@ -24,6 +24,7 @@ HEADERS_COM = hy_fifo.h \
 			  hy_log.h \
 			  hy_md5sum.h \
 			  hy_type.h \
+			  hy_at_utils.h \
 			  hy_utils.h
 
 if COMPILE_WITH_MCU_VERSION

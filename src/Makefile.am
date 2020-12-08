@@ -109,6 +109,7 @@ SOURCES_COM = hy_fifo.c \
 			  hy_file.c \
 			  hy_log.c \
 			  hy_md5sum.c \
+			  hy_at_utils.c \
 			  hy_utils.c
 
 if COMPILE_WITH_MCU_VERSION
