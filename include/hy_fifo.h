@@ -38,12 +38,12 @@ typedef enum {
 /**
  * @brief 创建fifo
  *
- * @param handle: 操作fifo句柄
- * @param buf: 存储fifo数据空间
- * @param len: 存储fifo数据空间长度
+ * @param size: 存储fifo数据空间长度
+ *
+ * @return 操作fifo句柄
  */
 
-void *HyFifoCreate(uint32_t len);
+void *HyFifoCreate(uint32_t size);
 
 /**
  * @brief 销毁fifo
@@ -53,28 +53,11 @@ void *HyFifoCreate(uint32_t len);
 void HyFifoDestroy(void *handle);
 
 /**
- * @brief 打印fifo
- *
- * @param handle: 操作fifo句柄
- */
-void HyFifoDump(void *handle);
-
-/**
  * @brief 清除fifo中的数据
  *
  * @param handle: 操作fifo句柄
  */
 void HyFifoClean(void *handle);
-
-/**
- * @brief 获取FIFO各个长度
- *
- * @param handle: 操作fifo句柄
- * @param type: 获取具体类型的长度，参考HyFifoInfoType_t
- *
- * @return 返回大小
- */
-int32_t HyFifoGetInfo(void *handle, HyFifoInfoType_t type);
 
 /**
  * @brief 向fifo中插入数据
@@ -85,17 +68,7 @@ int32_t HyFifoGetInfo(void *handle, HyFifoInfoType_t type);
  *
  * @return 返回成功插入的字节数
  */
-uint32_t HyFifoInsertData(void *handle, const char *buf, uint32_t len);
-
-/**
- * @brief 从fifo中删除数据
- *
- * @param handle: 操作fifo句柄
- * @param len: 删除数据的长度
- *
- * @return 
- */
-uint32_t HyFifoUpdateTail(void *handle, uint32_t len);
+uint32_t HyFifoPut(void *handle, const char *buf, uint32_t len);
 
 /**
  * @brief 从fifo中获取数据
@@ -106,7 +79,7 @@ uint32_t HyFifoUpdateTail(void *handle, uint32_t len);
  *
  * @return 返回成功取出的数据
  */
-uint32_t HyFifoGetData(void *handle, const char *buf, uint32_t len);
+uint32_t HyFifoGet(void *handle, const char *buf, uint32_t len);
 
 /**
  * @brief 从fifo中获取数据
@@ -119,7 +92,34 @@ uint32_t HyFifoGetData(void *handle, const char *buf, uint32_t len);
  *
  * note: 该操作不会删除数据
  */
-uint32_t HyFifoPeekData(void *handle, const char *buf, uint32_t len);
+uint32_t HyFifoPeek(void *handle, const char *buf, uint32_t len);
+
+/**
+ * @brief 从fifo中删除数据
+ *
+ * @param handle: 操作fifo句柄
+ * @param len: 删除数据的长度
+ *
+ * @return 
+ */
+uint32_t HyFifoUpdateOut(void *handle, uint32_t len);
+
+/**
+ * @brief 获取FIFO各个长度
+ *
+ * @param handle: 操作fifo句柄
+ * @param type: 获取具体类型的长度，参考HyFifoInfoType_t
+ *
+ * @return 返回大小
+ */
+int32_t HyFifoGetInfo(void *handle, HyFifoInfoType_t type);
+
+/**
+ * @brief 打印fifo
+ *
+ * @param handle: 操作fifo句柄
+ */
+void HyFifoDump(void *handle);
 
 #ifdef __cplusplus
 }

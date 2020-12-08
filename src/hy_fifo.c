@@ -20,9 +20,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "hy_fifo.h"
 
+#include "hy_utils.h"
 #include "hy_log.h"
 
 #ifdef USE_DEBUG
@@ -32,12 +34,11 @@
 #endif
 
 typedef struct {
-    uint32_t    cnt;
-    uint32_t    head;
-    uint32_t    tail;
-
-    uint32_t    len;
     char        *buf;
+    uint32_t    size;
+
+    uint32_t    in;
+    uint32_t    out;
 } fifo_context_t;
 
 static inline void _print_hex_ascii(char *buf, uint32_t len)
@@ -54,82 +55,126 @@ static inline void _print_hex_ascii(char *buf, uint32_t len)
 #ifdef FIFO_PRINT_ALL
 static inline void _print_all_buf(fifo_context_t *context)
 {
-    LOGE("len: %d \n", context->len);
-
-    _print_hex_ascii(context->buf, context->len);
+    LOGE("len: %d \n", context->size);
+    _print_hex_ascii(context->buf, context->size);
     printf("\n");
 }
 #endif
 
 static inline void _print_content(fifo_context_t *context)
 {
-    LOGE("cnt: %d, head: %d, tail: %d \n", context->cnt, context->head, context->tail);
+    uint32_t fifo_len = context->in - context->out;
 
-    if (context->tail >= context->head) {
-        if (context->tail + context->cnt <= context->len) {
-            _print_hex_ascii(&context->buf[context->tail], context->cnt);
-        } else {
-            uint32_t tmp_len = context->len- context->tail;
-            _print_hex_ascii(&context->buf[context->tail], tmp_len);
-            _print_hex_ascii(context->buf, context->cnt - tmp_len);
-        }
-    } else {
-        _print_hex_ascii(&context->buf[context->tail], context->cnt);
-    }
+    LOGE("cnt: %d, in: %d, out: %d \n", fifo_len, context->in, context->out);
+
+    #define out_index (context->out & (context->size - 1))
+    uint32_t len_tmp = min_macro(fifo_len, context->size- out_index);
+    _print_hex_ascii(context->buf + out_index, len_tmp);
+    _print_hex_ascii(context->buf, fifo_len - len_tmp);
     printf("\n");
 }
 
-static uint32_t _get_data_com(fifo_context_t *context, char *buf, uint32_t len, int8_t flag)
+static uint32_t _get_data_com(fifo_context_t *context, const char *buf, uint32_t len)
 {
-    if (len > context->cnt) {
-        // LOGE("-------------------------------the len is too big, len: %d, cnt: %d \n", len, context->cnt);
-        len = context->cnt;
-    }
+#if 0
+    /**
+     * @brief 保存tail副本
+     *
+     * @note: 1, 避免下面宏两次读取tail变量，造成多线程引起的错误
+     *        2，如果使用的是函数，就不需要保存tail副本，函数此时最好加上inline提高效率
+     *        3，即使tail变量被其他线程更新也不会出现程序错误，最多就是少处理一点点数据，但数据还在fifo中
+     */
+    uint32_t head_tmp = context->head;
 
-    if (buf) {
-        if (context->cnt == 0 && context->tail == context->head) {
-            return 0;
-        } else if (context->tail > context->head) {
-            if (context->tail + len <= context->len) {
-                memcpy(buf, &context->buf[context->tail], len);
-            } else {
-                uint32_t tmp_len = context->len - context->tail;
-                memcpy(buf, &context->buf[context->tail], tmp_len);
-                memcpy(buf + tmp_len, context->buf, len - tmp_len);
-            }
-        } else {
-            memcpy(buf, &context->buf[context->tail], len);
-        }
-    }
+    // 比较获取的数据长度和实际fifo中存在的数据长度
+    len = min_macro(len, head_tmp - context->tail);
+#endif
 
-    if (flag) {
-        context->cnt    -= len;
-        context->tail   += len;
-        context->tail   %= context->len;
-    }
+    len = min_macro(len, context->in - context->out);
+
+    #define out_index (context->out & (context->size - 1))
+    uint32_t len_tmp = min_macro(len, context->size - out_index);
+
+    memcpy((void *)buf, context->buf + out_index, len_tmp);
+    memcpy((void *)(buf + len_tmp), context->buf, len - len_tmp);
 
     return len;
 }
 
-//-------------------------------------------------------------
+//---------------------------------------------------------------------------
 
-void HyFifoDump(void *handle)
+uint32_t HyFifoPut(void *handle, const char *buf, uint32_t len)
 {
-    if (!handle) {
-        LOGE("the param is NULL, handle: %p \n", handle);
-        return;
+    assert(handle || buf || len);
+    // if (!handle || !buf || 0 == len) {
+        // LOGE("the param is NULL, handle: %p, buf: %p, len: %d \n", handle, buf, len);
+        // return 0;
+    // }
+    fifo_context_t *context = handle;
+
+#if 0
+    /**
+     * @brief 保存tail副本
+     *
+     * @note: 1, 避免下面宏两次读取tail变量，造成多线程引起的错误
+     *        2，如果使用的是函数，就不需要保存tail副本，函数此时最好加上inline提高效率
+     *        3，即使tail变量被其他线程更新也不会出现程序错误，最多就是少处理一点点数据，但数据还在fifo中
+     */
+    uint32_t tail_tmp = context->tail;
+
+    // 比较存取的数据长度和实际fifo中可被存入的数据长度
+    len = min_macro(len, context->len - context->head + tail_tmp);
+#endif
+    len = min_macro(len, context->size - context->in + context->out);
+
+    #define in_index (context->in & (context->size - 1))
+    uint32_t len_tmp = min_macro(len, context->size - in_index);
+
+    memcpy(context->buf + in_index, buf, len_tmp);
+    memcpy(context->buf, buf + len_tmp, len - len_tmp);
+    context->in += len;
+
+    return len;
+}
+
+uint32_t HyFifoGet(void *handle, const char *buf, uint32_t len)
+{
+    if (!handle || !buf || 0 == len) {
+        LOGE("the param is NULL, handle: %p, buf: %p, len: %d \n", handle, buf, len);
+        return 0;
+    }
+    fifo_context_t *context = handle;
+    len = _get_data_com(context, buf, len);
+    context->out += len;
+
+    return len;
+}
+
+uint32_t HyFifoPeek(void *handle, const char *buf, uint32_t len)
+{
+    if (!handle || !buf || 0 == len) {
+        LOGE("the param is NULL, handle: %p, buf: %p, len: %d \n", handle, buf, len);
+        return 0;
+    }
+    fifo_context_t *context = handle;
+    len = _get_data_com(context, buf, len);
+
+    return len;
+}
+
+uint32_t HyFifoUpdateOut(void *handle, uint32_t len)
+{
+    if (!handle || 0 == len) {
+        LOGE("the param is NULL, handle: %p, len: %d \n", handle, len);
+        return 0;
     }
     fifo_context_t *context = handle;
 
-    if (context->cnt <= 0) {
-        LOGE("the len is zero\n");
-        return;
-    }
+    char buf[1024] = {0};
+    len = _get_data_com(context, buf, len);
+    context->out += len;
 
-#ifdef FIFO_PRINT_ALL
-    _print_all_buf(context);
-#endif
-    _print_content(context);
+    return len;
 }
 
 int32_t HyFifoGetInfo(void *handle, HyFifoInfoType_t type)
@@ -143,13 +188,13 @@ int32_t HyFifoGetInfo(void *handle, HyFifoInfoType_t type)
 
     switch (type) {
         case HY_FIFO_TOTAL_LEN:
-            len = context->len;
+            len = context->size;
             break;
         case HY_FIFO_USED_LEN:
-            len = context->cnt;
+            len = context->in - context->out;
             break;
         case HY_FIFO_FREE_LEN:
-            len = context->len - context->cnt;
+            len = context->size - (context->in + context->out);
             break;
         default:
             LOGE("the type is ERROR, type: %d \n", type);
@@ -159,69 +204,18 @@ int32_t HyFifoGetInfo(void *handle, HyFifoInfoType_t type)
     return len;
 }
 
-uint32_t HyFifoInsertData(void *handle, const char *buf, uint32_t len)
+void HyFifoDump(void *handle)
 {
-    if (!handle || !buf || 0 == len) {
-        LOGE("the param is NULL, handle: %p, buf: %p, len: %d \n", handle, buf, len);
-        return 0;
+    if (!handle) {
+        LOGE("the param is NULL, handle: %p \n", handle);
+        return;
     }
     fifo_context_t *context = handle;
 
-    if (context->head + len <= context->len) {
-        memcpy(&context->buf[context->head], buf, len);
-    } else {
-        uint32_t tmp_len = context->len - context->head;
-        memcpy(&context->buf[context->head], buf, tmp_len);
-        memcpy(context->buf, buf + tmp_len, len - tmp_len);
-    }
-
-    context->cnt    += len;
-    context->head   += len;
-    context->head   %= context->len;
-
-    if (context->cnt > context->len && context->head > context->tail) {
-        context->tail = context->head;
-    }
-
-    if (context->cnt > context->len) {
-        LOGE("the cnt is error, context_cnt: %d, context_len: %d \n", context->cnt, context->len);
-        context->cnt = context->len;
-    }
-
-    return len;
-}
-
-uint32_t HyFifoUpdateTail(void *handle, uint32_t len)
-{
-    if (!handle || 0 == len) {
-        LOGE("the param is NULL, handle: %p, len: %d \n", handle, len);
-        return 0;
-    }
-
-    fifo_context_t *context = handle;
-    return _get_data_com(context, NULL, len, 1);
-}
-
-uint32_t HyFifoGetData(void *handle, const char *buf, uint32_t len)
-{
-    if (!handle || !buf || 0 == len) {
-        LOGE("the param is NULL, handle: %p, buf: %p, len: %d \n", handle, buf, len);
-        return 0;
-    }
-
-    fifo_context_t *context = handle;
-    return _get_data_com(context, (char *)buf, len, 1);
-}
-
-uint32_t HyFifoPeekData(void *handle, const char *buf, uint32_t len)
-{
-    if (!handle || !buf || 0 == len) {
-        LOGE("the param is NULL, handle: %p, buf: %p, len: %d \n", handle, buf, len);
-        return 0;
-    }
-
-    fifo_context_t *context = handle;
-    return _get_data_com(context, (char *)buf, len, 0);
+#ifdef FIFO_PRINT_ALL
+    _print_all_buf(context);
+#endif
+    _print_content(context);
 }
 
 void HyFifoClean(void *handle)
@@ -232,11 +226,8 @@ void HyFifoClean(void *handle)
     }
     fifo_context_t *context = handle;
 
-    memset(context->buf, '\0', context->len);
-
-    context->cnt    = 0;
-    context->head   = 0;
-    context->tail   = 0;
+    memset(context->buf, '\0', context->size);
+    context->in = context->out = 0;
 }
 
 void HyFifoDestroy(void *handle)
@@ -258,10 +249,10 @@ void HyFifoDestroy(void *handle)
     }
 }
 
-void *HyFifoCreate(uint32_t len)
+void *HyFifoCreate(uint32_t size)
 {
-    if (len <= 0) {
-        LOGE("the param is NULL, len: %d \n", len);
+    if (size <= 0) {
+        LOGE("the param is NULL, len: %d \n", size);
         return NULL;
     }
 
@@ -271,14 +262,14 @@ void *HyFifoCreate(uint32_t len)
         return NULL;
     }
 
-    context->buf = calloc(1, len);
+    context->buf = calloc(1, size);
     if (!context->buf) {
         LOGE("calloc faild \n");
         free(context);
         context = NULL;
         return NULL;
     }
-    context->len = len;
+    context->size = size;
 
     return context;
 }

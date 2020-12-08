@@ -46,20 +46,6 @@ static char *signal_str[] = {
     [29] = "SIGPROF",     [30] = "SIGXCPU",     [31] = "SIGXFSZ",
 };
 
-       #include <sys/types.h>
-       #include <sys/stat.h>
-       #include <fcntl.h>
-extern char *in_char;
-extern char *out_char;
-extern int in_len;
-extern int in_after_len;
-extern int out_len;
-int in_fd = -1;
-int out_fd = -1;
-
-#include "hy_fifo.h"
-extern fifo_context_t *context_tmp;
-
 static void sig_handler(int signo)
 {
     char cmd[256] = {0};
@@ -70,14 +56,6 @@ static void sig_handler(int signo)
 
     printf("\n\n[%s] %s(%d) crashed by signal %s.\n",
            __func__, global_app_name, getpid(), signal_str[signo]);
-
-    in_fd = open("./in.hex", O_RDWR|O_CREAT|O_TRUNC ,0777);
-    out_fd = open("./out.hex", O_RDWR|O_CREAT|O_TRUNC ,0777);
-
-    write(in_fd, in_char, in_len);
-    write(out_fd, out_char, out_len);
-
-    HyFifoDump(context_tmp);
 
     printf("Call Trace:\n");
 #ifndef NO_backtrace
