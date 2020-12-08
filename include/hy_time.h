@@ -53,6 +53,7 @@ extern "C" {
 
 time_t HyTimeGetTickMs(void);
 
+void HyTimeDelayMs(uint32_t ms);
 void HyTimeDelayUs(uint32_t us);
 
 #ifdef __cplusplus

@@ -40,7 +40,7 @@ time_t HyTimeGetTickMs(void)
     return (take_multiplier_1000(tv.tv_sec) + take_integet_1000(tv.tv_usec));
 }
 
-void HyTimeDelayUs(uint32_t us)
+static void _delay_com(uint32_t us)
 {
     struct timeval tv;
     tv.tv_sec   = 0;
@@ -50,5 +50,15 @@ void HyTimeDelayUs(uint32_t us)
     do {
         err = select(0, NULL, NULL, NULL, &tv);
     } while(err < 0 && errno == EINTR);
+}
+
+void HyTimeDelayUs(uint32_t us)
+{
+    _delay_com(us);
+}
+
+void HyTimeDelayMs(uint32_t ms)
+{
+    _delay_com(ms * BASE_NUM);
 }
 
