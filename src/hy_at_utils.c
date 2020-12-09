@@ -206,16 +206,11 @@ _ERR_FIND_FRAME_TAG:
     return ret;
 }
 
-static int8_t _handle_signal_cwjap_def(at_utils_context_t *context, const char *buf, uint16_t len)
-{
-#define SIGNAL_DATA_LEN_MIX "+CWJAP_DEF:,\"50:fa:84:2e:4b:0c\",12,-62"
-    if (len < strlen(SIGNAL_DATA_LEN_MIX)) {
-        return ERR_FAILD;
-    }
 
-    uint8_t flag = 0;
-    const char *tmp_buf = buf;
-    uint16_t ret = 0;
+static int32_t _get_signal_str(char *buf)
+{
+    uint32_t flag = 0;
+    uint32_t ret = 0;
 
     while (*buf) {
         if (*buf == 'O' && buf[1] == 'K') {
@@ -228,6 +223,21 @@ static int8_t _handle_signal_cwjap_def(at_utils_context_t *context, const char *
     }
 
     if (!flag) {
+        return 0;
+    } else {
+        return ret;
+    }
+}
+
+static int8_t _handle_signal_csq(at_utils_context_t *context, char *buf, uint16_t len)
+{
+#define SIGNAL_STR_MIN "+CSQ: 0, 0\r\n\r\nOK"
+    if (len < strlen(SIGNAL_STR_MIN)) {
+        return ERR_FAILD;
+    }
+
+    uint32_t ret = _get_signal_str(buf);
+    if (0 == ret) {
         return ERR_FAILD;
     }
 
@@ -237,8 +247,29 @@ static int8_t _handle_signal_cwjap_def(at_utils_context_t *context, const char *
         return ERR_FAILD;
     }
 
-    HY_UTILS_COPY(context->buf_union->buf, tmp_buf, context->buf_union->len);
+    HY_UTILS_COPY(context->buf_union->buf, buf, context->buf_union->len);
+    return ERR_OK;
+}
 
+static int8_t _handle_signal_cwjap_def(at_utils_context_t *context, char *buf, uint16_t len)
+{
+    #define SIGNAL_DATA_LEN_MIX "+CWJAP_DEF:,\"50:fa:84:2e:4b:0c\",12,-62"
+    if (len < strlen(SIGNAL_DATA_LEN_MIX)) {
+        return ERR_FAILD;
+    }
+
+    uint32_t ret = _get_signal_str(buf);
+    if (0 == ret) {
+        return ERR_FAILD;
+    }
+
+    context->buf_union = HyBufUnionCreate(ret);
+    if (!context->buf_union) {
+        LOGE("buf_union create faild \n");
+        return ERR_FAILD;
+    }
+
+    HY_UTILS_COPY(context->buf_union->buf, buf, context->buf_union->len);
     return ERR_OK;
 }
 
@@ -455,6 +486,14 @@ static uint8_t _read_handle(at_utils_context_t *context)
                 }
                 if (context->offset_len > 0) {
                     update_flag = 1;
+                }
+                break;
+            case AT_STATE_READ_SIGNAL_CSQ:
+                if (ERR_OK == _handle_signal_csq(context, buf, len)) {
+                    update_flag = 1;
+                    context->offset_len = context->buf_union->len;
+                    context->state = AT_STATE_IDLE;
+                    _HANDLE_FRAME_CB(context, 0);
                 }
                 break;
             case AT_STATE_READ_SIGNAL_CWJAP_DEF:
