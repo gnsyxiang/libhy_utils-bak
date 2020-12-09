@@ -511,12 +511,11 @@ static uint8_t _read_handle(at_utils_context_t *context)
         if (update_flag) {
             update_flag = 0;
 #ifdef SAVE_TEST_DATA
-            HyFifoGet(context->fifo_handle, buf, context->offset_len);
             memcpy(context->out_char + context->out_len, buf, context->offset_len);
             context->out_len += context->offset_len;
-#else
-            HyFifoUpdateOut(context->fifo_handle, context->offset_len);
 #endif
+            // PRINT_HEX_ASCII(buf, context->offset_len);
+            HyFifoUpdateOut(context->fifo_handle, context->offset_len);
             context->offset_len = 0;
         }
 
@@ -569,7 +568,7 @@ static uint8_t _write_handle(at_utils_context_t *context)
     return 0;
 }
 
-uint8_t HyAtUtilsParseData(void *handle)
+uint8_t HyAtUtilsProcess(void *handle)
 {
     if (!handle) {
         LOGE("the param is NULL, handle: %p \n", handle);

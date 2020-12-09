@@ -88,6 +88,8 @@ typedef struct {
  * @param buf: 发送的数据
  * @param len: 数据的长度
  * @param args: 传递的参数
+ *
+ * @note: 框架本身不能发送数据，需要外界提供这种能力
  */
 typedef void (*AtUtilsWriteCb_t)(const char *buf, uint32_t len, void *args);
 
@@ -103,7 +105,7 @@ typedef void (*AtUtilsHandleFrameCb_t)(int8_t type, char **buf, uint32_t len, vo
 
 /**
  * @brief 回调函数结构体
- * @param write_cb: 发送数据回调函数
+ * @param write_cb: 发送数据的回调函数
  * @param handle_frame_cb: 帧的回调函数
  * @param args: 传递的参数
  */
@@ -155,41 +157,41 @@ void *HyAtUtilsCreate(AtConfig_t *config);
 void HyAtUtilsDestroy(void *handle);
 
 /**
- * @brief 清楚at处理框架的信息，使其回到创建初始状态
+ * @brief 清除at处理框架的信息，使其回到创建初始状态
  *
  * @param handle: 操作句柄
  */
 void HyAtUtilsClean(void *handle);
 
 /**
- * @brief at模块返回的数据写入到at处理框架中
+ * @brief 接管at模块返回的数据
  *
  * @param handle: 操作句柄
  * @param buf: at模块的数据
  * @param len: 数据的长度
  *
- * @return 成功写入的长度
+ * @return 返回成功写入的长度
  */
 uint32_t HyAtUtilsPutData(void *handle, const char *buf, uint32_t len);
 
 /**
- * @brief 发送at指令到at处理框架中
+ * @brief 写入at指令
  *
  * @param handle: 操作句柄
  * @param at_cmd: 需要发送的指令
  *
- * @return 成功写入放回ERR_OK
+ * @return 成功写入返回ERR_OK
  */
 uint32_t HyAtUtilsWriteCmd(void *handle, AtCmd_t *at_cmd);
 
 /**
- * @brief 返回捕获到的字符串所对应的状态
+ * @brief 框架处理函数
  *
  * @param handle: 操作句柄
  *
  * @return 返回捕获字符串的对应状态
  */
-uint8_t HyAtUtilsParseData(void *handle);
+uint8_t HyAtUtilsProcess(void *handle);
 
 #ifdef __cplusplus
 }
