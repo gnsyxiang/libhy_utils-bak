@@ -113,6 +113,28 @@ typedef struct {
 } AtHandleCb_t;
 
 /**
+ * @brief 配置at模块
+ * @param handle_cb: 回调函数
+ * @param catch_str: 需要被捕获的字符串
+ * @param catch_str_cnt: 需要被捕获字符串的个数
+ * @param fifo_len: 申请fifo的大小
+ * @param at_cmd_num: 连续最大发送给框架的at指令数.
+ *                    假设：框架一直处在接收当中，没有及时处理上层发送的at指令，
+ *                          该参数就是限制上层能发送给框架的最大at指令数，
+ *                          超过该数字，框架就会丢弃上层的at指令
+ *
+ * @note: 1, 在内存空间足够的情况下，at_cmd_num设置为0，表示可以无限开辟堆栈空间
+ *        2，在堆栈空间有限的单片机中，需要设定at_cmd_num的大小，否则容易出现堆溢出，导致程序异常
+ */
+typedef struct {
+    AtHandleCb_t    handle_cb;
+    AtCatchStr_t    *catch_str;
+    uint8_t         catch_str_cnt;
+    uint32_t        fifo_len;
+    uint8_t         at_cmd_num;
+} AtConfig_t;
+
+/**
  * @brief 创建at处理框架
  *
  * @param handle_cb: 封装帧的回调函数和发送数据的回调函数
@@ -122,8 +144,7 @@ typedef struct {
  *
  * @return 操作句柄
  */
-void *HyAtUtilsCreate(AtHandleCb_t *handle_cb,
-        AtCatchStr_t *catch_str, uint8_t catch_str_cnt, uint32_t fifo_len);
+void *HyAtUtilsCreate(AtConfig_t *config);
 
 /**
  * @brief 销毁at处理框架

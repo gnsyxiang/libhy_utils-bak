@@ -56,6 +56,8 @@ typedef struct {
     char                *out_char;
 #endif
 
+    uint8_t             at_cmd_node_cnt;
+    uint8_t             at_cmd_num;
     AtHandleCb_t        handle_cb;
     uint8_t             catch_str_cnt;
     AtCatchStr_t        catch_str[0];
@@ -130,8 +132,10 @@ static void _destroy_cmd_list(at_utils_context_t *context, int8_t all_cmd)
 {
     at_cmd_list_t *pos, *n;
     list_for_each_entry_safe(pos, n, &context->write_list, list) {
+        LOGD("pos: %p, del at_cmd: %s", pos, pos->at_cmd);
+
+        context->at_cmd_node_cnt--;
         list_del(&pos->list);
-        LOGD("pos: %p, del at_cmd: %s \n", pos, pos->at_cmd);
         _at_cmd_list_destroy(pos);
         pos = NULL;
         if (!all_cmd) {
@@ -582,16 +586,23 @@ uint32_t HyAtUtilsWriteCmd(void *handle, AtCmd_t *at_cmd)
         LOGE("the param is NULL, handle: %p, at_cmd: %p, retry: %d \n", handle, at_cmd);
         return ERR_FAILD;
     }
+    at_utils_context_t *context = handle;
+
+    if (0 != context->at_cmd_num && context->at_cmd_node_cnt >= context->at_cmd_num) {
+        LOGE("write command too fast \n");
+        return ERR_FAILD;
+    }
 
     at_cmd_list_t *at_cmd_list = _at_cmd_list_create(at_cmd);
     if (!at_cmd_list) {
         LOGE("at_cmd_list create faild \n");
         return ERR_FAILD;
     }
-    LOGD("pos: %p, add at_cmd: %s", at_cmd_list, at_cmd_list->at_cmd.cmd);
 
-    at_utils_context_t *context = handle;
     list_add_tail(&at_cmd_list->list, &context->write_list);
+    context->at_cmd_node_cnt++;
+
+    LOGD("pos: %p, add at_cmd: %s", at_cmd_list, at_cmd_list->at_cmd.cmd);
     return ERR_OK;
 }
 
@@ -678,21 +689,21 @@ static void _signal_cb(void *args)
 }
 #endif
 
-void *HyAtUtilsCreate(AtHandleCb_t *handle_cb, AtCatchStr_t *catch_str, uint8_t catch_str_cnt, uint32_t fifo_len)
+void *HyAtUtilsCreate(AtConfig_t *config)
 {
-    if (!handle_cb || !catch_str || fifo_len <= 0) {
+    if (!config) {
         LOGE("the param is NULL \n");
         return NULL;
     }
 
-    uint32_t len = catch_str_cnt * sizeof(*catch_str);
+    uint32_t len = config->catch_str_cnt * sizeof(*config->catch_str);
     at_utils_context_t *context = calloc(1, sizeof(*context) + len);
     if (!context) {
         LOGE("calloc faild \n");
         return NULL;
     }
 
-    context->fifo_handle = HyFifoCreate(fifo_len);
+    context->fifo_handle = HyFifoCreate(config->fifo_len);
     if (!context->fifo_handle) {
         LOGE("fifo create faild \n");
         free(context);
@@ -701,15 +712,16 @@ void *HyAtUtilsCreate(AtHandleCb_t *handle_cb, AtCatchStr_t *catch_str, uint8_t 
     }
 
     INIT_LIST_HEAD(&context->write_list);
-    memcpy(&context->handle_cb, handle_cb, sizeof(*handle_cb));
+    memcpy(&context->handle_cb, &config->handle_cb, sizeof(config->handle_cb));
 
-    context->catch_str_cnt = catch_str_cnt;
-    for (int i = 0; i < catch_str_cnt; i++) {
-        memcpy(&context->catch_str[i], &catch_str[i], sizeof(*catch_str));
+    context->at_cmd_num     = config->at_cmd_num;
+    context->catch_str_cnt  = config->catch_str_cnt;
+    for (int i = 0; i < config->catch_str_cnt; i++) {
+        memcpy(&context->catch_str[i], &config->catch_str[i], sizeof(*config->catch_str));
     }
 
 #ifdef SAVE_TEST_DATA
-    if (fifo_len == 1024) {
+    if (config->fifo_len == 1024) {
         HySignalHandleCb_t signal_handle_cb;
         signal_handle_cb.handle_frame_cb = _signal_cb;
         signal_handle_cb.args            = context;
