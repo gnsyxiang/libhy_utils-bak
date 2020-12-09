@@ -421,7 +421,7 @@ static uint8_t _read_handle(at_utils_context_t *context)
                 HyFifoClean(context->fifo_handle);
                 ret = context->state;
                 if (--pos->at_cmd.retry == 0) {
-                    LOGE("faild exec %s", pos->at_cmd);
+                    LOGE("faild exec %s", pos->at_cmd.cmd);
                     ret = AT_STATE_READ_CLOSED;
                     _destroy_cmd_list(context, 0);
                 }
