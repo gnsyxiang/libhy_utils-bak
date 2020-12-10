@@ -37,6 +37,7 @@ enum {
     AT_STATE_READ_READY_1,
     AT_STATE_READ_READY_2,
     AT_STATE_READ_OK,
+    AT_STATE_READ_CONNECT_OK,
     AT_STATE_READ_SIGNAL_CSQ,
     AT_STATE_READ_SIGNAL_CWJAP_DEF,
     AT_STATE_READ_IPD_DATA,
@@ -125,6 +126,7 @@ typedef struct {
  *                    假设：框架一直处在接收当中，没有及时处理上层发送的at指令，
  *                          该参数就是限制上层能发送给框架的最大at指令数，
  *                          超过该数字，框架就会丢弃上层的at指令
+ * @param is_cmd_ok: 指令AT+CIPSEND发送后，模块是否返回OK，有返回OK需要设置为1
  *
  * @note: 1, 在内存空间足够的情况下，at_cmd_num设置为0，表示可以无限开辟堆栈空间
  *        2，在堆栈空间有限的单片机中，需要设定at_cmd_num的大小，否则容易出现堆溢出，导致程序异常
@@ -135,6 +137,7 @@ typedef struct {
     uint8_t         catch_str_cnt;
     uint32_t        fifo_len;
     uint8_t         at_cmd_num;
+    uint8_t         is_cmd_ok;
 } AtConfig_t;
 
 /**

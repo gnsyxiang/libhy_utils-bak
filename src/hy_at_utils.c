@@ -56,6 +56,7 @@ typedef struct {
     char                *out_char;
 #endif
 
+    uint8_t             is_cmd_ok;
     uint8_t             at_cmd_node_cnt;
     uint8_t             at_cmd_num;
     AtHandleCb_t        handle_cb;
@@ -72,7 +73,7 @@ typedef struct {
     uint8_t             del_cnt;
 } at_cmd_list_t;
 
-static at_cmd_list_t *_at_cmd_list_create(AtCmd_t *at_cmd)
+static at_cmd_list_t *_at_cmd_list_create(at_utils_context_t *context, AtCmd_t *at_cmd)
 {
     at_cmd_list_t *at_cmd_list = calloc(1, sizeof(*at_cmd_list));
     if (!at_cmd_list) {
@@ -100,7 +101,9 @@ static at_cmd_list_t *_at_cmd_list_create(AtCmd_t *at_cmd)
         }
         memcpy(at_cmd_list->at_cmd.data, at_cmd->data, at_cmd->data_len);
         at_cmd_list->at_cmd.data_len = at_cmd->data_len;
-        at_cmd_list->del_cnt++;
+        if (context->is_cmd_ok) {
+            at_cmd_list->del_cnt++;
+        }
     }
 
     at_cmd_list->at_cmd.retry         = at_cmd->retry;
@@ -462,6 +465,7 @@ static uint8_t _read_handle(at_utils_context_t *context)
                 }
                 context->state = AT_STATE_WRITE;
                 break;
+            case AT_STATE_READ_CONNECT_OK:
             case AT_STATE_READ_OK:
                 if (2 == context->busy_flag || 0 == pos->at_cmd.data_len) {
                     context->busy_flag  = 0;
@@ -470,8 +474,8 @@ static uint8_t _read_handle(at_utils_context_t *context)
                     _destroy_cmd_list(context, 0);
                 }
                 update_flag         = 1;
+                ret                 = context->state;
                 context->state      = AT_STATE_IDLE;
-                ret                 = AT_STATE_READ_OK;
                 break;
             case AT_STATE_READ_SEND:
                 update_flag     = 1;
@@ -550,7 +554,10 @@ static uint8_t _write_handle(at_utils_context_t *context)
             context->busy_flag  = 1;
             break;
         case AT_STATE_WRITE_CMD_WAIT:
-            context->state      = AT_STATE_READ;
+            if (HyTimeGetTickMs() - context->sys_tick > 10) {
+                // note: 这里不更新sys_tick，保证上层确定的总延时
+                context->state      = AT_STATE_READ;
+            }
             break;
         case AT_STATE_WRITE_DATA:
             pos = list_first_entry(&context->write_list, at_cmd_list_t, list);
@@ -627,11 +634,11 @@ uint32_t HyAtUtilsWriteCmd(void *handle, AtCmd_t *at_cmd)
     at_utils_context_t *context = handle;
 
     if (0 != context->at_cmd_num && context->at_cmd_node_cnt >= context->at_cmd_num) {
-        LOGE("write command too fast \n");
+        LOGE("write command too fast, cmd: %s \n", at_cmd->cmd);
         return ERR_FAILD;
     }
 
-    at_cmd_list_t *at_cmd_list = _at_cmd_list_create(at_cmd);
+    at_cmd_list_t *at_cmd_list = _at_cmd_list_create(context, at_cmd);
     if (!at_cmd_list) {
         LOGE("at_cmd_list create faild \n");
         return ERR_FAILD;
@@ -752,6 +759,7 @@ void *HyAtUtilsCreate(AtConfig_t *config)
     INIT_LIST_HEAD(&context->write_list);
     memcpy(&context->handle_cb, &config->handle_cb, sizeof(config->handle_cb));
 
+    context->is_cmd_ok      = config->is_cmd_ok;
     context->at_cmd_num     = config->at_cmd_num;
     context->catch_str_cnt  = config->catch_str_cnt;
     for (int i = 0; i < config->catch_str_cnt; i++) {
