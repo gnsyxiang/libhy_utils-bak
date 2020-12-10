@@ -175,7 +175,7 @@ static uint8_t _find_frame_tag(at_utils_context_t   *context,
             catch_str = &context->catch_str[i];
             uint16_t len = strlen(catch_str->catch_str);
             // 从fifo获取的数据长度不足，等待有效数据（比如: buf为“+IPD”，则直接跳回）
-            if (catch_str->catch_str[0] == buf[0] && len > buf_len) {
+            if (0 == memcmp(catch_str->catch_str, buf, 2) && len >buf_len) {
                 ret = AT_STATE_READ_HEAD;
                 goto _ERR_FIND_FRAME_TAG;
             }
@@ -476,6 +476,7 @@ static uint8_t _read_handle(at_utils_context_t *context)
                 update_flag         = 1;
                 ret                 = context->state;
                 context->state      = AT_STATE_IDLE;
+                // LOGD("AT_STATE_READ_OK or AT_STATE_READ_CONNECT_OK \n");
                 break;
             case AT_STATE_READ_SEND:
                 update_flag     = 1;
