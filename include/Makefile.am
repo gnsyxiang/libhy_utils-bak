@@ -42,7 +42,7 @@ endif
 
 noinst_HEADERS  =
 
-halincludedir = $(includedir)/utils
+halincludedir = $(includedir)/hy_utils
 
 halinclude_HEADERS = $(HEADERS_COM)
 

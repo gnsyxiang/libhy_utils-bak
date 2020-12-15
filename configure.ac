@@ -4,7 +4,7 @@
 AC_PREREQ([2.69])
 m4_include([m4/version.m4])
 
-AC_INIT([libutils], [VERSION_NUM], [gnsyxiang@163.com])
+AC_INIT([libhy_utils], [VERSION_NUM], [gnsyxiang@163.com])
 AC_CONFIG_SRCDIR([include/hy_log.h])
 AC_CONFIG_HEADERS([config.h])
 
@@ -62,7 +62,7 @@ AC_PROG_MKDIR_P
 # Checks for libraries.
 AC_CHECK_LIB([cjson], [cJSON_Version])
 AC_CHECK_LIB([pthread], [pthread_create])
-AC_CHECK_LIB([utils], [HyLogInit])
+AC_CHECK_LIB([hy_utils], [HyLogInit])
 
 # Checks for header files.
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h stddef.h stdint.h stdlib.h string.h sys/socket.h sys/time.h termios.h unistd.h])

@@ -18,7 +18,7 @@
 #     last modified: 21/03 2020 13:57
 # ===============================================================
 
-lib_LTLIBRARIES = libutils.la
+lib_LTLIBRARIES = libhy_utils.la
 
 # 1, 版本命名规则 
 #    1>  libtool动态库的版本由三个字段组成current:revision:age
@@ -51,16 +51,16 @@ lib_LTLIBRARIES = libutils.la
 #             相同主版本号，相同次版本号，不同发布版本号之间的库是完全兼容的;
 #             相同主版本号，不同次版本号之间也是兼容的。
 #
-# 2, 动态库说明: <libutils.so.1.2.23>
+# 2, 动态库说明: <libhy_utils.so.1.2.23>
 #
-#    * 共享库本身的文件名 (real name) --> libutils.so.1.2.23
+#    * 共享库本身的文件名 (real name) --> libhy_utils.so.1.2.23
 #          该文件是包含数据的正真动态库
 #
-#    * 共享库的soname (Short for shared object name) --> libutils.so.1
+#    * 共享库的soname (Short for shared object name) --> libhy_utils.so.1
 #          该文件是编译进应用程序的动态库，应用程序通过查找该文件来获取库里面的信息，
 #          进而实现在不需要编译的情况下，soname指向不同的动态库来实现升级
 #
-#    * 共享库的链接名 (link name) --> libutils.so
+#    * 共享库的链接名 (link name) --> libhy_utils.so
 #          应用程序链接需要的动态库, 方便不需要修改编译配置即可编译程序
 #
 # 3, 编译链接时，查找顺序
@@ -125,7 +125,7 @@ if COMPILE_WITH_LIBCJSON_UTILS
 SOURCES_COM	+= hy_cjson.c hy_cjson_file.c
 endif
 
-AM_CFLAGS 		     = $(CFLAGS_COM)
-libutils_la_LDFLAGS  = $(LDFLAGS_COM)
-libutils_la_SOURCES  = $(SOURCES_COM)
+AM_CFLAGS 		     	= $(CFLAGS_COM)
+libhy_utils_la_LDFLAGS  = $(LDFLAGS_COM)
+libhy_utils_la_SOURCES  = $(SOURCES_COM)
 

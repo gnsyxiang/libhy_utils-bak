@@ -22,7 +22,7 @@ CFLAGS_COM = -I$(top_srcdir)/include \
 			 $(AM_CFLAGS_COM) 
 
 hal_ld_com = -L$(top_builddir)/src/.libs \
-			 -lutils
+			 -lhy_utils
 
 if COMPILE_WITH_MCU_VERSION
 else
