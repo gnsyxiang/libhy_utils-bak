@@ -26,12 +26,25 @@ extern "C" {
 
 #include <stdio.h>
 
+// 这样实现就完全不会被编译
+// #   define UNUSED_FUNCTION(x) __attribute__((__unused__)) UNUSED_ ## x
+// static void UNUSED_FUNCTION(_fsk_handle_frame_cb(BufUnion_t *addr, BufUnion_t *buf, void *args))
+// #   define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
+// void dcc_mon_siginfo_handler(int UNUSED(whatsig))
+
 #ifdef __GNUC__
-    #define UNPACKED        __attribute__ ((packed))
-    #define PACKED_4        __attribute__((aligned (4)))
+#   define UNPACKED         __attribute__ ((packed))
+#   define PACKED_4         __attribute__((aligned (4)))
+#   define UNUSED           __attribute__((__unused__))
 #else
-    #define STRUCT_PACKED
+#   define STRUCT_PACKED
+#   define UNUSED
 #endif
+
+// typedef struct {
+// char demo;
+// int32 demo1;
+// } UNPACKED HyFskCmdReportEvent_t;
 
 typedef enum {
     ERR_OK,
