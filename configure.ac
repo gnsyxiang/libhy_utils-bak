@@ -65,7 +65,7 @@ AC_CHECK_LIB([pthread], [pthread_create])
 AC_CHECK_LIB([utils], [HyLogInit])
 
 # Checks for header files.
-AC_CHECK_HEADERS([fcntl.h stddef.h stdint.h stdlib.h string.h sys/time.h termios.h unistd.h])
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h stddef.h stdint.h stdlib.h string.h sys/socket.h sys/time.h termios.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE
@@ -78,7 +78,7 @@ AC_TYPE_UINT32_T
 AC_TYPE_UINT8_T
 
 # Checks for library functions.
-AC_CHECK_FUNCS([gettimeofday memset strstr])
+AC_CHECK_FUNCS([gettimeofday memset select socket strdup strerror strstr])
 
 AC_CONFIG_FILES([Makefile
                  example/Makefile
