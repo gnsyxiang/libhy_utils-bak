@@ -1,13 +1,15 @@
 #!/bin/sh
 
+# set -x
+
 TOP_DIR=.
-BUILD_AUX_DIR=${TOP_DIR}/build-aux
+BUILD_AUX_DIR=${TOP_DIR}/res
 
 # generate version number
 generate_version_num()
 {
     cd ${BUILD_AUX_DIR}
-    ./generate-version.sh
+    ./get_project_info.sh
     cd -  >/dev/null 2>&1
 }
 

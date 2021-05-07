@@ -18,9 +18,10 @@
 #     last modified: 06/04 2020 21:55
 # ===============================================================
 
-if COMPILE_WITH_LIBCJSON_UTILS
-resdir		  = ${prefix}/res
-res_DATA	  = cjson.config
-dist_res_DATA = cjson.config
-endif
+# ---------------
+# make dist files
+# ---------------
+_dist_files_com = Doxyfile \
+				  get_project_info.sh
+EXTRA_DIST 		= $(_dist_files_com)
 

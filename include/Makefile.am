@@ -18,15 +18,9 @@
 #     last modified: 21/03 2020 14:09
 # ===============================================================
 
-HEADERS_COM = hy_log.h
+NO_INSTALL_HEADERS_COM 	=
+noinst_HEADERS  		= $(NO_INSTALL_HEADERS_COM)
 
-if COMPILE_WITH_LIBCJSON_UTILS
-HEADERS_COM += hy_cjson.h hy_cjson_file.h
-endif
-
-noinst_HEADERS  =
-
-halincludedir = $(includedir)/hy_utils
-
-halinclude_HEADERS = $(HEADERS_COM)
-
+INSTALL_HEADERS_COM 	= hy_log.h
+install_includedir 		= $(includedir)/@project_name@
+install_include_HEADERS = $(INSTALL_HEADERS_COM)

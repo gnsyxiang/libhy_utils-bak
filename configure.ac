@@ -2,22 +2,14 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-m4_include([m4/version.m4])
 
-AC_INIT([libhy_utils], [VERSION_NUM], [gnsyxiang@163.com])
-AC_CONFIG_SRCDIR([include/hy_log.h])
+m4_include([m4/check_project_info.m4])
+
+AC_INIT([PROJECT_NAME], [VERSION_NUM], [EMAIL_INFO], [PROJECT_NAME], [PROJECT_URL])
+AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_HEADERS([config.h])
-
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
-AC_REQUIRE_AUX_FILE([generate-version.sh])
-
-age=VERSION_AGE_NUM
-current=VERSION_CURRENT_NUM
-revision=VERSION_REVISION_NUM
-AC_SUBST(current)
-AC_SUBST(revision)
-AC_SUBST(age)
 
 AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 AM_SILENT_RULES([yes])
@@ -25,28 +17,13 @@ AM_PROG_AR
 
 LT_INIT
 
-AC_ARG_ENABLE([libcjson],
-              [AS_HELP_STRING([--enable-libcjson], [using libcjson for config file] [[default=no]])],
-              [AC_DEFINE(HAVE_LIBCJSON_UTILS, 1, [using libcjson for config file])]
-              )
-AM_CONDITIONAL([COMPILE_WITH_LIBCJSON_UTILS], [test "x$enable_libcjson" = "xyes"])
+PKG_PROG_PKG_CONFIG([0.24])
 
-AC_ARG_ENABLE([mcu],
-              [AS_HELP_STRING([--enable-mcu], [building mcu version] [[default=no]])],
-              [AC_DEFINE(HAVE_MCU_VERSION, 1, [building mcu version])]
-              )
-AM_CONDITIONAL([COMPILE_WITH_MCU_VERSION], [test "x$enable_mcu" = "xyes"])
-
-trylibhaldir=""
-AC_ARG_WITH([libhal],
-            [  --with-libhal=PATH      Specify path to libhal installation ],
-            [if test "x$withval" != "xno" ; then
-             trylibhaldir=$withval
-             fi]
-            )
-
-m4_include([m4/check_libcjson.m4])
-CHECK_LIBCJSON
+# check m4 macro
+CHECK_PROJECT_INFO
+CHECK_VERSION_INFO
+CHECK_DOXYGEN
+CHECK_JAVA
 
 # Checks for programs.
 AC_PROG_CXX
@@ -60,9 +37,6 @@ AC_PROG_MAKE_SET
 AC_PROG_MKDIR_P
 
 # Checks for libraries.
-AC_CHECK_LIB([cjson], [cJSON_Version])
-AC_CHECK_LIB([pthread], [pthread_create])
-AC_CHECK_LIB([hy_utils], [HyLogInit])
 
 # Checks for header files.
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h stddef.h stdint.h stdlib.h string.h sys/socket.h sys/time.h termios.h unistd.h])
@@ -81,6 +55,8 @@ AC_TYPE_UINT8_T
 AC_CHECK_FUNCS([gettimeofday memset select socket strdup strerror strstr])
 
 AC_CONFIG_FILES([Makefile
+                 $PACKAGE_NAME.pc
+                 docs/Makefile
                  example/Makefile
                  include/Makefile
                  res/Makefile

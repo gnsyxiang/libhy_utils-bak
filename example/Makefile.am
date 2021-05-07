@@ -18,49 +18,38 @@
 #     last modified: 21/03 2020 14:10
 # ===============================================================
 
-CFLAGS_COM = -I$(top_srcdir)/include \
-			 $(AM_CFLAGS_COM) 
+_include_com  	=
+_sources_com 	=
+_cppflags_com 	=
+_cflags_com 	=
+_cxxflags_com 	=
+_ldflags_com 	=
+_ldadd_com 		=
+bin_PROGRAMS 	=
 
-hal_ld_com = -L$(top_builddir)/src/.libs \
-			 -lhy_utils
+# ---------------------
+# add necessary content
+# ---------------------
+_include_com  	+= -I$(top_srcdir)/include
 
-if COMPILE_WITH_MCU_VERSION
-else
-hal_ld_com += -lpthread
-endif
+_sources_com 	+=
 
-if COMPILE_WITH_LIBCJSON_UTILS
-bin_PROGRAMS 	+= hy_cjson_test
-hy_cjson_test_SOURCES	 = hy_cjson_test.c
-hy_cjson_test_LDADD   	 = $(hal_ld_com)
-hy_cjson_test_CFLAGS  	 = $(CFLAGS_COM)
-endif
+_cppflags_com 	+= $(CPPFLAGS_COM) \
+				   $(_include_com)
 
-bin_PROGRAMS			+= hy_socket_test
-hy_socket_test_SOURCES 	 = hy_socket_test.c
-hy_socket_test_LDADD   	 = $(hal_ld_com)
-hy_socket_test_CFLAGS  	 = $(CFLAGS_COM)
+_cflags_com 	+= $(CFLAGS_COM)
 
-bin_PROGRAMS			+= hy_fifo_test
-hy_fifo_test_SOURCES 	 = hy_fifo_test.c
-hy_fifo_test_LDADD   	 = $(hal_ld_com)
-hy_fifo_test_CFLAGS  	 = $(CFLAGS_COM)
+_cxxflags_com 	+= $(CXXFLAGS_COM)
 
-bin_PROGRAMS			+= hy_list_test 
-hy_list_test_SOURCES 	 = hy_list_test.c
-hy_list_test_LDADD   	 = $(hal_ld_com)
-hy_list_test_CFLAGS  	 = $(CFLAGS_COM)
+_ldflags_com 	+= $(BIN_LDFLAGS_COM)
 
-bin_PROGRAMS			+= hy_md5sum_test 
-hy_md5sum_test_SOURCES 	 = hy_md5sum_test.c
-hy_md5sum_test_LDADD   	 = $(hal_ld_com)
-hy_md5sum_test_CFLAGS  	 = $(CFLAGS_COM)
+_ldadd_com 		+= $(top_builddir)/src/lib@project_name@.la
 
-if COMPILE_WITH_MCU_VERSION
-else
-bin_PROGRAMS			+= hy_uart_test
-hy_uart_test_SOURCES 	 = hy_uart_test.c
-hy_uart_test_LDADD   	 = $(hal_ld_com)
-hy_uart_test_CFLAGS  	 = $(CFLAGS_COM)
-endif
+#bin_PROGRAMS	+= test
+#test_SOURCES 	= $(_sources_com) test.c
+#test_CPPFLAGS  	= $(_cppflags_com)
+#test_CFLAGS  	= $(_cflags_com)
+#test_CXXFLAGS  	= $(_cxxflags_com)
+#test_LDFLAGS	= $(_ldflags_com)
+#test_LDADD   	= $(_ldadd_com)
 
