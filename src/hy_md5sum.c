@@ -2,7 +2,7 @@
  * 
  * Release under GPL-3.0.
  * 
- * @file    utils_md5sum.c
+ * @file    hy_md5sum.c
  * @brief   
  * @author  gnsyxiang <gnsyxiang@163.com>
  * @date    14/04 2020 14:31
@@ -17,15 +17,14 @@
  * 
  *     last modified: 14/04 2020 14:31
  */
-#include "hal/hal_type.h"
-#include "hal/hal_mem.h"
-#include "hal/hal_string.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include "utils_md5sum.h"
-
+#include "hy_md5sum.h"
 
 // Constants are the integer part of the sines of integers (in radians) * 2^32.
-static const hal_uint32_t k[64] = {
+static const uint32_t k[64] = {
     0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
     0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
     0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be,
@@ -44,7 +43,7 @@ static const hal_uint32_t k[64] = {
     0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391};
 
 // r specifies the per-round shift amounts
-static const hal_uint32_t r[] = {
+static const uint32_t r[] = {
     7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22,
     5,  9, 14, 20, 5,  9, 14, 20, 5,  9, 14, 20, 5,  9, 14, 20,
     4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23,
@@ -53,29 +52,28 @@ static const hal_uint32_t r[] = {
 // leftrotate function definition
 #define LEFTROTATE(x, c) (((x) << (c)) | ((x) >> (32 - (c))))
 
-static void to_bytes(hal_uint32_t val, hal_uint8_t *bytes) {
-    bytes[0] = (hal_uint8_t) val;
-    bytes[1] = (hal_uint8_t) (val >> 8);
-    bytes[2] = (hal_uint8_t) (val >> 16);
-    bytes[3] = (hal_uint8_t) (val >> 24);
+static void to_bytes(uint32_t val, uint8_t *bytes) {
+    bytes[0] = (uint8_t) val;
+    bytes[1] = (uint8_t) (val >> 8);
+    bytes[2] = (uint8_t) (val >> 16);
+    bytes[3] = (uint8_t) (val >> 24);
 }
 
-static hal_uint32_t to_int32(const hal_uint8_t *bytes) {
-    return (hal_uint32_t) bytes[0] |
-        ((hal_uint32_t) bytes[1] << 8) |
-        ((hal_uint32_t) bytes[2] << 16) |
-        ((hal_uint32_t) bytes[3] << 24);
+static uint32_t to_int32(const uint8_t *bytes) {
+    return (uint32_t) bytes[0] |
+        ((uint32_t) bytes[1] << 8) |
+        ((uint32_t) bytes[2] << 16) |
+        ((uint32_t) bytes[3] << 24);
 }
 
-void UtilsMd5sum(const hal_uint8_t *initial_msg, size_t initial_len,
-        hal_uint8_t digest[MD5SUM_LEN]) {
+void HyMd5sum(const uint8_t *initial_msg, size_t initial_len, uint8_t digest[MD5SUM_LEN]) {
     // These vars will contain the hash
-    hal_uint32_t h0, h1, h2, h3;
+    uint32_t h0, h1, h2, h3;
     // Message (to prepare)
-    hal_uint8_t *msg = NULL;
+    uint8_t *msg = NULL;
     size_t new_len, offset;
-    hal_uint32_t w[16];
-    hal_uint32_t a, b, c, d, i, f, g, temp;
+    uint32_t w[16];
+    uint32_t a, b, c, d, i, f, g, temp;
     // Initialize variables - simple count in nibbles:
     h0 = 0x67452301;
     h1 = 0xefcdab89;
@@ -86,8 +84,8 @@ void UtilsMd5sum(const hal_uint8_t *initial_msg, size_t initial_len,
     //append "0" bits until message length in bits ≡ 448 (mod 512)
     //append length mod (2^64) to message
     for (new_len = initial_len + 1; new_len % (512 / 8) != 448 / 8; new_len++);
-    msg = (hal_uint8_t*)Hal_calloc(1, new_len + 8);
-    Hal_memcpy(msg, initial_msg, initial_len);
+    msg = (uint8_t*)calloc(1, new_len + 8);
+    memcpy(msg, initial_msg, initial_len);
     msg[initial_len] = 0x80; // append the "1" bit; most significant bit is "first"
     for (offset = initial_len + 1; offset < new_len; offset++) {
         msg[offset] = 0; // append "0" bits
@@ -136,7 +134,7 @@ void UtilsMd5sum(const hal_uint8_t *initial_msg, size_t initial_len,
         h3 += d;
     }
     // cleanup
-    Hal_free(msg);
+    free(msg);
     //var char digest[16] := h0 append h1 append h2 append h3 //(Output is in little-endian)
     to_bytes(h0, digest);
     to_bytes(h1, digest + 4);

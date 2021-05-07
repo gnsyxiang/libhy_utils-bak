@@ -4,8 +4,8 @@
 AC_PREREQ([2.69])
 m4_include([m4/version.m4])
 
-AC_INIT([libutils], [VERSION_NUM], [gnsyxiang@163.com])
-AC_CONFIG_SRCDIR([include/utils_list.h])
+AC_INIT([libhy_utils], [VERSION_NUM], [gnsyxiang@163.com])
+AC_CONFIG_SRCDIR([include/hy_log.h])
 AC_CONFIG_HEADERS([config.h])
 
 AC_CONFIG_MACRO_DIR([m4])
@@ -31,158 +31,22 @@ AC_ARG_ENABLE([libcjson],
               )
 AM_CONDITIONAL([COMPILE_WITH_LIBCJSON_UTILS], [test "x$enable_libcjson" = "xyes"])
 
+AC_ARG_ENABLE([mcu],
+              [AS_HELP_STRING([--enable-mcu], [building mcu version] [[default=no]])],
+              [AC_DEFINE(HAVE_MCU_VERSION, 1, [building mcu version])]
+              )
+AM_CONDITIONAL([COMPILE_WITH_MCU_VERSION], [test "x$enable_mcu" = "xyes"])
+
 trylibhaldir=""
 AC_ARG_WITH([libhal],
-            [  --with-libhal=PATH       Specify path to libhal installation ],
+            [  --with-libhal=PATH      Specify path to libhal installation ],
             [if test "x$withval" != "xno" ; then
              trylibhaldir=$withval
              fi]
             )
 
-dnl ------------------------------------------------------
-dnl libcjson detection.
-if test "x$enable_libcjson" = "xyes"; then
-    trylibcjsondir=""
-    AC_ARG_WITH([libcjson],
-                [  --with-libcjson=PATH     Specify path to libcjson installation ],
-                [if test "x$withval" != "xno" ; then
-                 trylibcjsondir=$withval
-                 fi]
-                )
-
-    AC_CACHE_CHECK([for libcjson directory],
-                   [ac_cv_libcjson_dir],
-                   [saved_LIBS="$LIBS"
-                    saved_LDFLAGS="$LDFLAGS"
-                    saved_CPPFLAGS="$CPPFLAGS"
-                    le_found=no
-                    for ledir in $trylibcjsondir "" $prefix /usr/local ; do
-                        LDFLAGS="$saved_LDFLAGS"
-                        LIBS="$saved_LIBS -lcjson"
-                        # Skip the directory if it isn't there.
-                        if test ! -z "$ledir" -a ! -d "$ledir" ; then
-                            continue;
-                        fi
-                        if test ! -z "$ledir" ; then
-                            if test -d "$ledir/lib" ; then
-                                LDFLAGS="-L$ledir/lib $LDFLAGS"
-                            else
-                                LDFLAGS="-L$ledir $LDFLAGS"
-                            fi
-                            if test -d "$ledir/include" ; then
-                                CPPFLAGS="-I$ledir/include $CPPFLAGS"
-                            else
-                                CPPFLAGS="-I$ledir $CPPFLAGS"
-                            fi
-                        fi
-
-                        # Can I compile and link it?
-                        AC_TRY_LINK([#include <stdio.h> #include <cJSON.h>],
-                                    [cJSON_Parse(NULL);],
-                                    [libcjson_linked=yes],
-                                    [libcjson_linked=no])
-                        if test $libcjson_linked = yes; then
-                            if test ! -z "$ledir" ; then
-                                ac_cv_libcjson_dir=$ledir
-                            else
-                                ac_cv_libcjson_dir="(system)"
-                            fi
-                            le_found=yes
-                            break
-                        fi
-                    done
-                    LIBS="$saved_LIBS"
-                    LDFLAGS="$saved_LDFLAGS"
-                    CPPFLAGS="$saved_CPPFLAGS"
-                    if test $le_found = no ; then
-                        AC_MSG_ERROR([libcjson is required. If it's already installed, specify its path using --with-libcjson=/dir/])
-                    fi
-                    ])
-
-    LIBS="$LIBS -lcjson"
-    if test $ac_cv_libcjson_dir != "(system)"; then
-        if test -d "$ac_cv_libcjson_dir/lib" ; then
-            LDFLAGS="-L$ac_cv_libcjson_dir/lib $LDFLAGS"
-            le_libdir="$ac_cv_libcjson_dir/lib"
-        else
-            LDFLAGS="-L$ac_cv_libcjson_dir $LDFLAGS"
-            le_libdir="$ac_cv_libcjson_dir"
-        fi
-        if test -d "$ac_cv_libcjson_dir/include" ; then
-            CPPFLAGS="-I$ac_cv_libcjson_dir/include $CPPFLAGS"
-        else
-            CPPFLAGS="-I$ac_cv_libcjson_dir $CPPFLAGS"
-        fi
-    fi
-fi
-
-dnl ------------------------------------------------------
-dnl libhal detection.
-AC_CACHE_CHECK(
-    [for libhal directory],
-    [ac_cv_libhal_dir],
-    [saved_LIBS="$LIBS"
-     saved_LDFLAGS="$LDFLAGS"
-     saved_CPPFLAGS="$CPPFLAGS"
-     le_found=no
-     for ledir in $trylibhaldir "" $prefix /usr/local ; do
-         LDFLAGS="$saved_LDFLAGS"
-         LIBS="$saved_LIBS -lhal"
-         # Skip the directory if it isn't there.
-         if test ! -z "$ledir" -a ! -d "$ledir" ; then
-             continue;
-         fi
-         if test ! -z "$ledir" ; then
-             if test -d "$ledir/lib" ; then
-                 LDFLAGS="-L$ledir/lib $LDFLAGS"
-             else
-                 LDFLAGS="-L$ledir $LDFLAGS"
-             fi
-             if test -d "$ledir/include" ; then
-                 CPPFLAGS="-I$ledir/include $CPPFLAGS"
-             else
-                 CPPFLAGS="-I$ledir $CPPFLAGS"
-             fi
-         fi
-         # Can I compile and link it?
-         AC_TRY_LINK(
-            [#include <stdio.h> #include <hal_config.h>],
-            [HalThreadCreate(NULL);],
-            [libhal_linked=yes],
-            [libhal_linked=no])
-         if test $libhal_linked = yes; then
-             if test ! -z "$ledir" ; then
-                 ac_cv_libhal_dir=$ledir
-             else
-                 ac_cv_libhal_dir="(system)"
-             fi
-             le_found=yes
-             break
-         fi
-     done
-     LIBS="$saved_LIBS"
-     LDFLAGS="$saved_LDFLAGS"
-     CPPFLAGS="$saved_CPPFLAGS"
-     if test $le_found = no ; then
-        AC_MSG_ERROR([libhal is required. If it's already installed, specify its path using --with-libhal=/dir/])
-     fi
-    ])
-
-LIBS="$LIBS -lhal"
-if test $ac_cv_libhal_dir != "(system)"; then
-    if test -d "$ac_cv_libhal_dir/lib" ; then
-        LDFLAGS="-L$ac_cv_libhal_dir/lib $LDFLAGS"
-        le_libdir="$ac_cv_libhal_dir/lib"
-    else
-        LDFLAGS="-L$ac_cv_libhal_dir $LDFLAGS"
-        le_libdir="$ac_cv_libhal_dir"
-    fi
-    if test -d "$ac_cv_libhal_dir/include" ; then
-        CPPFLAGS="-I$ac_cv_libhal_dir/include $CPPFLAGS"
-    else
-        CPPFLAGS="-I$ac_cv_libhal_dir $CPPFLAGS"
-    fi
-fi
+m4_include([m4/check_libcjson.m4])
+CHECK_LIBCJSON
 
 # Checks for programs.
 AC_PROG_CXX
@@ -196,25 +60,29 @@ AC_PROG_MAKE_SET
 AC_PROG_MKDIR_P
 
 # Checks for libraries.
-AC_CHECK_LIB([cjson], [cJSON_Parse])
-AC_CHECK_LIB([hal], [HalThreadCreate])
+AC_CHECK_LIB([cjson], [cJSON_Version])
+AC_CHECK_LIB([pthread], [pthread_create])
+AC_CHECK_LIB([hy_utils], [HyLogInit])
 
 # Checks for header files.
-AC_CHECK_HEADERS([fcntl.h stddef.h stdlib.h string.h])
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h stddef.h stdint.h stdlib.h string.h sys/socket.h sys/time.h termios.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE
-AC_TYPE_MODE_T
+AC_TYPE_INT32_T
+AC_TYPE_INT8_T
 AC_TYPE_OFF_T
 AC_TYPE_SIZE_T
-AC_TYPE_SSIZE_T
+AC_TYPE_UINT16_T
+AC_TYPE_UINT32_T
+AC_TYPE_UINT8_T
 
 # Checks for library functions.
+AC_CHECK_FUNCS([gettimeofday memset select socket strdup strerror strstr])
 
 AC_CONFIG_FILES([Makefile
                  example/Makefile
                  include/Makefile
                  res/Makefile
                  src/Makefile])
-
 AC_OUTPUT

@@ -2,7 +2,7 @@
  * 
  * Release under GPL-3.0.
  * 
- * @file    list.c
+ * @file    hy_list_test.c
  * @brief   
  * @author  gnsyxiang <gnsyxiang@163.com>
  * @date    08/04 2020 16:12
@@ -17,25 +17,26 @@
  * 
  *     last modified: 08/04 2020 16:12
  */
-#include "hal/hal_type.h"
+#include <stdio.h>
+#include <stdint.h>
 
-#include "utils_list.h"
+#include "hy_list.h"
 
 #define MSG_CNT     (5)
 
 static struct list_head g_list_head;
 
 struct msg {
-    hal_int32_t cnt;
+    int32_t cnt;
     struct list_head list;
 };
 
-hal_int32_t main(hal_int32_t argc, const hal_char_t *argv[])
+int32_t main(int32_t argc, const char *argv[])
 {
     INIT_LIST_HEAD(&g_list_head);
 
     struct msg test[MSG_CNT];
-    for (hal_int32_t i = 0; i < MSG_CNT; i++) {
+    for (int32_t i = 0; i < MSG_CNT; i++) {
         test[i].cnt = i;
         // INIT_LIST_HEAD(&test[i].list);
         list_add_tail(&test[i].list, &g_list_head);
@@ -52,7 +53,7 @@ hal_int32_t main(hal_int32_t argc, const hal_char_t *argv[])
         printf("cnt: %d \n", pos->cnt);
         list_del(&pos->list);
     }
-    
+
     return 0;
 }
 

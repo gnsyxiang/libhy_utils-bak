@@ -18,15 +18,15 @@
 #     last modified: 21/03 2020 14:09
 # ===============================================================
 
-HEADERS_COM 	 = utils_list.h utils_md5sum.h utils_hash.h
+HEADERS_COM = hy_log.h
 
 if COMPILE_WITH_LIBCJSON_UTILS
-HEADERS_COM 	+= utils_cjson.h utils_cjson_file.h
+HEADERS_COM += hy_cjson.h hy_cjson_file.h
 endif
 
 noinst_HEADERS  =
 
-halincludedir = $(includedir)/utils
+halincludedir = $(includedir)/hy_utils
 
 halinclude_HEADERS = $(HEADERS_COM)
 
