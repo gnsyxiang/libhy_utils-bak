@@ -17,8 +17,8 @@
  * 
  *     last modified: 20/01 2020 15:34
  */
-#ifndef __LIBHY_UTILS_INCLUDE_HY_TYPE_H_
-#define __LIBHY_UTILS_INCLUDE_HY_TYPE_H_
+#ifndef __LIB_COMMON_INCLUDE_HY_TYPE_H_
+#define __LIB_COMMON_INCLUDE_HY_TYPE_H_
 
 #ifdef __cplusplus
 extern "C" {
