@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <inttypes.h>
 
 #include "hy_log.h"
 
@@ -130,7 +131,7 @@ hy_int32_t HyLogWrite(HyLogLevel_t level, const char *tags, const char *func,
 
     _output_set_color(level, &ret);
 
-    ret += snprintf(SNPRINTF_FMT, "[%s][%s %d] ", tags, func, line); 
+    ret += snprintf(SNPRINTF_FMT, "[%s][%s %"PRId32"] ", tags, func, line); 
 
     va_list args;
     va_start(args, fmt);
