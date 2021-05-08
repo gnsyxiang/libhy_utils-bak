@@ -18,65 +18,24 @@
  *     last modified: 06/08 2020 08:42
  */
 #include <stdio.h>
-#include <stdarg.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
+#include <stdarg.h>
 
 #include "hy_log.h"
-#include "hy_utils.h"
-
-#ifdef USE_DEBUG
-
-#define ANSI_COLOR_RED     "\x1b[1;31m"
-#define ANSI_COLOR_GREEN   "\x1b[32m"
-#define ANSI_COLOR_YELLOW  "\x1b[33m"
-#define ANSI_COLOR_BLUE    "\x1b[34m"
-#define ANSI_COLOR_MAGENTA "\x1b[35m"
-#define ANSI_COLOR_CYAN    "\x1b[36m"
-#define ANSI_COLOR_RESET   "\x1b[0m"
 
 typedef struct {
-    uint32_t    buf_len;
-    BufUnion_t  *buf;
+    hy_uint32_t buf_len;
+    char        *buf;
 
-    uint8_t     level;
+    hy_uint32_t cur_len;
+
+    hy_uint8_t  level;
 } log_context_t;
-#define LOG_CONTEXT_T_LEN (sizeof(log_context_t))
 
 static log_context_t *context = NULL;
 
-int32_t HyLogWrite(uint8_t level, const char *tags, const char *func,
-        uint32_t line, char *fmt, ...)
-{
-#define SNPRINTF_FMT    context->buf->buf + ret, context->buf_len - ret
-    if (context->level < level) {
-        return -1;
-    }
-
-    uint32_t ret = 0;
-    memset(context->buf->buf, '\0', context->buf_len);
-
-    // if (level <= LOG_LEVEL_WARNING) {
-        // ret += snprintf(SNPRINTF_FMT, ANSI_COLOR_RED);
-    // }
-
-    ret += snprintf(SNPRINTF_FMT, "[%s][%s %d] ", tags, func, line); 
-
-    va_list args;
-    va_start(args, fmt);
-    ret += vsnprintf(SNPRINTF_FMT, fmt, args);
-    va_end(args);
-
-    // if (level <= LOG_LEVEL_WARNING) {
-        // ret += snprintf(SNPRINTF_FMT, ANSI_COLOR_RESET);
-    // }
-
-    printf("%s", (char *)context->buf->buf);
-
-    return 0;
-}
-
-void HyLogCreate(uint8_t level, uint32_t buf_len)
+void HyLogCreate(hy_uint8_t level, hy_uint32_t buf_len)
 {
     context = calloc(1, sizeof(*context));
     if (!context) {
@@ -84,7 +43,7 @@ void HyLogCreate(uint8_t level, uint32_t buf_len)
         return ;
     }
 
-    context->buf = HyBufUnionCreate(buf_len);
+    context->buf = calloc(1, buf_len);
     if (!context->buf) {
         printf("buf_union create faild \n");
         free(context);
@@ -95,32 +54,110 @@ void HyLogCreate(uint8_t level, uint32_t buf_len)
     context->level      = level;
 }
 
-void HyLogDestory(void)
+void HyLogDestroy(void)
 {
-    if (context->buf) {
-        HyBufUnionDestroy(context->buf);
+    if (context) {
+        if (context->buf) {
+            free(context->buf);
+        }
+        free(context);
     }
-
-    free(context);
 }
 
-void PrintHex(const char *tag, const char *name, uint16_t line,
-        const char *buf, int32_t len, int8_t flag)
+/*设置输出前景色*/
+#define PRINT_FONT_BLA      "\033[30m"      //黑色
+#define PRINT_FONT_RED      "\033[31m"      //红色
+#define PRINT_FONT_GRE      "\033[32m"      //绿色
+#define PRINT_FONT_YEL      "\033[33m"      //黄色
+#define PRINT_FONT_BLU      "\033[34m"      //蓝色
+#define PRINT_FONT_PUR      "\033[35m"      //紫色
+#define PRINT_FONT_CYA      "\033[36m"      //青色
+#define PRINT_FONT_WHI      "\033[37m"      //白色
+
+/*设置输出背景色*/ 
+#define PRINT_BACK_BLA      "\033[40m"      //黑色
+#define PRINT_BACK_RED      "\033[41m"      //红色
+#define PRINT_BACK_GRE      "\033[42m"      //绿色
+#define PRINT_BACK_YEL      "\033[43m"      //黄色
+#define PRINT_BACK_BLU      "\033[44m"      //蓝色
+#define PRINT_BACK_PUR      "\033[45m"      //紫色
+#define PRINT_BACK_CYA      "\033[46m"      //青色
+#define PRINT_BACK_WHI      "\033[47m"      //白色
+
+/*输出属性设置*/
+#define PRINT_ATTR_RESET    "\033[0m"       //重新设置属性到缺省设置 
+#define PRINT_ATTR_BOL      "\033[1m"       //设置粗体 
+#define PRINT_ATTR_LIG      "\033[2m"       //设置一半亮度(模拟彩色显示器的颜色) 
+#define PRINT_ATTR_LIN      "\033[4m"       //设置下划线(模拟彩色显示器的颜色) 
+#define PRINT_ATTR_GLI      "\033[5m"       //设置闪烁 
+#define PRINT_ATTR_REV      "\033[7m"       //设置反向图象 
+#define PRINT_ATTR_THI      "\033[22m"      //设置一般密度 
+#define PRINT_ATTR_ULIN     "\033[24m"      //关闭下划线 
+#define PRINT_ATTR_UGLI     "\033[25m"      //关闭闪烁 
+#define PRINT_ATTR_UREV     "\033[27m"      //关闭反向图象
+
+// printf("\033[字背景颜色;字体颜色m字符串\033[0m" );
+
+#define SNPRINTF_FMT    context->buf + ret, context->buf_len - ret
+
+static inline hy_uint32_t _output_color(HyLogLevel_t level)
+{
+    hy_uint32_t ret = 0;
+    if (HY_LOG_LEVEL_ERROR == level) {
+        ret = snprintf(SNPRINTF_FMT, PRINT_FONT_RED);
+    } else if (HY_LOG_LEVEL_WARNING == level) {
+        ret = snprintf(SNPRINTF_FMT, PRINT_FONT_GRE);
+    }
+
+    return ret;
+}
+
+hy_int32_t HyLogWrite(HyLogLevel_t level, const char *tags, const char *func,
+        hy_uint32_t line, char *fmt, ...)
+{
+    if (context->level < level) {
+        return -1;
+    }
+
+    hy_uint32_t ret = 0;
+    memset(context->buf, '\0', context->buf_len);
+
+    ret += _output_color(level);
+
+    ret += snprintf(SNPRINTF_FMT, "[%s][%s %d] ", tags, func, line); 
+
+    va_list args;
+    va_start(args, fmt);
+    ret += vsnprintf(SNPRINTF_FMT, fmt, args);
+    va_end(args);
+
+    if (level <= HY_LOG_LEVEL_WARNING) {
+        ret += snprintf(SNPRINTF_FMT, PRINT_ATTR_RESET);
+    }
+
+    printf("%s", (char *)context->buf);
+
+    return 0;
+}
+
+void PrintHex(const char *tag, const char *name, hy_uint16_t line,
+        const char *buf, hy_int32_t len, hy_int8_t flag)
 {
     if (len <= 0) {
         return;
     }
-    uint8_t cnt = 0;
+
+    hy_uint8_t cnt = 0;
     printf("[%s][%s %d]len: %d \r\n", tag, name, line, len);
     for (int i = 0; i < len; i++) {
         if (flag == 1) {
             if (buf[i] == 0x0d || buf[i] == 0x0a || buf[i] < 32 || buf[i] >= 127) {
-                printf("%02x[ ]  ", (uint8_t)buf[i]);
+                printf("%02x[ ]  ", (hy_uint8_t)buf[i]);
             } else {
-                printf("%02x[%c]  ", (uint8_t)buf[i], (uint8_t)buf[i]);
+                printf("%02x[%c]  ", (hy_uint8_t)buf[i], (hy_uint8_t)buf[i]);
             }
         } else {
-            printf("%02x ", (uint8_t)buf[i]);
+            printf("%02x ", (hy_uint8_t)buf[i]);
         }
         cnt++;
         if (cnt == 16) {
@@ -130,12 +167,4 @@ void PrintHex(const char *tag, const char *name, uint16_t line,
     }
     printf("\r\n");
 }
-#else
-void HyLogCreate(uint8_t level, uint32_t buf_len) {return;}
-void HyLogDestory(void) {}
-int32_t HyLogWrite(uint8_t level, const char *tags, const char *func,
-        uint32_t line, char *fmt, ...) {return 0;}
-void PrintHex(const char *tag, const char *name, uint16_t line,
-        const char *buf, int32_t len, int8_t flag) {}
-#endif
 

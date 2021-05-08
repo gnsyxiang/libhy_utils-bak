@@ -17,14 +17,26 @@
  * 
  *     last modified: 06/08 2020 08:39
  */
-#ifndef __LIBUTILS_INCLUDE_HY_LOG_H_
-#define __LIBUTILS_INCLUDE_HY_LOG_H_
+#ifndef __LIBHY_UTILS_INCLUDE_HY_LOG_H_
+#define __LIBHY_UTILS_INCLUDE_HY_LOG_H_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <stdint.h>
+#include "hy_type.h"
+
+/**
+ * @brief 打印等级定义
+ */
+typedef enum {
+    HY_LOG_LEVEL_ERROR,
+    HY_LOG_LEVEL_WARNING,
+    HY_LOG_LEVEL_DEBUG,
+    HY_LOG_LEVEL_INFO,
+
+    HY_LOG_LEVEL_MAX
+} HyLogLevel_t;
 
 /**
  * @brief 真实输出log函数
@@ -40,11 +52,11 @@ extern "C" {
  *
  * note: 函数为内部用函数，最好不要在外面使用
  */
-int32_t HyLogWrite(uint8_t level, const char *tags, const char *func,
-        uint32_t line, char *fmt, ...);
+hy_int32_t HyLogWrite(HyLogLevel_t level, const char *tags, const char *func,
+        hy_uint32_t line, char *fmt, ...);
 
-void PrintHex(const char *tag, const char *name, uint16_t line,
-        const char *buf, int32_t len, int8_t flag);
+void PrintHex(const char *tag, const char *name, hy_uint16_t line,
+        const char *buf, hy_int32_t len, hy_int8_t flag);
 
 /**
  * @brief 输出log宏转义
@@ -59,41 +71,28 @@ void PrintHex(const char *tag, const char *name, uint16_t line,
         }                                                               \
     } while (0)
 
-//------------------------------------------------------------------------------
-
-/**
- * @brief 打印等级定义
- */
-#define LOG_LEVEL_ERROR         (1)
-#define LOG_LEVEL_WARNING       (2)
-#define LOG_LEVEL_DEBUG         (3)
-#define LOG_LEVEL_INFO          (4)
-#define LOG_LEVEL_MAX           (5)
-
-#define USE_LOG_LEVEL           (LOG_LEVEL_DEBUG)
-
 /**
  * @brief 初始化log打印系统
  *
- * @param level: 打印等级，详见LogLevel_t
+ * @param level: 打印等级，详见HyLogLevel_t
  *
  * @return 成功返回句柄
  */
-void HyLogCreate(uint8_t level, uint32_t buf_len);
+void HyLogCreate(hy_uint8_t level, hy_uint32_t buf_len);
 
 /**
  * @brief 销毁log系统
  */
-void HyLogDestory(void);
+void HyLogDestroy(void);
 
 /**
  * @brief 输出对应的log等级函数
  */
-#ifdef USE_DEBUG
-    #define	LOGE(fmt, ...)  LOG(ALONE_DEBUG, LOG_LEVEL_ERROR,    fmt, ##__VA_ARGS__)
-    #define	LOGW(fmt, ...)  LOG(ALONE_DEBUG, LOG_LEVEL_WARNING,  fmt, ##__VA_ARGS__)
-    #define	LOGD(fmt, ...)  LOG(ALONE_DEBUG, LOG_LEVEL_DEBUG,    fmt, ##__VA_ARGS__)
-    #define	LOGI(fmt, ...)  LOG(ALONE_DEBUG, LOG_LEVEL_INFO,     fmt, ##__VA_ARGS__)
+#ifndef USE_DEBUG
+    #define	LOGE(fmt, ...)  LOG(ALONE_DEBUG, HY_LOG_LEVEL_ERROR,    fmt, ##__VA_ARGS__)
+    #define	LOGW(fmt, ...)  LOG(ALONE_DEBUG, HY_LOG_LEVEL_WARNING,  fmt, ##__VA_ARGS__)
+    #define	LOGD(fmt, ...)  LOG(ALONE_DEBUG, HY_LOG_LEVEL_DEBUG,    fmt, ##__VA_ARGS__)
+    #define	LOGI(fmt, ...)  LOG(ALONE_DEBUG, HY_LOG_LEVEL_INFO,     fmt, ##__VA_ARGS__)
     #define PRINT_HEX_ASCII(buf, len) PrintHex(LOG_CATEGORY_TAG, __func__, __LINE__, buf, len, 1)
     #define PRINT_HEX(buf, len) PrintHex(LOG_CATEGORY_TAG, __func__, __LINE__, buf, len, 0)
 #else

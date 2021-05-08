@@ -86,6 +86,7 @@ libhy_utils.pc
 
 example/main
 example/test
+example/hy_log_test
 
 
 

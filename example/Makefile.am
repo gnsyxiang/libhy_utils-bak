@@ -45,11 +45,11 @@ _ldflags_com 	+= $(BIN_LDFLAGS_COM)
 
 _ldadd_com 		+= $(top_builddir)/src/lib@project_name@.la
 
-#bin_PROGRAMS	+= test
-#test_SOURCES 	= $(_sources_com) test.c
-#test_CPPFLAGS  	= $(_cppflags_com)
-#test_CFLAGS  	= $(_cflags_com)
-#test_CXXFLAGS  	= $(_cxxflags_com)
-#test_LDFLAGS	= $(_ldflags_com)
-#test_LDADD   	= $(_ldadd_com)
+bin_PROGRAMS			+= hy_log_test
+hy_log_test_SOURCES 	= $(_sources_com) hy_log_test.c
+hy_log_test_CPPFLAGS  	= $(_cppflags_com)
+hy_log_test_CFLAGS  	= $(_cflags_com)
+hy_log_test_CXXFLAGS  	= $(_cxxflags_com)
+hy_log_test_LDFLAGS		= $(_ldflags_com)
+hy_log_test_LDADD   	= $(_ldadd_com)
 

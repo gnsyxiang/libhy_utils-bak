@@ -21,6 +21,11 @@
 NO_INSTALL_HEADERS_COM 	=
 noinst_HEADERS  		= $(NO_INSTALL_HEADERS_COM)
 
-INSTALL_HEADERS_COM 	= hy_log.h
+INSTALL_HEADERS_COM 	= hy_compile.h \
+						  hy_error.h \
+						  hy_math.h \
+						  hy_log.h \
+						  hy_list.h \
+						  hy_type.h
 install_includedir 		= $(includedir)/@project_name@
 install_include_HEADERS = $(INSTALL_HEADERS_COM)
