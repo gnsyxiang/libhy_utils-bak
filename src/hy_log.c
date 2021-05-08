@@ -99,9 +99,6 @@ void HyLogDestroy(void)
 
 // printf("\033[字背景颜色;字体颜色m字符串\033[0m" );
 
-#define SNPRINTF_FMT    context->buf + ret, context->buf_len - ret
-#define SNPRINTF_FMT_2  context->buf + *ret, context->buf_len - *ret
-
 static inline void _output_set_color(HyLogLevel_t level, hy_uint32_t *ret)
 {
     hy_char_t *color[HY_LOG_LEVEL_MAX][2] = {
@@ -111,12 +108,12 @@ static inline void _output_set_color(HyLogLevel_t level, hy_uint32_t *ret)
         {"I", ""},
     };
 
-    *ret += snprintf(SNPRINTF_FMT_2, "%s[%s]", color[level][1], color[level][0]);
+    *ret += snprintf(context->buf + *ret, context->buf_len - *ret, "%s[%s]", color[level][1], color[level][0]);
 }
 
 static inline void _output_reset_color(HyLogLevel_t level, hy_uint32_t *ret)
 {
-    *ret += snprintf(SNPRINTF_FMT_2, "%s", PRINT_ATTR_RESET);
+    *ret += snprintf(context->buf + *ret, context->buf_len - *ret, "%s", PRINT_ATTR_RESET);
 }
 
 hy_int32_t HyLogWrite(HyLogLevel_t level, const char *tags, const char *func,
@@ -131,11 +128,11 @@ hy_int32_t HyLogWrite(HyLogLevel_t level, const char *tags, const char *func,
 
     _output_set_color(level, &ret);
 
-    ret += snprintf(SNPRINTF_FMT, "[%s][%s %"PRId32"] ", tags, func, line); 
+    ret += snprintf(context->buf + ret, context->buf_len - ret, "[%s][%s %"PRId32"] ", tags, func, line); 
 
     va_list args;
     va_start(args, fmt);
-    ret += vsnprintf(SNPRINTF_FMT, fmt, args);
+    ret += vsnprintf(context->buf + ret, context->buf_len - ret, fmt, args);
     va_end(args);
 
     _output_reset_color(level, &ret);

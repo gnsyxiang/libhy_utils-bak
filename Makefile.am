@@ -34,8 +34,11 @@ ACLOCAL_AMFLAGS 	= -I m4
 _no_error_com 		= -W -Wall -Werror \
 					  -Wno-error=unused-variable \
 					  -Wno-error=unused-result \
-					  -Wno-unused-parameter \
-					  -Wno-error=unused-but-set-variable
+					  -Wno-unused-parameter
+
+if COMPILE_SELECT_BUILD_SYSTEM_OS_LINUX
+_no_error_com 		+= -Wno-error=unused-but-set-variable
+endif
 
 _remove_unuse_func 	= -ffunction-sections \
 					  -fdata-sections
@@ -50,7 +53,11 @@ CXXFLAGS_COM 		= $(_remove_unuse_func)
 
 LIB_LDFLAGS_COM 	= -rdynamic
 
-BIN_LDFLAGS_COM 	= -Wl,--gc-sections
+BIN_LDFLAGS_COM 	=
+
+if COMPILE_SELECT_BUILD_SYSTEM_OS_LINUX
+BIN_LDFLAGS_COM 	+= -Wl,--gc-sections
+endif
 
 export CPPFLAGS_COM
 export CFLAGS_COM
