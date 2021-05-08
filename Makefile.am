@@ -32,6 +32,7 @@ SUBDIRS = include \
 ACLOCAL_AMFLAGS 	= -I m4
 
 _no_error_com 		= -W -Wall -Werror \
+					  -Wno-error=unused-variable \
 					  -Wno-error=unused-result \
 					  -Wno-unused-parameter \
 					  -Wno-error=unused-but-set-variable

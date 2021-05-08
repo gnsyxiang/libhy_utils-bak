@@ -20,11 +20,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifndef USE_DEBUG
-#   include "hy_log.h"
-#   define ALONE_DEBUG 1
-#   define LOG_CATEGORY_TAG "main"
-#endif
+#include "hy_log.h"
+
+#define ALONE_DEBUG 1
+#define LOG_CATEGORY_TAG "main"
 
 static void _test_log(void)
 {

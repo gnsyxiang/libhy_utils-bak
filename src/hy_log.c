@@ -99,17 +99,23 @@ void HyLogDestroy(void)
 // printf("\033[字背景颜色;字体颜色m字符串\033[0m" );
 
 #define SNPRINTF_FMT    context->buf + ret, context->buf_len - ret
+#define SNPRINTF_FMT_2  context->buf + *ret, context->buf_len - *ret
 
-static inline hy_uint32_t _output_color(HyLogLevel_t level)
+static inline void _output_set_color(HyLogLevel_t level, hy_uint32_t *ret)
 {
-    hy_uint32_t ret = 0;
-    if (HY_LOG_LEVEL_ERROR == level) {
-        ret = snprintf(SNPRINTF_FMT, PRINT_FONT_RED);
-    } else if (HY_LOG_LEVEL_WARNING == level) {
-        ret = snprintf(SNPRINTF_FMT, PRINT_FONT_GRE);
-    }
+    hy_char_t *color[HY_LOG_LEVEL_MAX][2] = {
+        {"E", PRINT_FONT_RED},
+        {"W", PRINT_FONT_GRE},
+        {"D", ""},
+        {"I", ""},
+    };
 
-    return ret;
+    *ret += snprintf(SNPRINTF_FMT_2, "%s[%s]", color[level][1], color[level][0]);
+}
+
+static inline void _output_reset_color(HyLogLevel_t level, hy_uint32_t *ret)
+{
+    *ret += snprintf(SNPRINTF_FMT_2, "%s", PRINT_ATTR_RESET);
 }
 
 hy_int32_t HyLogWrite(HyLogLevel_t level, const char *tags, const char *func,
@@ -122,7 +128,7 @@ hy_int32_t HyLogWrite(HyLogLevel_t level, const char *tags, const char *func,
     hy_uint32_t ret = 0;
     memset(context->buf, '\0', context->buf_len);
 
-    ret += _output_color(level);
+    _output_set_color(level, &ret);
 
     ret += snprintf(SNPRINTF_FMT, "[%s][%s %d] ", tags, func, line); 
 
@@ -131,9 +137,7 @@ hy_int32_t HyLogWrite(HyLogLevel_t level, const char *tags, const char *func,
     ret += vsnprintf(SNPRINTF_FMT, fmt, args);
     va_end(args);
 
-    if (level <= HY_LOG_LEVEL_WARNING) {
-        ret += snprintf(SNPRINTF_FMT, PRINT_ATTR_RESET);
-    }
+    _output_reset_color(level, &ret);
 
     printf("%s", (char *)context->buf);
 

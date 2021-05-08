@@ -88,21 +88,12 @@ void HyLogDestroy(void);
 /**
  * @brief 输出对应的log等级函数
  */
-#ifndef USE_DEBUG
-    #define	LOGE(fmt, ...)  LOG(ALONE_DEBUG, HY_LOG_LEVEL_ERROR,    fmt, ##__VA_ARGS__)
-    #define	LOGW(fmt, ...)  LOG(ALONE_DEBUG, HY_LOG_LEVEL_WARNING,  fmt, ##__VA_ARGS__)
-    #define	LOGD(fmt, ...)  LOG(ALONE_DEBUG, HY_LOG_LEVEL_DEBUG,    fmt, ##__VA_ARGS__)
-    #define	LOGI(fmt, ...)  LOG(ALONE_DEBUG, HY_LOG_LEVEL_INFO,     fmt, ##__VA_ARGS__)
-    #define PRINT_HEX_ASCII(buf, len) PrintHex(LOG_CATEGORY_TAG, __func__, __LINE__, buf, len, 1)
-    #define PRINT_HEX(buf, len) PrintHex(LOG_CATEGORY_TAG, __func__, __LINE__, buf, len, 0)
-#else
-    #define	LOGE(fmt, ...)
-    #define	LOGW(fmt, ...)
-    #define	LOGD(fmt, ...)
-    #define	LOGI(fmt, ...)
-    #define PRINT_HEX_ASCII(buf, len)
-    #define PRINT_HEX(buf, len)
-#endif
+#define	LOGE(fmt, ...)  LOG(ALONE_DEBUG, HY_LOG_LEVEL_ERROR,    fmt, ##__VA_ARGS__)
+#define	LOGW(fmt, ...)  LOG(ALONE_DEBUG, HY_LOG_LEVEL_WARNING,  fmt, ##__VA_ARGS__)
+#define	LOGD(fmt, ...)  LOG(ALONE_DEBUG, HY_LOG_LEVEL_DEBUG,    fmt, ##__VA_ARGS__)
+#define	LOGI(fmt, ...)  LOG(ALONE_DEBUG, HY_LOG_LEVEL_INFO,     fmt, ##__VA_ARGS__)
+#define PRINT_HEX_ASCII(buf, len) PrintHex(LOG_CATEGORY_TAG, __func__, __LINE__, buf, len, 1)
+#define PRINT_HEX(buf, len) PrintHex(LOG_CATEGORY_TAG, __func__, __LINE__, buf, len, 0)
 
 #ifdef __cplusplus
 }
