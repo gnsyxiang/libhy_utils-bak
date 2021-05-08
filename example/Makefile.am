@@ -1,11 +1,11 @@
 # ===============================================================
 # 
-# Release under GPLv-3.0.
+# Release under GPL-3.0.
 # 
 # @file    Makefile.am
 # @brief   
 # @author  gnsyxiang <gnsyxiang@163.com>
-# @date    05/03 2021 10:38
+# @date    21/03 2020 14:10
 # @version v0.0.1
 # 
 # @since    note
@@ -13,41 +13,43 @@
 # 
 #     change log:
 #     NO.     Author              Date            Modified
-#     00      zhenquan.qiu        05/03 2021      create the file
+#     00      zhenquan.qiu        21/03 2020      create the file
 # 
-#     last modified: 05/03 2021 10:38
+#     last modified: 21/03 2020 14:10
 # ===============================================================
 
-include_com  	=
-cppflags_com 	=
-ldadd_com 		=
-ldflags_com 	=
+_include_com  	=
+_sources_com 	=
+_cppflags_com 	=
+_cflags_com 	=
+_cxxflags_com 	=
+_ldflags_com 	=
+_ldadd_com 		=
 bin_PROGRAMS 	=
 
 # ---------------------
 # add necessary content
 # ---------------------
-include_com  	+= -I$(top_srcdir)/include
-cppflags_com 	+= $(CPPFLAGS_COM) \
-				   $(include_com)
+_include_com  	+= -I$(top_srcdir)/include
 
-ldadd_com 		+= $(top_builddir)/src/lib@project_name@.la
+_sources_com 	+=
 
-ldflags_com 	+= $(BIN_LDFLAGS_COM)
+_cppflags_com 	+= $(CPPFLAGS_COM) \
+				   $(_include_com)
 
-bin_PROGRAMS	+= test
-test_SOURCES 	= test.c
-test_CPPFLAGS  	= $(cppflags_com)
-test_LDADD   	= $(ldadd_com)
-test_LDFLAGS	= $(ldflags_com)
+_cflags_com 	+= $(CFLAGS_COM)
 
-# ------------------
-# make install files
-# ------------------
-install_files_com 	= main.c \
-					  main_Makefile
-exampledir 			= $(prefix)/example
-dist_example_DATA 	= $(install_files_com)
+_cxxflags_com 	+= $(CXXFLAGS_COM)
 
-install-data-hook:
-	mv ${exampledir}/main_Makefile ${exampledir}/Makefile
+_ldflags_com 	+= $(BIN_LDFLAGS_COM)
+
+_ldadd_com 		+= $(top_builddir)/src/lib@project_name@.la
+
+bin_PROGRAMS			+= hy_log_test
+hy_log_test_SOURCES 	= $(_sources_com) hy_log_test.c
+hy_log_test_CPPFLAGS  	= $(_cppflags_com)
+hy_log_test_CFLAGS  	= $(_cflags_com)
+hy_log_test_CXXFLAGS  	= $(_cxxflags_com)
+hy_log_test_LDFLAGS		= $(_ldflags_com)
+hy_log_test_LDADD   	= $(_ldadd_com)
+

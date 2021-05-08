@@ -5,12 +5,6 @@ AC_PREREQ([2.69])
 
 m4_include([m4/check_project_info.m4])
 
-m4_include([res/m4/check_doxygen.m4])
-m4_include([res/m4/ax_prog_doxygen.m4])
-
-m4_include([res/m4/enable_feature_xxx.m4])
-m4_include([res/m4/select_feature_xxx.m4])
-
 AC_INIT([PROJECT_NAME], [VERSION_NUM], [EMAIL_INFO], [PROJECT_NAME], [PROJECT_URL])
 AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_HEADERS([config.h])
@@ -23,13 +17,13 @@ AM_PROG_AR
 
 LT_INIT
 
+PKG_PROG_PKG_CONFIG([0.24])
+
 # check m4 macro
 CHECK_PROJECT_INFO
 CHECK_VERSION_INFO
 CHECK_DOXYGEN
-
-ENABLE_FEATURE_XXX
-SELECT_FEATURE_XXX
+CHECK_JAVA
 
 # Checks for programs.
 AC_PROG_CXX
@@ -45,13 +39,24 @@ AC_PROG_MKDIR_P
 # Checks for libraries.
 
 # Checks for header files.
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h stddef.h stdint.h stdlib.h string.h sys/socket.h sys/time.h termios.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
+AC_C_INLINE
+AC_TYPE_INT32_T
+AC_TYPE_INT8_T
+AC_TYPE_OFF_T
+AC_TYPE_SIZE_T
+AC_TYPE_UINT16_T
+AC_TYPE_UINT32_T
+AC_TYPE_UINT8_T
 
 # Checks for library functions.
+AC_CHECK_FUNCS([gettimeofday memset select socket strdup strerror strstr])
 
 AC_CONFIG_FILES([Makefile
                  $PACKAGE_NAME.pc
+                 doc/Makefile
                  example/Makefile
                  include/Makefile
                  res/Makefile

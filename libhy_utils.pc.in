@@ -3,15 +3,15 @@ exec_prefix=@exec_prefix@
 includedir=@includedir@
 libdir=@libdir@
 
-Name: @PACKAGE@
+Name: @project_name@
 Version: @VERSION@
 URL: @PACKAGE_URL@
-Description: introduce information about the library
+Description: Platform independent tool library
 
 Requires:
 Requires.private:
 Conflicts:
 
 Cflags: -I${includedir}
-Libs: -L${libdir} -l@PACKAGE@
+Libs: -L${libdir} -l@project_name@
 Libs.private:

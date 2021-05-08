@@ -1,11 +1,11 @@
 # ===============================================================
 # 
-# Release under GPLv-3.0.
+# Release under GPL-3.0.
 # 
 # @file    Makefile.am
 # @brief   
 # @author  gnsyxiang <gnsyxiang@163.com>
-# @date    05/03 2021 10:35
+# @date    21/03 2020 13:57
 # @version v0.0.1
 # 
 # @since    note
@@ -13,36 +13,45 @@
 # 
 #     change log:
 #     NO.     Author              Date            Modified
-#     00      zhenquan.qiu        05/03 2021      create the file
+#     00      zhenquan.qiu        21/03 2020      create the file
 # 
-#     last modified: 05/03 2021 10:35
+#     last modified: 21/03 2020 13:57
 # ===============================================================
 
 lib_LTLIBRARIES = lib@project_name@.la
 
-sources_com 	=
-include_com  	=
-cppflags_com 	=
-ldadd_com 		=
-ldflags_com 	=
+_include_com  	=
+_sources_com 	=
+_cppflags_com 	=
+_cflags_com 	=
+_cxxflags_com 	=
+_ldflags_com 	=
+_ldadd_com 		=
 
 # ---------------------
 # add necessary content
 # ---------------------
-sources_com 	+= module_a.c
+_include_com 	+= -I$(top_srcdir)/include
 
-include_com 	+= -I$(top_srcdir)/include
-cppflags_com 	+= $(LIB_CPPFLAGS_COM) \
-				   $(CPPFLAGS_COM) \
-				   $(include_com)
+_sources_com 	+= hy_log.c
 
-ldadd_com 		+=
+_cppflags_com 	+= $(CPPFLAGS_COM) \
+				   $(_include_com)
 
-ldflags_com 	+= -export-symbols-regex 'Hy*' \
-				   -version-info @current@:@revision@:@age@ \
-				   $(LIB_LDFLAGS_COM)
+_cflags_com 	+= $(CFLAGS_COM)
 
-AM_CFLAGS 						= $(cppflags_com)
-lib@project_name@_la_SOURCES  	= $(sources_com)
-lib@project_name@_la_LIBADD   	= $(ldadd_com)
-lib@project_name@_la_LDFLAGS  	= $(ldflags_com)
+_cxxflags_com 	+= $(CXXFLAGS_COM)
+
+_ldflags_com 	+= $(LIB_LDFLAGS_COM) \
+				   -export-symbols-regex 'Hy*' \
+				   -version-info @current@:@revision@:@age@
+
+_ldadd_com 		+=
+
+lib@project_name@_la_SOURCES  	= $(_sources_com)
+lib@project_name@_la_CPPFLAGS 	= $(_cppflags_com)
+lib@project_name@_la_CFLAGS 	= $(_cflags_com)
+lib@project_name@_la_CXXFLAGS 	= $(_cxxflags_com)
+lib@project_name@_la_LDFLAGS  	= $(_ldflags_com)
+lib@project_name@_la_LIBADD   	= $(_ldadd_com)
+
