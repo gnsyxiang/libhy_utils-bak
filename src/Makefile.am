@@ -33,7 +33,9 @@ _ldadd_com 		=
 # ---------------------
 _include_com 	+= -I$(top_srcdir)/include
 
-_sources_com 	+= hy_log.c
+_sources_com 	+= hy_log.c \
+								 hy_sort.c \
+								 hy_utils.c
 
 _cppflags_com 	+= $(CPPFLAGS_COM) \
 				   $(_include_com)

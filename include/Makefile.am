@@ -27,6 +27,8 @@ INSTALL_HEADERS_COM 	= hy_compile.h \
 						  hy_math.h \
 						  hy_log.h \
 						  hy_list.h \
+							hy_utils.h \
+							hy_sort.h \
 						  \
 						  hy_type.h
 install_includedir 		= $(includedir)/@project_name@

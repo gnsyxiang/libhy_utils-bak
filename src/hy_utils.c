@@ -25,49 +25,8 @@
 
 #include "hy_log.h"
 
-#ifdef USE_DEBUG
-    #define ALONE_DEBUG 1
-    #define LOG_CATEGORY_TAG "hy_utils"
-#endif
-
-BufUnion_t *HyBufUnionCreate(uint32_t len)
-{
-    if (len <= 0) {
-        LOGE("the param is NULL \r\n");
-        return NULL;
-    }
-
-    BufUnion_t *buf_union = calloc(1, BUF_UNION_T_LEN);
-    if (!buf_union) {
-        LOGE("calloc faild \r\n");
-        return NULL;
-    }
-
-    buf_union->buf = calloc(1, len);
-    if (!buf_union->buf) {
-        LOGE("calloc faild \r\n");
-        free(buf_union);
-        buf_union = NULL;
-        return NULL;
-    }
-
-    buf_union->len = len;
-
-    return buf_union;
-}
-
-void HyBufUnionDestroy(BufUnion_t *buf_union)
-{
-    if (buf_union) {
-        if (buf_union->buf) {
-            free(buf_union->buf);
-            buf_union->buf = NULL;
-        }
-
-        free(buf_union);
-        buf_union = NULL;
-    }
-}
+#define ALONE_DEBUG 1
+#define LOG_CATEGORY_TAG "hy_utils"
 
 void HyIpStr2Int(const char *ip_str, uint32_t *ip_num)
 {
