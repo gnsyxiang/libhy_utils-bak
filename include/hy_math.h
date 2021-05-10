@@ -24,6 +24,8 @@
 extern "C" {
 #endif
 
+#include "hy_type.h"
+
 /**
  * @brief 32位无符号最小值
  */
@@ -67,6 +69,13 @@ extern "C" {
 #define ALIGN4(len)             BYTE_ALIGN(len, 4)
 #define ALIGN2(len)             BYTE_ALIGN(len, 2)
 #define ALIGN4_UP(len)          (BYTE_ALIGN(len, 4) + ALIGN4(1))
+
+/**
+ * @brief 产生随机数
+ *
+ * @param range: 随机数范围0 - range
+ */
+hy_uint32_t HyMathGenerateRandom(hy_uint32_t range);
 
 #ifdef __cplusplus
 }

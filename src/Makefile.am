@@ -35,6 +35,7 @@ _include_com 	+= -I$(top_srcdir)/include
 
 _sources_com 	+= hy_log.c \
 				   hy_sort.c \
+				   hy_math.c \
 				   hy_utils.c
 
 _cppflags_com 	+= $(CPPFLAGS_COM) \
