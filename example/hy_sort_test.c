@@ -33,7 +33,7 @@ static hy_int32_t _swap_int_cb(void *src, void *dst)
     hy_int32_t  *a = src;
     hy_int32_t  *b = dst;
 
-    return (*a > *b);
+    return *a - *b;
 }
 
 static void _dump_int(hy_int32_t *a, hy_uint32_t len)
@@ -50,7 +50,8 @@ static void _test_int(void)
     hy_uint32_t len = HY_ARRAY_CNT(a);
 
     _dump_int(a, len);
-    HySortBubble(a, len, sizeof(a[0]),  _swap_int_cb);
+    // HySortBubble(a, len, sizeof(a[0]),  _swap_int_cb);
+    HySortQuick(a, 0, len - 1, sizeof(a[0]),  _swap_int_cb);
     _dump_int(a, len);
 }
 
@@ -70,8 +71,8 @@ static hy_int32_t _swap_stu_cb(void *src, void *dst)
     student_t *a = src;
     student_t *b = dst;
 
-    return a->score[0] > b->score[0];
-    // return a->id > b->id;
+    return (hy_int32_t)(a->score[0] - b->score[0]);
+    // return a->id - b->id;
 }
 
 static void _dum_student(student_t *stu, hy_uint32_t len)
@@ -92,7 +93,8 @@ static void _test_struct(void)
     hy_uint32_t len = HY_ARRAY_CNT(stu);
 
     _dum_student(stu, len);
-    HySortBubble(stu, len, sizeof(stu[0]),  _swap_stu_cb);
+    // HySortBubble(stu, len, sizeof(stu[0]),  _swap_stu_cb);
+    HySortQuick(stu, 0, len - 1, sizeof(stu[0]),  _swap_stu_cb);
     _dum_student(stu, len);
 }
 
