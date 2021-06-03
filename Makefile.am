@@ -49,7 +49,8 @@ CPPFLAGS_COM 		= -pipe \
 
 CFLAGS_COM 			= $(_remove_unuse_func)
 
-CXXFLAGS_COM 		= $(_remove_unuse_func)
+CXXFLAGS_COM 		= \
+					  $(_remove_unuse_func)
 
 LIB_LDFLAGS_COM 	= -rdynamic
 

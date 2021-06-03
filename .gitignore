@@ -83,10 +83,5 @@ libhy_utils.pc
 *.o
 *.lo
 *.la
-
-example/main
-example/test
-example/hy_log_test
-
-
+example/test_hy*
 
