@@ -19,12 +19,12 @@
 # ===============================================================
 
 SUBDIRS = \
-		  config
+          config
 
 # ---------------
 # make dist files
 # ---------------
 _dist_files_com = Doxyfile \
-				  get_project_info.sh
-EXTRA_DIST 		= $(_dist_files_com)
+                  get_project_info.sh
+EXTRA_DIST      = $(_dist_files_com)
 
