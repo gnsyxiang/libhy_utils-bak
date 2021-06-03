@@ -11,22 +11,6 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
 
-AM_INIT_AUTOMAKE([foreign -Wall -Werror])
-AM_SILENT_RULES([yes])
-AM_PROG_AR
-
-LT_INIT
-
-PKG_PROG_PKG_CONFIG([0.24])
-
-# check m4 macro
-CHECK_PROJECT_INFO
-CHECK_VERSION_INFO
-CHECK_DOXYGEN
-CHECK_JAVA
-
-SELECT_BUILD_OS
-
 # Checks for programs.
 AC_PROG_CXX
 AC_PROG_AWK
@@ -36,12 +20,27 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 # AC_PROG_RANLIB
-AC_PROG_MKDIR_P
+
+PKG_PROG_PKG_CONFIG([0.24])
+
+AM_INIT_AUTOMAKE([foreign -Wall -Werror])
+AM_SILENT_RULES([yes])
+AM_PROG_AR
+LT_INIT
+
+# check user m4 macro
+CHECK_PROJECT_INFO
+CHECK_VERSION_INFO
+CHECK_DOXYGEN
+CHECK_JAVA
+CHECK_LIBLOG4CPLUS
+
+SELECT_BUILD_OS
 
 # Checks for libraries.
 
 # Checks for header files.
-AC_CHECK_HEADERS([arpa/inet.h fcntl.h stddef.h stdint.h stdlib.h string.h sys/socket.h sys/time.h termios.h unistd.h])
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h inttypes.h stddef.h stdint.h stdlib.h string.h sys/socket.h sys/time.h termios.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE
