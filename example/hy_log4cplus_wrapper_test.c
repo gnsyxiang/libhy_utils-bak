@@ -19,13 +19,13 @@
  */
 #include <stdio.h>
 
-#include "hy_log4cplus_wrapper.h"
+#include "hy_log.h"
 
 #define ALONE_DEBUG 1
 
 int main(int argc, char *argv[])
 {
-    HyLog4cplusCreate(1024, "./res/config/log4cplus.rc");
+    HyLogCreate(HY_LOG_LEVEL_TRACE, 1024, "./res/config/log4cplus.rc");
 
     LOGF("----1\n");
     LOGE("----2\n");
@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
     LOGD("----5\n");
     LOGT("----6\n");
 
-    HyLog4cplusDestroy();
+    HyLogDestroy();
 
     return 0;
 }

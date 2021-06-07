@@ -17,7 +17,7 @@
  * 
  *     last modified: 01/06 2021 14:51
  */
-#include "hy_log4cplus_wrapper.h"
+#include "hy_log.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,6 +32,8 @@
 #include <log4cplus/helpers/socket.h>
 #include <log4cplus/loggingmacros.h>
 
+#include "hy_type.h"
+
 using namespace log4cplus;
 
 typedef struct {
@@ -43,7 +45,7 @@ typedef struct {
 
 static context_t _context;
 
-void HyLog4cplusCreate(uint32_t buf_len, const char *config_file)
+void HyLogCreate(int32_t level, uint32_t buf_len, const char *config_file)
 {
     if (!config_file) {
         printf("the config file is NULL\n");
@@ -63,14 +65,14 @@ void HyLog4cplusCreate(uint32_t buf_len, const char *config_file)
     _context.root = Logger::getRoot();
 }
 
-void HyLog4cplusDestroy(void)
+void HyLogDestroy(void)
 {
     if (_context.buf) {
         free(_context.buf);
     }
 }
 
-void HyLog4cplusWrite(LogLevel level, const char *file,
+void HyLogWrite(LogLevel level, const char *file,
         const char *func, uint32_t line, char *fmt, ...)
 {
     if (_context.root.isEnabledFor(level)) {
@@ -86,3 +88,30 @@ void HyLog4cplusWrite(LogLevel level, const char *file,
     }
 }
 
+void PrintHex(const char *name, hy_uint16_t line,
+        const char *buf, hy_int32_t len, hy_int8_t flag)
+{
+    if (len <= 0) {
+        return;
+    }
+
+    hy_uint8_t cnt = 0;
+    printf("[%s %d]len: %d \r\n", name, line, len);
+    for (int i = 0; i < len; i++) {
+        if (flag == 1) {
+            if (buf[i] == 0x0d || buf[i] == 0x0a || buf[i] < 32 || buf[i] >= 127) {
+                printf("%02x[ ]  ", (hy_uint8_t)buf[i]);
+            } else {
+                printf("%02x[%c]  ", (hy_uint8_t)buf[i], (hy_uint8_t)buf[i]);
+            }
+        } else {
+            printf("%02x ", (hy_uint8_t)buf[i]);
+        }
+        cnt++;
+        if (cnt == 16) {
+            cnt = 0;
+            printf("\r\n");
+        }
+    }
+    printf("\r\n");
+}

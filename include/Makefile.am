@@ -23,7 +23,6 @@ noinst_HEADERS          = $(NO_INSTALL_HEADERS_COM)
 
 # hy_type.h文件与libhy_hal/include/hy_type.h同步
 INSTALL_HEADERS_COM     = \
-                          hy_log4cplus_wrapper.h \
                           hy_compile.h \
                           hy_error.h \
                           hy_math.h \

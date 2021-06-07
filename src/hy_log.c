@@ -36,15 +36,15 @@ typedef struct {
 
 static log_context_t *context = NULL;
 
-void HyLogCreate(hy_uint8_t level, hy_uint32_t buf_len)
+void HyLogCreate(int32_t level, hy_uint32_t buf_len, const char *config_file)
 {
-    context = calloc(1, sizeof(*context));
+    context = (log_context_t *)calloc(1, sizeof(*context));
     if (!context) {
         printf("calloc faild \n");
         return ;
     }
 
-    context->buf = calloc(1, buf_len);
+    context->buf = (char *)calloc(1, buf_len);
     if (!context->buf) {
         printf("buf_union create faild \n");
         free(context);
@@ -101,6 +101,7 @@ void HyLogDestroy(void)
 
 static inline void _output_set_color(HyLogLevel_t level, hy_uint32_t *ret)
 {
+#if 0
     hy_char_t *color[HY_LOG_LEVEL_MAX][2] = {
         {"E", PRINT_FONT_RED},
         {"W", PRINT_FONT_GRE},
@@ -109,14 +110,17 @@ static inline void _output_set_color(HyLogLevel_t level, hy_uint32_t *ret)
     };
 
     *ret += snprintf(context->buf + *ret, context->buf_len - *ret, "%s[%s]", color[level][1], color[level][0]);
+#endif
 }
 
 static inline void _output_reset_color(HyLogLevel_t level, hy_uint32_t *ret)
 {
+#if 0
     *ret += snprintf(context->buf + *ret, context->buf_len - *ret, "%s", PRINT_ATTR_RESET);
+#endif
 }
 
-hy_int32_t HyLogWrite(HyLogLevel_t level, const char *tags, const char *func,
+hy_int32_t HyLogWrite(HyLogLevel_t level, const char *file, const char *func,
         hy_uint32_t line, char *fmt, ...)
 {
     if (context->level < level) {
@@ -128,7 +132,7 @@ hy_int32_t HyLogWrite(HyLogLevel_t level, const char *tags, const char *func,
 
     _output_set_color(level, &ret);
 
-    ret += snprintf(context->buf + ret, context->buf_len - ret, "[%s][%s %"PRId32"] ", tags, func, line); 
+    ret += snprintf(context->buf + ret, context->buf_len - ret, "[%s][%s %"PRId32"] ", file, func, line); 
 
     va_list args;
     va_start(args, fmt);
