@@ -37,7 +37,7 @@ void HyHex2Int2Str(char *str, uint8_t str_len, char *addr, uint8_t addr_len);
 
 uint32_t HyUtilsNumTo2N2(uint32_t num);
 
-#define HY_ARRAY_CNT(array) (sizeof((array)) / sizeof((array)[0]))
+#define HY_ARRAY_CNT(array) (int)(sizeof((array)) / sizeof((array)[0]))
 
 #ifdef __cplusplus
 }
