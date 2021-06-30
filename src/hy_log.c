@@ -146,7 +146,7 @@ hy_int32_t HyLogWrite(HyLogLevel_t level, const char *file, const char *func,
     return 0;
 }
 
-void PrintHex(const char *tag, const char *name, hy_uint16_t line,
+void HyPrintHex(const char *name, hy_uint16_t line,
         const char *buf, hy_int32_t len, hy_int8_t flag)
 {
     if (len <= 0) {
@@ -154,7 +154,7 @@ void PrintHex(const char *tag, const char *name, hy_uint16_t line,
     }
 
     hy_uint8_t cnt = 0;
-    printf("[%s][%s %d]len: %d \r\n", tag, name, line, len);
+    printf("[%s %d]len: %d \r\n", name, line, len);
     for (int i = 0; i < len; i++) {
         if (flag == 1) {
             if (buf[i] == 0x0d || buf[i] == 0x0a || buf[i] < 32 || buf[i] >= 127) {

@@ -44,7 +44,7 @@ static void _test_print_hex(void)
 
 int main(int argc, char *argv[])
 {
-    HyLogCreate(HY_LOG_LEVEL_INFO, 512);
+    HyLogCreate(HY_LOG_LEVEL_INFO, 512, "./log4cplus.rc");
 
     _test_log();
     _test_print_hex();

@@ -43,7 +43,7 @@ typedef struct {
     Logger      root;
 } context_t;
 
-static context_t *_context = nullptr;
+static context_t *_context = NULL;
 
 void HyLogCreate(int32_t level, uint32_t buf_len, const char *config_file)
 {
@@ -97,8 +97,8 @@ void HyLogWrite(LogLevel level, const char *file,
     }
 }
 
-void PrintHex(const char *name, hy_uint16_t line,
-        const char *buf, hy_int32_t len, hy_int8_t flag)
+void HyPrintHex(const char *name, uint16_t line,
+        const char *buf, int32_t len, int8_t flag)
 {
     if (len <= 0) {
         return;

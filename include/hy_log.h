@@ -57,7 +57,7 @@ typedef enum {
 void HyLogWrite(int level, const char *file, 
         const char *func, uint32_t line, char *fmt, ...);
 
-void PrintHex(const char *tag, const char *name, int32_t line,
+void HyPrintHex(const char *name, uint16_t line,
         const char *buf, int32_t len, int8_t flag);
 
 /**
@@ -84,8 +84,8 @@ void HyLogDestroy(void);
 #define LOGD(fmt, ...) LOG(ALONE_DEBUG, HY_LOG_LEVEL_DEBUG, fmt, ##__VA_ARGS__)
 #define LOGT(fmt, ...) LOG(ALONE_DEBUG, HY_LOG_LEVEL_TRACE, fmt, ##__VA_ARGS__)
 
-#define PRINT_HEX_ASCII(buf, len) PrintHex(__func__, __LINE__, buf, len, 1)
-#define PRINT_HEX(buf, len) PrintHex(__func__, __LINE__, buf, len, 0)
+#define PRINT_HEX_ASCII(buf, len) HyPrintHex(__func__, __LINE__, buf, len, 1)
+#define PRINT_HEX(buf, len) HyPrintHex(__func__, __LINE__, buf, len, 0)
 
 #ifdef __cplusplus
 }
