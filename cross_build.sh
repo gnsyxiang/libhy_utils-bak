@@ -28,19 +28,21 @@ cd ${target_path} && ./autogen.sh && cd -
 mkdir -p _build
 cd _build
 
-${target_path}/configure        \
-    CC=${cross_gcc_path}gcc     \
-    CXX=${cross_gcc_path}g++    \
-    CPPFLAGS=""                 \
-    CFLAGS=""                   \
-    CXXFLAGS=""                 \
-    LDFLAGS=""                  \
-    LIBS=""                     \
-    PKG_CONFIG_PATH=""          \
-    --prefix=${prefix_path}     \
-    --build=                    \
-    --host=${host}              \
+${target_path}/configure                            \
+    CC=${cross_gcc_path}gcc                         \
+    CXX=${cross_gcc_path}g++                        \
+    CPPFLAGS=""                                     \
+    CFLAGS="-I${lib_3rd_path}/include"              \
+    CXXFLAGS="-I${lib_3rd_path}/include"            \
+    LDFLAGS="-L${lib_3rd_path}/lib"                 \
+    LIBS=""                                         \
+    PKG_CONFIG_PATH="${lib_3rd_path}/lib/pkgconfig" \
+    --prefix=${prefix_path}                         \
+    --build=                                        \
+    --host=${host}                                  \
     --target=${host}
 
-make -j4; make install
+thread_jobs=`getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1`
+
+make -j${thread_jobs}; make install
 
