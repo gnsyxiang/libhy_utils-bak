@@ -2,31 +2,42 @@
 
 # set -x
 
-target=libhy_utils
+if [ $# != 1 ]; then
+    echo "eg: ./build.sh pc/arm"
+    exit
+fi
 
 data_disk_path=/opt/data
-top_dir_path=`pwd`
 
-vender=hisi
-host=arm-himix200-linux
-gcc_version=arm-himix200-linux
-gcc_prefix=arm-himix200-linux
+if [ x$1 = x"pc" ]; then
+    vender=pc
+    gcc_version=x86_64-linux-gnu
+elif [ x$1 = x"arm" ]; then
+    vender=hisi
+    host=arm-himix200-linux
+    gcc_version=arm-himix200-linux
+    gcc_prefix=arm-himix200-linux
+    cross_gcc_path=${data_disk_path}/opt/toolchains/${vender}/${gcc_version}/bin/${gcc_prefix}-
+elif [ x$1 = x"pwd" ]; then
+    vender=pc
+    gcc_version=x86_64-linux-gnu
+else
+    echo "eg: ./build.sh pc/arm"
+fi
 
-# gcc
-cross_gcc_path=${data_disk_path}/opt/toolchains/${vender}/${gcc_version}/bin/${gcc_prefix}-
-
-# cross lib on pc
+# 3rd_lib path
 lib_3rd_path=${data_disk_path}/install/${vender}/${gcc_version}
 
 # target
-target_path=${top_dir_path}
-# prefix_path=${data_disk_path}/nfs/meian/app
+target_path=`pwd`
 prefix_path=${lib_3rd_path}
 
 cd ${target_path} && ./autogen.sh && cd -
 
-mkdir -p _build
-cd _build
+if [ x$1 != x"pwd" ]; then
+    mkdir -p _build/${vender}
+    cd _build/${vender}
+fi
 
 ${target_path}/configure                            \
     CC=${cross_gcc_path}gcc                         \
