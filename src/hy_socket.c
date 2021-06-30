@@ -28,9 +28,10 @@
 #include <fcntl.h>
 #include <errno.h>
 
+#include "hy_hal/hy_type.h"
+
 #include "hy_socket.h"
 
-#include "hy_type.h"
 #include "hy_log.h"
 
 #ifdef USE_DEBUG

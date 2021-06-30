@@ -28,10 +28,11 @@
 #include <unistd.h>
 #include <semaphore.h>
 
+#include "hy_hal/hy_type.h"
+
 #include "hy_uart.h"
 
 #include "hy_pthread.h"
-#include "hy_type.h"
 #include "hy_file.h"
 #include "hy_log.h"
 

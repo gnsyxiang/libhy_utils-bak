@@ -21,9 +21,10 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "hy_hal/hy_type.h"
+
 #include "hy_cjson.h"
 
-#include "hy_type.h"
 #include "hy_log.h"
 
 #ifdef USE_DEBUG

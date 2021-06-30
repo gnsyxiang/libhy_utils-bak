@@ -22,10 +22,11 @@
 #include <string.h>
 #include <assert.h>
 
+#include "hy_hal/hy_type.h"
+
 #include "hy_fifo.h"
 
 #include "hy_utils.h"
-#include "hy_type.h"
 #include "hy_log.h"
 
 #ifdef USE_DEBUG

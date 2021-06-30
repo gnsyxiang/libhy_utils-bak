@@ -19,18 +19,20 @@
 # ===============================================================
 
 NO_INSTALL_HEADERS_COM  =
-noinst_HEADERS          = $(NO_INSTALL_HEADERS_COM)
+INSTALL_HEADERS_COM     =
+install_includedir      = $(includedir)/@project_name@
 
-# hy_type.h文件与libhy_hal/include/hy_type.h同步
-INSTALL_HEADERS_COM     = \
+# ----------------------------------------------------
+NO_INSTALL_HEADERS_COM  +=
+
+INSTALL_HEADERS_COM     += \
                           hy_compile.h \
                           hy_error.h \
                           hy_math.h \
                           hy_log.h \
                           hy_list.h \
                           hy_utils.h \
-                          hy_sort.h \
-                          \
-                          hy_type.h
-install_includedir      = $(includedir)/@project_name@
+                          hy_sort.h
+
+noinst_HEADERS          = $(NO_INSTALL_HEADERS_COM)
 install_include_HEADERS = $(INSTALL_HEADERS_COM)

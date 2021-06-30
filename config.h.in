@@ -12,6 +12,9 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
+/* Have libhy_hal library */
+#undef HAVE_LIBHY_HAL
+
 /* Have liblog4cplus library */
 #undef HAVE_LIBLOG4CPLUS
 

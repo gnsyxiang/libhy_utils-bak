@@ -17,8 +17,6 @@
  * 
  *     last modified: 01/06 2021 14:51
  */
-#include "hy_log.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -32,7 +30,9 @@
 #include <log4cplus/helpers/socket.h>
 #include <log4cplus/loggingmacros.h>
 
-#include "hy_type.h"
+#include "hy_hal/hy_type.h"
+
+#include "hy_log.h"
 
 using namespace log4cplus;
 

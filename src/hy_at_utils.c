@@ -21,13 +21,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "hy_hal/hy_type.h"
+
 #include "hy_at_utils.h"
 
 #include "hy_time.h"
 #include "hy_socket.h"
 #include "hy_fifo.h"
 #include "hy_log.h"
-#include "hy_type.h"
 
 #ifdef USE_DEBUG
     #define ALONE_DEBUG 1
