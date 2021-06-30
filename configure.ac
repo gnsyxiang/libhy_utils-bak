@@ -35,13 +35,13 @@ CHECK_DOXYGEN
 CHECK_JAVA
 CHECK_LIBLOG4CPLUS
 
-SELECT_BUILD_OS
+SELECT_TARGET_OS
 ENABLE_MYLOG
 
 # Checks for libraries.
 
 # Checks for header files.
-AC_CHECK_HEADERS([arpa/inet.h fcntl.h inttypes.h stddef.h stdint.h stdlib.h string.h sys/socket.h sys/time.h termios.h unistd.h])
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h inttypes.h stddef.h stdint.h stdlib.h string.h sys/socket.h termios.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_CHECK_HEADER_STDBOOL
@@ -55,7 +55,8 @@ AC_TYPE_UINT32_T
 AC_TYPE_UINT8_T
 
 # Checks for library functions.
-AC_CHECK_FUNCS([gettimeofday memset select socket strdup strerror strstr])
+AC_FUNC_MALLOC
+AC_CHECK_FUNCS([memset socket strdup strerror strstr])
 
 AC_CONFIG_FILES([Makefile
                  $PACKAGE_NAME.pc
