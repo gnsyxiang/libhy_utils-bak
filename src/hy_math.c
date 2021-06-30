@@ -29,7 +29,7 @@
 #define ALONE_DEBUG 1
 #define LOG_CATEGORY_TAG "hy_math"
 
-WEAK hy_uint64_t HyTimeGetCurrentTime2Us(void)
+__WEAK hy_uint64_t HyTimeGetCurrentTime2Us(void)
 {
     LOGE("please link libhy_hal.so \n");
     return 0;

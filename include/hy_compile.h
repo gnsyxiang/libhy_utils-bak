@@ -49,7 +49,16 @@ extern "C" {
     #endif
 #endif
 
-#define WEAK __attribute__((weak))
+#define __WEAK __attribute__((weak))
+
+#ifdef __GNUC__
+#   define UNPACKED         __attribute__ ((packed))
+#   define PACKED_4         __attribute__((aligned (4)))
+#   define UNUSED           __attribute__((__unused__))
+#else
+#   define STRUCT_PACKED
+#   define UNUSED
+#endif
 
 #ifdef __cplusplus
 }
