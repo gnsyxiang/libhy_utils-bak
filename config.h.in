@@ -9,14 +9,20 @@
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 
+/* Define if the system has hy_hal */
+#undef HAVE_HY_HAL
+
+/* Define to 1 if you have the <hy_hal/hy_mem.h> header file. */
+#undef HAVE_HY_HAL_HY_MEM_H
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Have libhy_hal library */
-#undef HAVE_LIBHY_HAL
+/* Define if the system has log4cplus */
+#undef HAVE_LOG4CPLUS
 
-/* Have liblog4cplus library */
-#undef HAVE_LIBLOG4CPLUS
+/* Define to 1 if you have the <log4cplus/logger.h> header file. */
+#undef HAVE_LOG4CPLUS_LOGGER_H
 
 /* Define to 1 if your system has a GNU libc compatible `malloc' function, and
    to 0 otherwise. */

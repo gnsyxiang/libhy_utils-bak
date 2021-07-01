@@ -5,7 +5,7 @@ dnl
 dnl @file    check_libhy_hal.m4
 dnl @brief   
 dnl @author  gnsyxiang <gnsyxiang@163.com>
-dnl @date    08/05 2021 15:01
+dnl @date    08/05 2021 10:29
 dnl @version v0.0.1
 dnl 
 dnl @since    note
@@ -15,64 +15,81 @@ dnl     change log:
 dnl     NO.     Author              Date            Modified
 dnl     00      zhenquan.qiu        08/05 2021      create the file
 dnl 
-dnl     last modified: 08/05 2021 15:01
+dnl     last modified: 08/05 2021 10:29
 dnl ===============================================================
 
 # CHECK_LIBHY_HAL()
 # --------------------------------------------------------------
 # check libhy_hal
 
-AC_DEFUN([CHECK_LIBHY_HAL],
-    [
-        AC_ARG_WITH([libhy_hal],
-                    [AS_HELP_STRING([--with-libhy_hal=@<:@yes|no@:>@], [use libhy_hal library @<:@default=yes@:>@])],
-                    [],
-                    [with_libhy_hal=yes])
+AC_DEFUN([CHECK_LIBHY_HAL], [
 
-        if test x"$with_libhy_hal" = xyes ; then
-            have_libhy_hal=no
+    AC_ARG_ENABLE([hy_hal],
+        [AS_HELP_STRING([--disable-hy_hal], [disable support for hy_hal])],
+            [], [enable_hy_hal=yes])
 
-            if test x"$LIBHY_HAL_CFLAGS" != x -a x"$LIBHY_HAL_LIBS" != x; then
-                CPPFLAGS="$LIBHY_HAL_CFLAGS $CPPFLAGS"
-                LDFLAGS="$LIBHY_HAL_LIBS $LDFLAGS"
-                LIBS="$LIBS -lhy_hal"
+    case "$enable_hy_hal" in
+        yes)
+            have_hy_hal=no
 
-                # Can I compile and link it?
-                AC_TRY_LINK([#include "hy_hal/hy_time.h"],
-                            [HyTimeGetCurrentTime2Us();],
-                            [libhy_hal_linked=yes],
-                            [libhy_hal_linked=no])
-                if test $libhy_hal_linked = no; then
-                    AC_MSG_ERROR([assign LIBHY_HAL_CFLAGS or LIBHY_HAL_LIBS for libhy_hal])
-                fi
+            case "$PKG_CONFIG" in
+                '') ;;
+                *)
+                    HY_HAL_LIBS=`$PKG_CONFIG --libs hy_hal 2>/dev/null`
 
-                have_libhy_hal="yes (inc lib)"
-            else
-                PKG_CHECK_MODULES([LIBHY_HAL],
-                                  [libhy_hal > 0.1.0],
-                                  [have_libhy_hal="yes (pkg-config)"],
-                                  [:])
+                    case "$HY_HAL_LIBS" in
+                        '') ;;
+                        *)
+                            HY_HAL_LIBS="$HY_HAL_LIBS"
+                            have_hy_hal=yes
+                        ;;
+                    esac
 
-                if test "$have_libhy_hal" != no; then
-                    CPPFLAGS="$LIBHY_HAL_CFLAGS $CPPFLAGS"
-                    LDFLAGS="$LIBHY_HAL_LIBS $LDFLAGS"
-                else
-                    # fall back to standard autoconf test
-                    AC_CHECK_LIB([hy_hal],
-                                 [HyTimeGetCurrentTime2Us],
-                                 [
-                                    AC_CHECK_HEADER([hy_hal/hy_time.h],
-                                                    [have_libhy_hal="yes (autoconf test)"])
-                                 ])
-                fi
+                    HY_HAL_INCS=`$PKG_CONFIG --cflags hy_hal 2>/dev/null`
+                ;;
+            esac
 
-                if test "$have_libhy_hal" = no; then
-                    AC_MSG_ERROR([external libhy_hal support requested but library not found])
-                fi
-            fi
+            case "$have_hy_hal" in
+                yes) ;;
+                *)
+                    save_LIBS="$LIBS"
+                    LIBS=""
+                    HY_HAL_LIBS=""
 
-            AC_DEFINE(HAVE_LIBHY_HAL, 1, [Have libhy_hal library])
-            AM_CONDITIONAL([COMPILE_LIBHY_HAL], [test "$have_libhy_hal" != no])
-        fi
-    ])
+                    # clear cache
+                    unset ac_cv_search_HyMalloc
+                    AC_SEARCH_LIBS([HyMalloc], [hy_hal],
+                            [have_hy_hal=yes
+                                HY_HAL_LIBS="$LIBS"],
+                            [have_hy_hal=no],
+                            [])
+                    LIBS="$save_LIBS"
+                ;;
+            esac
+
+            CPPFLAGS_SAVE=$CPPFLAGS
+            CPPFLAGS="$CPPFLAGS $HY_HAL_INCS"
+            AC_CHECK_HEADERS([hy_hal/hy_mem.h], [], [have_hy_hal=no])
+
+            CPPFLAGS=$CPPFLAGS_SAVE
+            AC_SUBST(HY_HAL_INCS)
+            AC_SUBST(HY_HAL_LIBS)
+
+            case "$have_hy_hal" in
+                yes)
+                    AC_DEFINE(HAVE_HY_HAL, 1, [Define if the system has hy_hal])
+                ;;
+                *)
+                    AC_MSG_ERROR([hy_hal is a must but can not be found. You should add the \
+directory containing `hy_hal.pc' to the `PKG_CONFIG_PATH' environment variable, \
+or set `CPPFLAGS' and `LDFLAGS' directly for hy_hal, or use `--disable-hy_hal' \
+to disable support for hy_hal encryption])
+                ;;
+            esac
+        ;;
+    esac
+
+    # check if we have and should use hy_hal
+    AM_CONDITIONAL(COMPILE_LIBHY_HAL, [test "$enable_hy_hal" != "no" && test "$have_hy_hal" = "yes"])
+])
 

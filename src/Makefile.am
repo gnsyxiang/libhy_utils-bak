@@ -31,7 +31,9 @@ _ldadd_com      =
 # ---------------------
 # add necessary content
 # ---------------------
-_include_com    += -I$(top_srcdir)/include
+_include_com    += \
+                   $(HY_HAL_INCS) \
+                   -I$(top_srcdir)/include
 
 _sources_com    += \
                    hy_sort.c \
@@ -54,7 +56,8 @@ _ldflags_com    += $(LIB_LDFLAGS_COM) \
                    -export-symbols-regex 'Hy*' \
                    -version-info @current@:@revision@:@age@
 
-_ldadd_com      +=
+_ldadd_com      += \
+                   $(HY_HAL_LIBS)
 
 lib@project_name@_la_SOURCES    = $(_sources_com)
 lib@project_name@_la_CPPFLAGS   = $(_cppflags_com)

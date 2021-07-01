@@ -25,9 +25,13 @@ dnl ===============================================================
 AC_DEFUN([ENABLE_MYLOG],
     [
         AC_ARG_ENABLE([mylog],
-            [AS_HELP_STRING([--enable-mylog], [enable my log @<:@default=no@:>@])],
-            [AC_DEFINE(HAVE_MYLOG, 1, [enable my log])]
-            [enable_mylog=no])
+            [AS_HELP_STRING([--disable-mylog], [enable support for my_log])],
+            [], [enable_mylog=yes])
+
+        if test x${enable_mylog} = xyes ; then
+            AC_DEFINE(HAVE_MYLOG, 1, [enable my log])
+        fi
+
         AM_CONDITIONAL([COMPILE_MYLOG], [test "x$enable_mylog" = "xyes"])
     ])
 

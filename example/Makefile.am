@@ -30,11 +30,26 @@ bin_PROGRAMS    =
 # ---------------------
 # add necessary content
 # ---------------------
-_include_com    += -I$(top_srcdir)/include
-
 _sources_com    +=
 
-_cppflags_com   += $(CPPFLAGS_COM) \
+_include_com    += \
+                   -I$(top_srcdir)/include
+
+_ldflags_com    += \
+                   $(top_builddir)/src/lib@project_name@.la
+
+if COMPILE_LIBHY_HAL
+_include_com    += $(HY_HAL_INCS)
+_ldflags_com    += $(HY_HAL_LIBS)
+endif
+
+if COMPILE_LIBLOG4CPLUS
+_include_com    += $(LOG4CPLUS_INCS)
+_ldflags_com    += $(LOG4CPLUS_LIBS)
+endif
+
+_cppflags_com   += \
+                   $(CPPFLAGS_COM) \
                    $(_include_com)
 
 _cflags_com     += $(CFLAGS_COM)
@@ -43,7 +58,7 @@ _cxxflags_com   += $(CXXFLAGS_COM)
 
 _ldflags_com    += $(BIN_LDFLAGS_COM)
 
-_ldadd_com      += $(top_builddir)/src/lib@project_name@.la
+_ldadd_com      +=
 
 bin_PROGRAMS            += test_hy_log
 test_hy_log_SOURCES     = $(_sources_com) hy_log_test.c
@@ -60,12 +75,4 @@ test_hy_sort_CFLAGS     = $(_cflags_com)
 test_hy_sort_CXXFLAGS   = $(_cxxflags_com)
 test_hy_sort_LDFLAGS    = $(_ldflags_com)
 test_hy_sort_LDADD      = $(_ldadd_com)
-
-bin_PROGRAMS                        += test_hy_log4cplus_wrapper
-test_hy_log4cplus_wrapper_SOURCES   = $(_sources_com) hy_log4cplus_wrapper_test.c
-test_hy_log4cplus_wrapper_CPPFLAGS  = $(_cppflags_com)
-test_hy_log4cplus_wrapper_CFLAGS    = $(_cflags_com)
-test_hy_log4cplus_wrapper_CXXFLAGS  = $(_cxxflags_com)
-test_hy_log4cplus_wrapper_LDFLAGS   = $(_ldflags_com)
-test_hy_log4cplus_wrapper_LDADD     = $(_ldadd_com)
 
