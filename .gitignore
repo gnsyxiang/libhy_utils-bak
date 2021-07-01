@@ -78,7 +78,7 @@ _build/
 install/
 doxygen/
 
-libhy_utils.pc
+hy_utils.pc
 
 *.o
 *.lo

@@ -61,7 +61,7 @@ AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset socket strdup strerror strstr])
 
 AC_CONFIG_FILES([Makefile
-                 $PACKAGE_NAME.pc
+                 $project_name.pc
                  doc/Makefile
                  example/Makefile
                  include/Makefile

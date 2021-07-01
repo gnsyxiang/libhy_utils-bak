@@ -68,12 +68,12 @@ _install_files_com  = LICENSE \
 dist_doc_DATA       = $(_install_files_com)
 
 pkgconfigdir        = $(libdir)/pkgconfig
-pkgconfig_DATA      = @PACKAGE_NAME@.pc
+pkgconfig_DATA      = @project_name@.pc
 
 # ---------------
 # make dist files
 # ---------------
 _dist_files_com     = autogen.sh \
-                      @PACKAGE_NAME@.pc.in
+                      @project_name@.pc.in
 EXTRA_DIST          = $(_dist_files_com)
 
