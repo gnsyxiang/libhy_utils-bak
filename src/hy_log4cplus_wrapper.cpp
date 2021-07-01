@@ -43,7 +43,7 @@ typedef struct {
     Logger      root;
 } context_t;
 
-static context_t *_context = NULL;
+static context_t *context = nullptr;
 
 void HyLogCreate(int32_t level, uint32_t buf_len, const char *config_file)
 {
@@ -52,15 +52,15 @@ void HyLogCreate(int32_t level, uint32_t buf_len, const char *config_file)
         return ;
     }
 
-    _context = new context_t();
-    if (!_context) {
+    context = new context_t();
+    if (!context) {
         printf("new context_t faild \n");
         return;
     }
 
-    _context->buf_len = buf_len;
-    _context->buf = new char[buf_len];
-    if (!_context->buf) {
+    context->buf_len = buf_len;
+    context->buf = new char[buf_len];
+    if (!context->buf) {
         printf("new char faild \n");
         return ;
     }
@@ -68,32 +68,32 @@ void HyLogCreate(int32_t level, uint32_t buf_len, const char *config_file)
     helpers::LogLog::getLogLog()->setInternalDebugging(false);
     PropertyConfigurator::doConfigure(config_file);
 
-    _context->root = Logger::getRoot();
+    context->root = Logger::getRoot();
 }
 
 void HyLogDestroy(void)
 {
-    if (_context) {
-        if (_context->buf) {
-            delete []_context->buf;
+    if (context) {
+        if (context->buf) {
+            delete []context->buf;
         }
-        delete _context;
+        delete context;
     }
 }
 
 void HyLogWrite(LogLevel level, const char *file,
         const char *func, uint32_t line, char *fmt, ...)
 {
-    if (_context && _context->root.isEnabledFor(level)) {
-        memset(_context->buf, '\0', _context->buf_len);
+    if (context && context->root.isEnabledFor(level)) {
+        memset(context->buf, '\0', context->buf_len);
 
         // 加线程锁
         va_list args;
         va_start(args, fmt);
-        vsnprintf(_context->buf, _context->buf_len, fmt, args);
+        vsnprintf(context->buf, context->buf_len, fmt, args);
         va_end(args);
 
-        _context->root.forcedLog(level, _context->buf, file, line, func);
+        context->root.forcedLog(level, context->buf, file, line, func);
     }
 }
 

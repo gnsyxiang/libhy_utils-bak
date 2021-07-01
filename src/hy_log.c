@@ -125,25 +125,23 @@ static inline void _output_reset_color(HyLogLevel_t level, hy_uint32_t *ret)
 void HyLogWrite(int level, const char *file, const char *func,
         uint32_t line, char *fmt, ...)
 {
-    if (context->level > level) {
-        return ;
+    if (context && context->level <= level) {
+        hy_uint32_t ret = 0;
+        memset(context->buf, '\0', context->buf_len);
+
+        _output_set_color(level, &ret);
+
+        ret += snprintf(context->buf + ret, context->buf_len - ret, "[%s:%"PRId32"][%s] ", file, line, func); 
+
+        va_list args;
+        va_start(args, fmt);
+        ret += vsnprintf(context->buf + ret, context->buf_len - ret, fmt, args);
+        va_end(args);
+
+        _output_reset_color(level, &ret);
+
+        printf("%s", (char *)context->buf);
     }
-
-    hy_uint32_t ret = 0;
-    memset(context->buf, '\0', context->buf_len);
-
-    _output_set_color(level, &ret);
-
-    ret += snprintf(context->buf + ret, context->buf_len - ret, "[%s:%"PRId32"][%s] ", file, line, func); 
-
-    va_list args;
-    va_start(args, fmt);
-    ret += vsnprintf(context->buf + ret, context->buf_len - ret, fmt, args);
-    va_end(args);
-
-    _output_reset_color(level, &ret);
-
-    printf("%s", (char *)context->buf);
 }
 
 void HyPrintHex(const char *name, uint16_t line,
