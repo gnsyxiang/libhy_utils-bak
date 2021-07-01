@@ -51,7 +51,11 @@ ${target_path}/configure                            \
     --prefix=${prefix_path}                         \
     --build=                                        \
     --host=${host}                                  \
-    --target=${host}
+    --target=${host}                                \
+    \
+    --enable-log4cplus                              \
+    --disable-mylog
+
 
 thread_jobs=`getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1`
 

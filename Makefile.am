@@ -77,3 +77,9 @@ _dist_files_com     = autogen.sh \
                       @project_name@.pc.in
 EXTRA_DIST          = $(_dist_files_com)
 
+if COMPILE_LIBLOG4CPLUS
+install-exec-hook:
+	sed -i 's/-lhy_utils/-lhy_utils -llog4cplus/g' \
+		$(top_builddir)/@project_name@.pc
+endif
+
