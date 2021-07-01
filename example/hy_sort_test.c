@@ -47,7 +47,7 @@ static void _dump_int(hy_int32_t *a, hy_uint32_t len)
 static void _test_int(void)
 {
     hy_int32_t a[] = {3, 4, 1, 5, 8, 0, 9};
-    hy_uint32_t len = HY_ARRAY_CNT(a);
+    hy_uint32_t len = HyUtilsArrayCnt(a);
 
     _dump_int(a, len);
     // HySortBubble(a, len, sizeof(a[0]),  _swap_int_cb);
@@ -90,7 +90,7 @@ static void _test_struct(void)
         {1007, "jim", {44, 55, 99}},
         {1003, "jac", {11, 88, 66}},
     };
-    hy_uint32_t len = HY_ARRAY_CNT(stu);
+    hy_uint32_t len = HyUtilsArrayCnt(stu);
 
     _dum_student(stu, len);
     // HySortBubble(stu, len, sizeof(stu[0]),  _swap_stu_cb);

@@ -34,10 +34,16 @@ uint32_t HyBinaryStr2Dec(char *binary_str, uint8_t len);
 void HyDec2BinaryStr(char *binary_str, uint8_t str_len, uint8_t num, uint32_t dec_num);
 
 void HyHex2Int2Str(char *str, uint8_t str_len, char *addr, uint8_t addr_len);
+void HyStr2Int2Hex(char *addr, uint8_t addr_len, char *str, uint8_t str_len);
 
 uint32_t HyUtilsNumTo2N2(uint32_t num);
 
-#define HY_ARRAY_CNT(array) (int)(sizeof((array)) / sizeof((array)[0]))
+#define HyUtilsArrayCnt(array) (int)(sizeof((array)) / sizeof((array)[0]))
+
+#define HyUtilsMinMacro(x, y) ((x) < (y) ? (x) : (y))
+
+//判断x是否是2的次方
+#define HyUtilsIsPowerOf2(x) ((x) != 0 && (((x) & ((x) - 1)) == 0))
 
 #ifdef __cplusplus
 }

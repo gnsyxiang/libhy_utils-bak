@@ -99,6 +99,20 @@ void HyHex2Int2Str(char *str, uint8_t str_len, char *addr, uint8_t addr_len)
     }
 }
 
+void HyStr2Int2Hex(char *addr, uint8_t addr_len, char *str, uint8_t str_len)
+{
+    uint8_t addr_cnt = 0;
+    for (int i = 0; i < str_len; i += 3) {
+        char buf[4] = {0};
+        sscanf(str + i, "%3s", buf);
+        uint8_t num = atoi(buf);
+        addr[addr_cnt++] = num;
+        if (addr_cnt == addr_len) {
+            break;
+        }
+    }
+}
+
 uint32_t HyUtilsNumTo2N2(uint32_t num)
 {
     uint32_t i = 1;
