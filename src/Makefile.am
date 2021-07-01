@@ -36,12 +36,15 @@ _include_com    += \
                    -I$(top_srcdir)/include
 
 _sources_com    += \
+                   hy_fifo.c \
                    hy_sort.c \
                    hy_math.c \
                    hy_utils.c
 if COMPILE_MYLOG
 _sources_com    += hy_log.c
-else
+endif
+
+if COMPILE_LIBLOG4CPLUS
 _sources_com    += hy_log4cplus_wrapper.cpp
 endif
 

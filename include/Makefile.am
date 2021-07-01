@@ -26,6 +26,7 @@ install_includedir      = $(includedir)/@project_name@
 NO_INSTALL_HEADERS_COM  +=
 
 INSTALL_HEADERS_COM     += \
+                           hy_fifo.h \
                            hy_math.h \
                            hy_list.h \
                            hy_utils.h \

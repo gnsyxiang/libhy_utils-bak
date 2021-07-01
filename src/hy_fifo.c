@@ -3,7 +3,7 @@
  * Release under GPLv-3.0.
  * 
  * @file    hy_fifo.c
- * @brief   
+ * @brief   封装fifo操作函数
  * @author  gnsyxiang <gnsyxiang@163.com>
  * @date    23/09 2020 16:02
  * @version v0.0.1
@@ -29,10 +29,10 @@
 #include "hy_utils.h"
 #include "hy_log.h"
 
-#ifdef USE_DEBUG
-    #define ALONE_DEBUG 1
-    #define LOG_CATEGORY_TAG "hy_fifo"
-    // #define FIFO_PRINT_ALL
+#ifndef NDEBUG
+#   define ALONE_DEBUG 1
+#   define LOG_CATEGORY_TAG "hy_fifo"
+// #   define FIFO_PRINT_ALL
 #endif
 
 typedef struct {
@@ -70,7 +70,7 @@ static inline void _print_content(fifo_context_t *context)
     LOGE("cnt: %d, in: %d, out: %d \n", fifo_len, context->in, context->out);
 
     #define out_index (context->out & (context->size - 1))
-    uint32_t len_tmp = min_macro(fifo_len, context->size- out_index);
+    uint32_t len_tmp = HyUtilsMinMacro(fifo_len, context->size- out_index);
     _print_hex_ascii(context->buf + out_index, len_tmp);
     _print_hex_ascii(context->buf, fifo_len - len_tmp);
     printf("\n");
@@ -89,13 +89,13 @@ static uint32_t _get_data_com(fifo_context_t *context, const char *buf, uint32_t
     uint32_t head_tmp = context->head;
 
     // 比较获取的数据长度和实际fifo中存在的数据长度
-    len = min_macro(len, head_tmp - context->tail);
+    len = HyUtilsMinMacro(len, head_tmp - context->tail);
 #endif
 
-    len = min_macro(len, context->in - context->out);
+    len = HyUtilsMinMacro(len, context->in - context->out);
 
     #define out_index (context->out & (context->size - 1))
-    uint32_t len_tmp = min_macro(len, context->size - out_index);
+    uint32_t len_tmp = HyUtilsMinMacro(len, context->size - out_index);
 
     memcpy((void *)buf, context->buf + out_index, len_tmp);
     memcpy((void *)(buf + len_tmp), context->buf, len - len_tmp);
@@ -125,12 +125,12 @@ uint32_t HyFifoPut(void *handle, const char *buf, uint32_t len)
     uint32_t tail_tmp = context->tail;
 
     // 比较存取的数据长度和实际fifo中可被存入的数据长度
-    len = min_macro(len, context->len - context->head + tail_tmp);
+    len = HyUtilsMinMacro(len, context->len - context->head + tail_tmp);
 #endif
-    len = min_macro(len, context->size - context->in + context->out);
+    len = HyUtilsMinMacro(len, context->size - context->in + context->out);
 
     #define in_index (context->in & (context->size - 1))
-    uint32_t len_tmp = min_macro(len, context->size - in_index);
+    uint32_t len_tmp = HyUtilsMinMacro(len, context->size - in_index);
 
     memcpy(context->buf + in_index, buf, len_tmp);
     memcpy(context->buf, buf + len_tmp, len - len_tmp);
@@ -258,7 +258,7 @@ void *HyFifoCreate(uint32_t size)
         return NULL;
     }
 
-    if (!is_power_of_2(size) || size > 0x80000000) {
+    if (!HyUtilsIsPowerOf2(size) || size > 0x80000000) {
         size = HyUtilsNumTo2N2(size);
         LOGE("size must be power of 2, new size: %d \n", size);
     }
