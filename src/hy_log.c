@@ -25,6 +25,8 @@
 
 #include "hy_log.h"
 
+#include "hy_hal/hy_type.h"
+
 typedef struct {
     hy_uint32_t buf_len;
     char        *buf;
@@ -120,11 +122,11 @@ static inline void _output_reset_color(HyLogLevel_t level, hy_uint32_t *ret)
 #endif
 }
 
-hy_int32_t HyLogWrite(HyLogLevel_t level, const char *file, const char *func,
-        hy_uint32_t line, char *fmt, ...)
+void HyLogWrite(int level, const char *file, const char *func,
+        uint32_t line, char *fmt, ...)
 {
-    if (context->level < level) {
-        return -1;
+    if (context->level > level) {
+        return ;
     }
 
     hy_uint32_t ret = 0;
@@ -132,7 +134,7 @@ hy_int32_t HyLogWrite(HyLogLevel_t level, const char *file, const char *func,
 
     _output_set_color(level, &ret);
 
-    ret += snprintf(context->buf + ret, context->buf_len - ret, "[%s][%s %"PRId32"] ", file, func, line); 
+    ret += snprintf(context->buf + ret, context->buf_len - ret, "[%s:%"PRId32"][%s] ", file, line, func); 
 
     va_list args;
     va_start(args, fmt);
@@ -142,12 +144,10 @@ hy_int32_t HyLogWrite(HyLogLevel_t level, const char *file, const char *func,
     _output_reset_color(level, &ret);
 
     printf("%s", (char *)context->buf);
-
-    return 0;
 }
 
-void HyPrintHex(const char *name, hy_uint16_t line,
-        const char *buf, hy_int32_t len, hy_int8_t flag)
+void HyPrintHex(const char *name, uint16_t line,
+        const char *buf, int32_t len, int8_t flag)
 {
     if (len <= 0) {
         return;

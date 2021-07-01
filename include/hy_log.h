@@ -54,8 +54,8 @@ typedef enum {
         }                                                               \
     } while (0)
 
-void HyLogWrite(int level, const char *file, 
-        const char *func, uint32_t line, char *fmt, ...);
+void HyLogWrite(int level, const char *file,  const char *func,
+        uint32_t line, char *fmt, ...);
 
 void HyPrintHex(const char *name, uint16_t line,
         const char *buf, int32_t len, int8_t flag);
