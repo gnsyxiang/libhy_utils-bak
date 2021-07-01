@@ -32,11 +32,9 @@ bin_PROGRAMS    =
 # ---------------------
 _sources_com    +=
 
-_include_com    += \
-                   -I$(top_srcdir)/include
+_include_com    += -I$(top_srcdir)/include
 
-_ldflags_com    += \
-                   $(top_builddir)/src/lib@project_name@.la
+_ldflags_com    += $(top_builddir)/src/lib@project_name@.la
 
 if COMPILE_LIBHY_HAL
 _include_com    += $(HY_HAL_INCS)
@@ -57,8 +55,6 @@ _cflags_com     += $(CFLAGS_COM)
 _cxxflags_com   += $(CXXFLAGS_COM)
 
 _ldflags_com    += $(BIN_LDFLAGS_COM)
-
-_ldadd_com      +=
 
 bin_PROGRAMS            += test_hy_log
 test_hy_log_SOURCES     = $(_sources_com) hy_log_test.c
