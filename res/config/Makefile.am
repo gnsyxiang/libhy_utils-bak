@@ -19,5 +19,6 @@
 # ===============================================================
 
 configdir = $(prefix)/res/config
-config_DATA = \
-              log4cplus.rc
+
+config_DATA = log4cplus.rc
+

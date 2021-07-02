@@ -100,7 +100,7 @@ static void _test_struct(void)
 
 int main(int argc, char const* argv[])
 {
-    HyLogCreate(HY_LOG_LEVEL_INFO, 512, "./log4cplus.rc");
+    HyLogCreate(HY_LOG_LEVEL_INFO, 512, "./res/config/log4cplus.rc");
 
     _test_int();
     _test_struct();

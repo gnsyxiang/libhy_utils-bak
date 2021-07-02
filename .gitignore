@@ -80,6 +80,7 @@ doxygen/
 
 hy_utils.pc
 
+*.log
 *.o
 *.lo
 *.la

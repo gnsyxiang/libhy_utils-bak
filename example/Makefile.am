@@ -56,6 +56,9 @@ _cxxflags_com   += $(CXXFLAGS_COM)
 
 _ldflags_com    += $(BIN_LDFLAGS_COM)
 
+# -----------
+# compile app
+# -----------
 bin_PROGRAMS            += test_hy_log
 test_hy_log_SOURCES     = $(_sources_com) hy_log_test.c
 test_hy_log_CPPFLAGS    = $(_cppflags_com)

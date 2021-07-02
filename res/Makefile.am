@@ -18,13 +18,13 @@
 #     last modified: 06/04 2020 21:55
 # ===============================================================
 
-SUBDIRS = \
-          config
+SUBDIRS = config
 
 # ---------------
 # make dist files
 # ---------------
-_dist_files_com = Doxyfile \
+_dist_files_com = \
+                  Doxyfile \
                   get_project_info.sh
 EXTRA_DIST      = $(_dist_files_com)
 
