@@ -105,7 +105,7 @@ static uint32_t _get_data_com(fifo_context_t *context, const char *buf, uint32_t
 
 //---------------------------------------------------------------------------
 
-uint32_t HyFifoPut(void *handle, const char *buf, uint32_t len)
+uint32_t HyFifoPut(void *handle, void *buf, size_t len)
 {
     assert(handle || buf || len);
     // if (!handle || !buf || 0 == len) {
@@ -139,7 +139,7 @@ uint32_t HyFifoPut(void *handle, const char *buf, uint32_t len)
     return len;
 }
 
-uint32_t HyFifoGet(void *handle, const char *buf, uint32_t len)
+uint32_t HyFifoGet(void *handle, void *buf, size_t len)
 {
     if (!handle || !buf || 0 == len) {
         LOGE("the param is NULL, handle: %p, buf: %p, len: %d \n", handle, buf, len);
@@ -152,7 +152,7 @@ uint32_t HyFifoGet(void *handle, const char *buf, uint32_t len)
     return len;
 }
 
-uint32_t HyFifoPeek(void *handle, const char *buf, uint32_t len)
+uint32_t HyFifoPeek(void *handle, void *buf, size_t len)
 {
     if (!handle || !buf || 0 == len) {
         LOGE("the param is NULL, handle: %p, buf: %p, len: %d \n", handle, buf, len);

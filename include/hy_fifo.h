@@ -24,6 +24,7 @@
 extern "C" {
 #endif
 
+#include <stdio.h>
 #include <stdint.h>
 
 /**
@@ -68,7 +69,7 @@ void HyFifoClean(void *handle);
  *
  * @return 返回成功插入的字节数
  */
-uint32_t HyFifoPut(void *handle, const char *buf, uint32_t len);
+uint32_t HyFifoPut(void *handle, void *buf, size_t len);
 
 /**
  * @brief 从fifo中获取数据
@@ -79,7 +80,7 @@ uint32_t HyFifoPut(void *handle, const char *buf, uint32_t len);
  *
  * @return 返回成功取出的数据
  */
-uint32_t HyFifoGet(void *handle, const char *buf, uint32_t len);
+uint32_t HyFifoGet(void *handle, void *buf, size_t len);
 
 /**
  * @brief 从fifo中获取数据
@@ -92,7 +93,7 @@ uint32_t HyFifoGet(void *handle, const char *buf, uint32_t len);
  *
  * note: 该操作不会删除数据
  */
-uint32_t HyFifoPeek(void *handle, const char *buf, uint32_t len);
+uint32_t HyFifoPeek(void *handle, void *buf, size_t len);
 
 /**
  * @brief 从fifo中删除数据
