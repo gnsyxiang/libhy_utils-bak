@@ -37,18 +37,6 @@
 /* enable my log */
 #undef HAVE_MYLOG
 
-/* select linux target system */
-#undef HAVE_SELECT_TARGET_OS_LINUX
-
-/* select mac target system */
-#undef HAVE_SELECT_TARGET_OS_MAC
-
-/* select rtos target system */
-#undef HAVE_SELECT_TARGET_OS_RTOS
-
-/* select window target system */
-#undef HAVE_SELECT_TARGET_OS_WINDOW
-
 /* Define to 1 if you have the `socket' function. */
 #undef HAVE_SOCKET
 
