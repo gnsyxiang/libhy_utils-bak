@@ -45,6 +45,18 @@ uint32_t HyUtilsNumTo2N2(uint32_t num);
 //判断x是否是2的次方
 #define HyUtilsIsPowerOf2(x) ((x) != 0 && (((x) & ((x) - 1)) == 0))
 
+#define JUDGE_NULL_RET(param, ret)      \
+    if (param) {                        \
+        LOGE("the param is NULL \n");   \
+        return ret;                     \
+    }
+
+#define JUDGE_NULL(param)               \
+    if (param) {                        \
+        LOGE("the param is NULL \n");   \
+        return ;                        \
+    }
+
 #ifdef __cplusplus
 }
 #endif
