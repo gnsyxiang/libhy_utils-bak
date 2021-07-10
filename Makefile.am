@@ -20,11 +20,15 @@
 
 include res/doxygen.am
 
-SUBDIRS = include \
+SUBDIRS = \
+          include \
           src \
-          example \
           doc \
           res
+
+if COMPILE_SELECT_TARGET_OS_LINUX
+SUBDIRS += example
+endif
 
 # -----
 # flags
