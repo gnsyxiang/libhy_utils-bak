@@ -100,12 +100,16 @@ static void _test_struct(void)
 
 int main(int argc, char const* argv[])
 {
-    HyLogCreate(HY_LOG_LEVEL_INFO, 512, "./res/config/log4cplus.rc");
+    HyLogConfig_t log_config;
+    log_config.buf_len = 512;
+    log_config.level = HY_LOG_LEVEL_INFO;
+    log_config.config_file = "./res/config/log4cplus.rc";
+    HyLogCreate(&log_config);
 
     _test_int();
     _test_struct();
 
-    HyLogDestroy();
+    HyLogDestroy(NULL);
 
     return 0;
 }

@@ -30,9 +30,10 @@
 #include <log4cplus/helpers/socket.h>
 #include <log4cplus/loggingmacros.h>
 
-#include "hy_hal/hy_type.h"
-
 #include "hy_log.h"
+#include "hy_utils.h"
+
+#include "hy_hal/hy_type.h"
 
 using namespace log4cplus;
 
@@ -45,33 +46,34 @@ typedef struct {
 
 static context_t *context = nullptr;
 
-void HyLogCreate(int32_t level, uint32_t buf_len, const char *config_file)
+void *HyLogCreate(HyLogConfig_t *log_config)
 {
-    if (!config_file) {
-        printf("the config file is NULL\n");
-        return ;
+    if (!log_config) {
+        return NULL;
     }
 
     context = new context_t();
     if (!context) {
         printf("new context_t faild \n");
-        return;
+        return NULL;
     }
 
-    context->buf_len = buf_len;
-    context->buf = new char[buf_len];
+    context->buf_len = log_config->buf_len;
+    context->buf = new char[context->buf_len];
     if (!context->buf) {
         printf("new char faild \n");
-        return ;
+        return NULL;
     }
 
     helpers::LogLog::getLogLog()->setInternalDebugging(false);
-    PropertyConfigurator::doConfigure(config_file);
+    PropertyConfigurator::doConfigure(log_config->config_file);
 
     context->root = Logger::getRoot();
+
+    return context;
 }
 
-void HyLogDestroy(void)
+void HyLogDestroy(void *handle)
 {
     if (context) {
         if (context->buf) {

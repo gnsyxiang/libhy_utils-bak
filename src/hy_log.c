@@ -24,6 +24,7 @@
 #include <inttypes.h>
 
 #include "hy_log.h"
+#include "hy_utils.h"
 
 #include "hy_hal/hy_type.h"
 
@@ -38,26 +39,32 @@ typedef struct {
 
 static log_context_t *context = NULL;
 
-void HyLogCreate(int32_t level, hy_uint32_t buf_len, const char *config_file)
+void *HyLogCreate(HyLogConfig_t *log_config)
 {
+    if (!log_config) {
+        return NULL;
+    }
+
     context = (log_context_t *)calloc(1, sizeof(*context));
     if (!context) {
         printf("calloc faild \n");
-        return ;
+        return NULL;
     }
 
-    context->buf = (char *)calloc(1, buf_len);
+    context->buf = (char *)calloc(1, log_config->buf_len);
     if (!context->buf) {
         printf("buf_union create faild \n");
         free(context);
-        return ;
+        return NULL;
     }
 
-    context->buf_len    = buf_len;
-    context->level      = level;
+    context->buf_len    = log_config->buf_len;
+    context->level      = log_config->level;
+
+    return context;
 }
 
-void HyLogDestroy(void)
+void HyLogDestroy(void *handle)
 {
     if (context) {
         if (context->buf) {

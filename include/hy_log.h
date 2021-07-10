@@ -60,6 +60,12 @@ void HyLogWrite(int level, const char *file,  const char *func,
 void HyPrintHex(const char *name, uint16_t line,
         const char *buf, int32_t len, int8_t flag);
 
+typedef struct {
+    int32_t     level;
+    uint32_t    buf_len;
+    char        *config_file;
+} HyLogConfig_t;
+
 /**
  * @brief 创建log打印系统
  *
@@ -67,12 +73,12 @@ void HyPrintHex(const char *name, uint16_t line,
  * @param buf_len: 一行log的buf长度
  * @param config_file: 配置文件
  */
-void HyLogCreate(int32_t level, uint32_t buf_len, const char *config_file);
+void *HyLogCreate(HyLogConfig_t *log_config);
 
 /**
  * @brief 销毁log系统
  */
-void HyLogDestroy(void);
+void HyLogDestroy(void *handle);
 
 /**
  * @brief 输出对应的log等级函数
