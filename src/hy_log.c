@@ -152,15 +152,15 @@ void HyLogWrite(int level, const char *file, const char *func,
 }
 
 void HyPrintHex(const char *name, uint16_t line,
-        const char *buf, int32_t len, int8_t flag)
+        const char *buf, size_t len, int8_t flag)
 {
     if (len <= 0) {
         return;
     }
 
     hy_uint8_t cnt = 0;
-    printf("[%s %d]len: %d \r\n", name, line, len);
-    for (int i = 0; i < len; i++) {
+    printf("[%s %d]len: %zu \r\n", name, line, len);
+    for (size_t i = 0; i < len; i++) {
         if (flag == 1) {
             if (buf[i] == 0x0d || buf[i] == 0x0a || buf[i] < 32 || buf[i] >= 127) {
                 printf("%02x[ ]  ", (hy_uint8_t)buf[i]);

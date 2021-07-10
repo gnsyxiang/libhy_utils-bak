@@ -24,6 +24,7 @@
 extern "C" {
 #endif
 
+#include <stdio.h>
 #include <stdint.h>
 
 /**
@@ -58,7 +59,7 @@ void HyLogWrite(int level, const char *file,  const char *func,
         uint32_t line, char *fmt, ...);
 
 void HyPrintHex(const char *name, uint16_t line,
-        const char *buf, int32_t len, int8_t flag);
+        const char *buf, size_t len, int8_t flag);
 
 typedef struct {
     int32_t     level;
