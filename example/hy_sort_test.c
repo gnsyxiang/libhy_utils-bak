@@ -111,6 +111,8 @@ static void _module_destroy(_main_context_t *context)
     };
 
     RUN_DESTROY(module);
+
+    free(context);
 }
 
 static _main_context_t *_module_create(void)
@@ -126,11 +128,10 @@ static _main_context_t *_module_create(void)
     log_config.buf_len = 512;
     log_config.level = HY_LOG_LEVEL_INFO;
     log_config.config_file = "./res/config/log4cplus.rc";
-    HyLogCreate(&log_config);
 
     // note: 增加或删除要同步到module_destroy_t中
     module_create_t module[] = {
-        {"log",  context->log_handle,   &log_config,    (create_t)HyLogCreate,    HyLogDestroy},
+        {"log",  &context->log_handle,   &log_config,    (create_t)HyLogCreate,    HyLogDestroy},
     };
 
     RUN_CREATE(module);
