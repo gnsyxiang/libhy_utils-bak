@@ -69,7 +69,7 @@ void HyFifoClean(void *handle);
  *
  * @return 返回成功插入的字节数
  */
-uint32_t HyFifoPut(void *handle, void *buf, size_t len);
+int HyFifoPut(void *handle, void *buf, size_t len);
 
 /**
  * @brief 从fifo中获取数据

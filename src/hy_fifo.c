@@ -105,7 +105,7 @@ static uint32_t _get_data_com(fifo_context_t *context, const char *buf, uint32_t
 
 //---------------------------------------------------------------------------
 
-uint32_t HyFifoPut(void *handle, void *buf, size_t len)
+int HyFifoPut(void *handle, void *buf, size_t len)
 {
     assert(handle || buf || len);
     // if (!handle || !buf || 0 == len) {
