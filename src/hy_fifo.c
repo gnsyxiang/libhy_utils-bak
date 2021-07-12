@@ -22,12 +22,12 @@
 #include <string.h>
 #include <assert.h>
 
-#include "hy_hal/hy_type.h"
-
 #include "hy_fifo.h"
 
 #include "hy_utils.h"
 #include "hy_log.h"
+
+#include "hy_hal/hy_type.h"
 
 #ifndef NDEBUG
 #   define ALONE_DEBUG 1
@@ -222,32 +222,26 @@ void HyFifoDump(void *handle)
 
 void HyFifoClean(void *handle)
 {
-    if (!handle) {
-        LOGE("the param is NULL, handle: %p \n", handle);
-        return;
-    }
+    JUDGE_NULL(!handle);
+
     fifo_context_t *context = handle;
 
     memset(context->buf, '\0', context->size);
     context->in = context->out = 0;
 }
 
-void HyFifoDestroy(void *handle)
+void HyFifoDestroy(void **handle)
 {
-    if (!handle) {
-        LOGE("the param is NULL, handle: %p \n", handle);
-        return;
-    }
-    fifo_context_t *context = handle;
+    JUDGE_NULL(!handle || !*handle);
+
+    fifo_context_t *context = *handle;
 
     if (context) {
         if (context->buf) {
-            free(context->buf);
-            context->buf = NULL;
+            FREE(&context->buf);
         }
 
-        free(context);
-        context = NULL;
+        FREE(handle);
     }
 }
 

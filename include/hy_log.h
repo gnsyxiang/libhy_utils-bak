@@ -79,7 +79,7 @@ void *HyLogCreate(HyLogConfig_t *log_config);
 /**
  * @brief 销毁log系统
  */
-void HyLogDestroy(void *handle);
+void HyLogDestroy(void **handle);
 
 /**
  * @brief 输出对应的log等级函数

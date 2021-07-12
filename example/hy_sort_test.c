@@ -103,16 +103,18 @@ static void _test_struct(void)
     _dum_student(stu, len);
 }
 
-static void _module_destroy(_main_context_t *context)
+static void _module_destroy(_main_context_t **context_pp)
 {
+    _main_context_t *context = *context_pp;
+
     // note: 增加或删除要同步到module_create_t中
     module_destroy_t module[] = {
-        {"log",     context->log_handle,    HyLogDestroy},
+        {"log",     &context->log_handle,   HyLogDestroy},
     };
 
     RUN_DESTROY(module);
 
-    free(context);
+    FREE(context_pp);
 }
 
 static _main_context_t *_module_create(void)
@@ -150,7 +152,7 @@ int main(int argc, char *argv[])
     _test_int();
     _test_struct();
 
-    _module_destroy(context);
+    _module_destroy(&context);
 
     return 0;
 }

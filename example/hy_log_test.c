@@ -23,6 +23,7 @@
 
 #include "hy_log.h"
 #include "hy_module.h"
+#include "hy_utils.h"
 
 #define ALONE_DEBUG 1
 #define LOG_CATEGORY_TAG "main"
@@ -48,16 +49,18 @@ static void _test_print_hex(void)
     PRINT_HEX(str, strlen(str));
 }
 
-static void _module_destroy(_main_context_t *context)
+static void _module_destroy(_main_context_t **context_pp)
 {
+    _main_context_t *context = *context_pp;
+
     // note: 增加或删除要同步到module_create_t中
     module_destroy_t module[] = {
-        {"log",     context->log_handle,    HyLogDestroy},
+        {"log",     &context->log_handle,   HyLogDestroy},
     };
 
     RUN_DESTROY(module);
 
-    free(context);
+    FREE(context_pp);
 }
 
 static _main_context_t *_module_create(void)
@@ -95,7 +98,7 @@ int main(int argc, char *argv[])
     _test_log();
     _test_print_hex();
 
-    _module_destroy(context);
+    _module_destroy(&context);
 
     return 0;
 }

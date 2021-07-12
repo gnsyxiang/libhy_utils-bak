@@ -54,7 +54,7 @@ void *HyLogCreate(HyLogConfig_t *log_config)
     context->buf = (char *)calloc(1, log_config->buf_len);
     if (!context->buf) {
         printf("buf_union create faild \n");
-        free(context);
+        FREE(&context);
         return NULL;
     }
 
@@ -64,13 +64,13 @@ void *HyLogCreate(HyLogConfig_t *log_config)
     return context;
 }
 
-void HyLogDestroy(void *handle)
+void HyLogDestroy(void **handle)
 {
     if (context) {
         if (context->buf) {
-            free(context->buf);
+            FREE(&context->buf);
         }
-        free(context);
+        FREE(handle);
     }
 }
 

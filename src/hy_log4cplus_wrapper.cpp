@@ -73,13 +73,14 @@ void *HyLogCreate(HyLogConfig_t *log_config)
     return context;
 }
 
-void HyLogDestroy(void *handle)
+void HyLogDestroy(void **handle)
 {
     if (context) {
         if (context->buf) {
             delete []context->buf;
         }
         delete context;
+        *handle = NULL;
     }
 }
 

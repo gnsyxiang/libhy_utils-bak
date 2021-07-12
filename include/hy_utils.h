@@ -57,6 +57,12 @@ uint32_t HyUtilsNumTo2N2(uint32_t num);
         return ;                        \
     }
 
+#define FREE(mem)       \
+    do {                \
+        free(*mem);     \
+        *mem = NULL;    \
+    } while (0)
+
 #ifdef __cplusplus
 }
 #endif

@@ -51,7 +51,7 @@ void *HyFifoCreate(uint32_t size);
  *
  * @param handle: 操作fifo句柄
  */
-void HyFifoDestroy(void *handle);
+void HyFifoDestroy(void **handle);
 
 /**
  * @brief 清除fifo中的数据
