@@ -238,10 +238,10 @@ void HyFifoDestroy(void **handle)
 
     if (context) {
         if (context->buf) {
-            FREE(&context->buf);
+            HY_FREE(&context->buf);
         }
 
-        FREE(handle);
+        HY_FREE(handle);
     }
 }
 
@@ -266,8 +266,8 @@ void *HyFifoCreate(uint32_t size)
     context->buf = calloc(1, size);
     if (!context->buf) {
         LOGE("calloc faild \n");
-        free(context);
-        context = NULL;
+
+        HY_FREE(&context);
         return NULL;
     }
     context->size = size;

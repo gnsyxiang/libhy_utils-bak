@@ -114,7 +114,7 @@ static void _module_destroy(_main_context_t **context_pp)
 
     RUN_DESTROY(module);
 
-    FREE(context_pp);
+    HY_FREE(context_pp);
 }
 
 static _main_context_t *_module_create(void)
