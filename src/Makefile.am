@@ -27,13 +27,14 @@ _cflags_com     =
 _cxxflags_com   =
 _ldflags_com    =
 _ldadd_com      =
+_no_error_com   =
 
 # ---------------------
 # add necessary content
 # ---------------------
-_include_com    += \
-                   $(HY_HAL_INCS) \
-                   -I$(top_srcdir)/include
+_no_error_com   += -Wno-error=address
+
+_include_com    += -I$(top_srcdir)/include
 
 _sources_com    += \
                    hy_fifo.c \
@@ -48,19 +49,21 @@ if COMPILE_LIBLOG4CPLUS
 _sources_com    += hy_log4cplus_wrapper.cpp
 endif
 
-_cppflags_com   += $(CPPFLAGS_COM) \
+_cppflags_com   += \
+                   $(_no_error_com) \
+                   $(CPPFLAGS_COM) \
                    $(_include_com)
 
 _cflags_com     += $(CFLAGS_COM)
 
 _cxxflags_com   += $(CXXFLAGS_COM)
 
-_ldflags_com    += $(LIB_LDFLAGS_COM) \
+_ldflags_com    += \
+                   $(LIB_LDFLAGS_COM) \
                    -export-symbols-regex 'Hy*' \
                    -version-info @current@:@revision@:@age@
 
-_ldadd_com      += \
-                   $(HY_HAL_LIBS)
+_ldadd_com      +=
 
 lib@project_name@_la_SOURCES    = $(_sources_com)
 lib@project_name@_la_CPPFLAGS   = $(_cppflags_com)

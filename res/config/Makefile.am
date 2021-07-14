@@ -18,7 +18,13 @@
 #     last modified: 03/06 2021 10:22
 # ===============================================================
 
+# ------------------
+# defining variables
+# ------------------
 configdir = $(prefix)/res/config
 
+# ------------------
+# make install files
+# ------------------
 config_DATA = log4cplus.rc
 

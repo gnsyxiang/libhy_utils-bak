@@ -30,33 +30,51 @@ if COMPILE_SELECT_TARGET_OS_LINUX
 SUBDIRS += example
 endif
 
-# -----
-# flags
-# -----
+# ------------------
+# defining variables
+# ------------------
+_no_error_com       =
+_remove_unuse_func  =
+_install_files_com  =
+_dist_files_com     =
+
+CPPFLAGS_COM        =
+CFLAGS_COM          =
+CXXFLAGS_COM        =
+LIB_LDFLAGS_COM     =
+BIN_LDFLAGS_COM     =
+
 ACLOCAL_AMFLAGS     = -I m4
+pkgconfigdir        = $(libdir)/pkgconfig
 
-_no_error_com       = -W -Wall -Werror \
-                      -Wno-error=unused-but-set-variable \
-                      -Wno-error=unused-variable \
-                      -Wno-error=unused-result \
-                      -Wno-unused-parameter
+# ---------------------
+# add necessary content
+# ---------------------
+_no_error_com       += \
+                       -W -Wall -Werror \
+                       -Wno-error=unused-but-set-variable \
+                       -Wno-error=unused-variable \
+                       -Wno-error=unused-result \
+                       -Wno-unused-parameter
 
-_remove_unuse_func  = -ffunction-sections \
-                      -fdata-sections
+CPPFLAGS_COM        += \
+                       -pipe \
+                       $(_no_error_com) \
+                       $(ACLOCAL_AMFLAGS)
 
-CPPFLAGS_COM        = -pipe \
-                      $(_no_error_com) \
-                      $(ACLOCAL_AMFLAGS)
+LIB_LDFLAGS_COM     += -rdynamic
 
-CFLAGS_COM          = $(_remove_unuse_func)
+_remove_unuse_func  += \
+                       -ffunction-sections \
+                       -fdata-sections
+CFLAGS_COM          += $(_remove_unuse_func)
+CXXFLAGS_COM        += $(_remove_unuse_func)
+BIN_LDFLAGS_COM     += -Wl,--gc-sections
 
-CXXFLAGS_COM        = \
-                      $(_remove_unuse_func)
-
-LIB_LDFLAGS_COM     = -rdynamic
-
-BIN_LDFLAGS_COM     = \
-                      -Wl,--gc-sections
+if COMPILE_LIBHY_HAL
+CPPFLAGS_COM        += $(HY_HAL_INCS)
+BIN_LDFLAGS_COM     += $(HY_HAL_LIBS)
+endif
 
 export CPPFLAGS_COM
 export CFLAGS_COM
@@ -67,20 +85,19 @@ export BIN_LDFLAGS_COM
 # ------------------
 # make install files
 # ------------------
-_install_files_com  = LICENSE \
-                      README.md
+_install_files_com  += \
+                       LICENSE \
+                       README.md
 dist_doc_DATA       = $(_install_files_com)
-
-pkgconfigdir        = $(libdir)/pkgconfig
 pkgconfig_DATA      = @project_name@.pc
 
 # ---------------
 # make dist files
 # ---------------
-_dist_files_com     = \
-                      autogen.sh \
-                      build.sh \
-                      @project_name@.pc.in
+_dist_files_com     += \
+                       autogen.sh \
+                       build.sh \
+                       @project_name@.pc.in
 EXTRA_DIST          = $(_dist_files_com)
 
 if COMPILE_LIBLOG4CPLUS

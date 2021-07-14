@@ -18,6 +18,9 @@
 #     last modified: 21/03 2020 14:10
 # ===============================================================
 
+# ------------------
+# defining variables
+# ------------------
 _include_com    =
 _sources_com    =
 _cppflags_com   =
@@ -30,21 +33,9 @@ bin_PROGRAMS    =
 # ---------------------
 # add necessary content
 # ---------------------
-_sources_com    +=
-
 _include_com    += -I$(top_srcdir)/include
 
-_ldflags_com    += $(top_builddir)/src/lib@project_name@.la
-
-if COMPILE_LIBHY_HAL
-_include_com    += $(HY_HAL_INCS)
-_ldflags_com    += $(HY_HAL_LIBS)
-endif
-
-if COMPILE_LIBLOG4CPLUS
-_include_com    += $(LOG4CPLUS_INCS)
-_ldflags_com    += $(LOG4CPLUS_LIBS)
-endif
+_sources_com    +=
 
 _cppflags_com   += \
                    $(CPPFLAGS_COM) \
@@ -55,6 +46,13 @@ _cflags_com     += $(CFLAGS_COM)
 _cxxflags_com   += $(CXXFLAGS_COM)
 
 _ldflags_com    += $(BIN_LDFLAGS_COM)
+
+_ldadd_com      += $(top_builddir)/src/lib@project_name@.la
+
+if COMPILE_LIBLOG4CPLUS
+_cppflags_com   += $(LOG4CPLUS_INCS)
+_ldadd_com      += $(LOG4CPLUS_LIBS)
+endif
 
 # -----------
 # compile app
