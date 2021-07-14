@@ -46,16 +46,6 @@ uint32_t HyUtilsNumTo2N2(uint32_t num);
 //判断x是否是2的次方
 #define HyUtilsIsPowerOf2(x) ((x) != 0 && (((x) & ((x) - 1)) == 0))
 
-#define HY_STRNCPY(dst, src, max_len)   \
-do {                                    \
-    memset(dst, '\0', max_len);         \
-    size_t len = strlen(src);           \
-    if (len >= max_len) {               \
-        len = max_len - 1;              \
-    }                                   \
-    strncpy(dst, src, len);             \
-} while (0)
-
 #define JUDGE_NULL_RET(param, ret)      \
     if (param) {                        \
         LOGE("the param is NULL \n");   \
@@ -67,12 +57,6 @@ do {                                    \
         LOGE("the param is NULL \n");   \
         return ;                        \
     }
-
-#define HY_FREE(mem)    \
-    do {                \
-        free(*mem);     \
-        *mem = NULL;    \
-    } while (0)
 
 #ifdef __cplusplus
 }
