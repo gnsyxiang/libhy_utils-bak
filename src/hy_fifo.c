@@ -28,6 +28,7 @@
 #include "hy_log.h"
 
 #include "hy_hal/hy_type.h"
+#include "hy_hal/hy_mem.h"
 
 #ifndef NDEBUG
 #   define ALONE_DEBUG 1

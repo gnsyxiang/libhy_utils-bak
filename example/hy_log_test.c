@@ -25,6 +25,8 @@
 #include "hy_module.h"
 #include "hy_utils.h"
 
+#include "hy_hal/hy_mem.h"
+
 #define ALONE_DEBUG 1
 #define LOG_CATEGORY_TAG "main"
 
