@@ -26,7 +26,6 @@
 #include "hy_log.h"
 
 #define ALONE_DEBUG 1
-#define LOG_CATEGORY_TAG "hy_utils"
 
 void HyIpStr2Int(const char *ip_str, uint32_t *ip_num)
 {

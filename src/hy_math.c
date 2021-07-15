@@ -22,9 +22,9 @@
 #include<time.h>
 
 #include "hy_math.h"
-#include "hy_log.h"
 
-#include "hy_hal/hy_compile.h"
+#include "hy_log.h"
+#include "hy_compile.h"
 
 #define ALONE_DEBUG 1
 

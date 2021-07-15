@@ -22,6 +22,11 @@
 #include <stdarg.h>
 #include <string.h>
 
+#include "hy_log.h"
+
+#include "hy_utils.h"
+#include "hy_type.h"
+
 #include <log4cplus/config.hxx>
 #include <log4cplus/logger.h>
 #include <log4cplus/configurator.h>
@@ -29,11 +34,6 @@
 #include <log4cplus/helpers/stringhelper.h>
 #include <log4cplus/helpers/socket.h>
 #include <log4cplus/loggingmacros.h>
-
-#include "hy_log.h"
-#include "hy_utils.h"
-
-#include "hy_hal/hy_type.h"
 
 using namespace log4cplus;
 

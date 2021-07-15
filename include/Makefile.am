@@ -26,13 +26,18 @@ install_includedir      = $(includedir)/@project_name@
 NO_INSTALL_HEADERS_COM  +=
 
 INSTALL_HEADERS_COM     += \
-                           hy_module.h \
+                           hy_compile.h \
+                           hy_error.h \
                            hy_fifo.h \
-                           hy_math.h \
                            hy_list.h \
-                           hy_utils.h \
+                           hy_log.h \
+                           hy_math.h \
+                           hy_mem.h \
+                           hy_module.h \
                            hy_sort.h \
-                           hy_log.h
+                           hy_string.h \
+                           hy_type.h \
+                           hy_utils.h
 
 noinst_HEADERS          = $(NO_INSTALL_HEADERS_COM)
 install_include_HEADERS = $(INSTALL_HEADERS_COM)

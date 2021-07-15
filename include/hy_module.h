@@ -24,6 +24,8 @@
 extern "C" {
 #endif
 
+#include "hy_utils.h"
+
 typedef void *(*create_t)(void *config);
 typedef void (*destroy_t)(void **handle);
 typedef struct {
@@ -40,36 +42,40 @@ typedef struct {
     destroy_t   destroy;
 } module_destroy_t;
 
-#define HyUtilsArrayCnt(array) (int)(sizeof((array)) / sizeof((array)[0]))
-
-#define RUN_CREATE(module)                                      \
-    do {                                                        \
-        int i = 0;                                              \
-        int len = HyUtilsArrayCnt(module);                      \
-        for (i = 0; i < len; ++i) {                             \
-            module_create_t *create = &module[i];               \
-            *create->handle = create->create(create->config);   \
-            if (!*create->handle) {                             \
-                LOGE("%s create error \n", create->name);       \
-                break;                                          \
-            }                                                   \
-        }                                                       \
-                                                                \
-        if (i < len) {                                          \
-            for (int j = i - 1; j >= 0; j--) {                  \
-                module_create_t *create = &module[j];           \
-                create->destroy(create->handle);                \
-            }                                                   \
-            return NULL;                                        \
-        }                                                       \
+#define RUN_CREATE(module)                                          \
+    do {                                                            \
+        int i = 0;                                                  \
+        int len = HyUtilsArrayCnt(module);                          \
+        for (i = 0; i < len; ++i) {                                 \
+            module_create_t *create = &module[i];                   \
+            if (create->create) {                                   \
+                *create->handle = create->create(create->config);   \
+                if (!*create->handle) {                             \
+                    LOGE("%s create error \n", create->name);       \
+                    break;                                          \
+                }                                                   \
+            }                                                       \
+        }                                                           \
+                                                                    \
+        if (i < len) {                                              \
+            for (int j = i - 1; j >= 0; j--) {                      \
+                module_create_t *create = &module[j];               \
+                if (create->destroy) {                              \
+                    create->destroy(create->handle);                \
+                }                                                   \
+            }                                                       \
+            return NULL;                                            \
+        }                                                           \
     } while(0)
 
-#define RUN_DESTROY(module)                                     \
-    do {                                                        \
-        for (int i = 0; i < HyUtilsArrayCnt(module); ++i) {     \
-            module_destroy_t *destroy = &module[i];             \
-            destroy->destroy(destroy->handle);                  \
-        }                                                       \
+#define RUN_DESTROY(module)                                         \
+    do {                                                            \
+        for (int i = 0; i < HyUtilsArrayCnt(module); ++i) {         \
+            module_destroy_t *destroy = &module[i];                 \
+            if (destroy->destroy) {                                 \
+                destroy->destroy(destroy->handle);                  \
+            }                                                       \
+        }                                                           \
     } while(0)
 
 #ifdef __cplusplus

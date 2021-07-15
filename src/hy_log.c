@@ -24,9 +24,10 @@
 #include <inttypes.h>
 
 #include "hy_log.h"
-#include "hy_utils.h"
 
-#include "hy_hal/hy_type.h"
+#include "hy_utils.h"
+#include "hy_type.h"
+#include "hy_mem.h"
 
 typedef struct {
     hy_uint32_t buf_len;
@@ -54,7 +55,7 @@ void *HyLogCreate(HyLogConfig_t *log_config)
     context->buf = (char *)calloc(1, log_config->buf_len);
     if (!context->buf) {
         printf("buf_union create faild \n");
-        FREE(&context);
+        HY_FREE(&context);
         return NULL;
     }
 
@@ -68,9 +69,10 @@ void HyLogDestroy(void **handle)
 {
     if (context) {
         if (context->buf) {
-            FREE(&context->buf);
+            HY_FREE(&context->buf);
         }
-        FREE(handle);
+
+        HY_FREE(handle);
     }
 }
 

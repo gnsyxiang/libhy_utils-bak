@@ -34,16 +34,16 @@ CHECK_VERSION_INFO
 CHECK_DOXYGEN
 CHECK_JAVA
 
-CHECK_LIBHY_HAL
 CHECK_LIBLOG4CPLUS
 ENABLE_MYLOG
 
+ENABLE_MCU_AT32F407VGT7
 SELECT_TARGET_OS
 
 # Checks for libraries.
 
 # Checks for header files.
-AC_CHECK_HEADERS([arpa/inet.h fcntl.h inttypes.h stddef.h stdint.h stdlib.h string.h sys/socket.h termios.h unistd.h])
+AC_CHECK_HEADERS([fcntl.h inttypes.h stddef.h stdint.h stdlib.h string.h termios.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_CHECK_HEADER_STDBOOL
@@ -58,7 +58,8 @@ AC_TYPE_UINT8_T
 
 # Checks for library functions.
 AC_FUNC_MALLOC
-AC_CHECK_FUNCS([memset socket strdup strerror strstr])
+AC_FUNC_REALLOC
+AC_CHECK_FUNCS([memset strdup strstr])
 
 AC_CONFIG_FILES([Makefile
                  $project_name.pc

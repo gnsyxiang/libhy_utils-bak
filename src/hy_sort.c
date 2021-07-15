@@ -22,10 +22,10 @@
 #include <stdlib.h>
 
 #include "hy_sort.h"
+
 #include "hy_log.h"
 
 #define ALONE_DEBUG 1
-#define LOG_CATEGORY_TAG "hy_sort"
 
 static inline void _mem_swap(void *dst, void *src,
         void *tmp, hy_uint32_t item_len)

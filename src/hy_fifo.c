@@ -25,14 +25,12 @@
 #include "hy_fifo.h"
 
 #include "hy_utils.h"
+#include "hy_type.h"
+#include "hy_mem.h"
 #include "hy_log.h"
-
-#include "hy_hal/hy_type.h"
-#include "hy_hal/hy_mem.h"
 
 #ifndef NDEBUG
 #   define ALONE_DEBUG 1
-#   define LOG_CATEGORY_TAG "hy_fifo"
 // #   define FIFO_PRINT_ALL
 #endif
 

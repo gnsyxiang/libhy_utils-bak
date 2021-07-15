@@ -32,7 +32,7 @@ elif [ x$1 = x"mcu" ]; then
     gcc_prefix=arm-none-eabi
     cross_gcc_path=${data_disk_path}/opt/toolchains/${vender}/${gcc_version}/bin/${gcc_prefix}-
     _ldflag_com="-specs=nano.specs -specs=nosys.specs"
-    _param_com="--with-target_os=mcu --disable-log4cplus --enable-mylog"
+    _param_com="--with-target_os=mcu --disable-log4cplus --enable-mylog --enable-at32f407vgt7"
 else
     help_info
 fi

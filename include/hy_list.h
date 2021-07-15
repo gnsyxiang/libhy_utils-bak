@@ -2,9 +2,8 @@
 #ifndef _LINUX_LIST_H
 #define _LINUX_LIST_H
 
-#ifndef NULL
-#define NULL (void *)0
-#endif
+#include "hy_type.h"
+
 // import from include/linux/types.h
 struct list_head {
     struct list_head *next, *prev;
