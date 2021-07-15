@@ -26,6 +26,7 @@
 
 #include "hy_utils.h"
 #include "hy_type.h"
+#include "hy_assert.h"
 
 #include <log4cplus/config.hxx>
 #include <log4cplus/logger.h>
@@ -34,6 +35,8 @@
 #include <log4cplus/helpers/stringhelper.h>
 #include <log4cplus/helpers/socket.h>
 #include <log4cplus/loggingmacros.h>
+
+#define ALONE_DEBUG 1
 
 using namespace log4cplus;
 
@@ -45,44 +48,6 @@ typedef struct {
 } context_t;
 
 static context_t *context = nullptr;
-
-void *HyLogCreate(HyLogConfig_t *log_config)
-{
-    if (!log_config) {
-        return NULL;
-    }
-
-    context = new context_t();
-    if (!context) {
-        printf("new context_t faild \n");
-        return NULL;
-    }
-
-    context->buf_len = log_config->buf_len;
-    context->buf = new char[context->buf_len];
-    if (!context->buf) {
-        printf("new char faild \n");
-        return NULL;
-    }
-
-    helpers::LogLog::getLogLog()->setInternalDebugging(false);
-    PropertyConfigurator::doConfigure(log_config->config_file);
-
-    context->root = Logger::getRoot();
-
-    return context;
-}
-
-void HyLogDestroy(void **handle)
-{
-    if (context) {
-        if (context->buf) {
-            delete []context->buf;
-        }
-        delete context;
-        *handle = NULL;
-    }
-}
 
 void HyLogWrite(LogLevel level, const char *file,
         const char *func, uint32_t line, char *fmt, ...)
@@ -126,4 +91,40 @@ void HyPrintHex(const char *name, uint16_t line,
         }
     }
     printf("\r\n");
+}
+
+void HyLogDestroy(void **handle)
+{
+    if (context) {
+        if (context->buf) {
+            delete []context->buf;
+        }
+        delete context;
+        *handle = NULL;
+    }
+}
+
+void *HyLogCreate(HyLogConfig_t *log_config)
+{
+    ASSERT_NULL_RET_VAL(!log_config, NULL);
+
+    context = new context_t();
+    if (!context) {
+        printf("new context_t faild \n");
+        return NULL;
+    }
+
+    context->buf_len = log_config->buf_len;
+    context->buf = new char[context->buf_len];
+    if (!context->buf) {
+        printf("new char faild \n");
+        return NULL;
+    }
+
+    helpers::LogLog::getLogLog()->setInternalDebugging(false);
+    PropertyConfigurator::doConfigure(log_config->config_file);
+
+    context->root = Logger::getRoot();
+
+    return context;
 }

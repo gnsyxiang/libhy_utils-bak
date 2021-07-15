@@ -23,7 +23,7 @@
 
 #include "hy_mem.h"
 
-#include "hy_utils.h"
+#include "hy_assert.h"
 #include "hy_log.h"
 
 #define ALONE_DEBUG 1
@@ -55,7 +55,7 @@ void *HyCalloc(size_t nmemb, size_t size)
 
 void *HyRealloc(void *ptr, size_t size)
 {
-    JUDGE_NULL_RET(!ptr, NULL);
+    ASSERT_NULL_RET_VAL(!ptr, NULL);
     return realloc(ptr, size);
 }
 

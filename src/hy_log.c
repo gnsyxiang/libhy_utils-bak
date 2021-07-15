@@ -25,9 +25,11 @@
 
 #include "hy_log.h"
 
-#include "hy_utils.h"
+#include "hy_assert.h"
 #include "hy_type.h"
 #include "hy_mem.h"
+
+#define ALONE_DEBUG 1
 
 typedef struct {
     hy_uint32_t buf_len;
@@ -36,44 +38,36 @@ typedef struct {
     hy_uint32_t cur_len;
 
     hy_uint8_t  level;
-} log_context_t;
+} _log_context_t;
 
-static log_context_t *context = NULL;
+static _log_context_t *context = NULL;
 
-void *HyLogCreate(HyLogConfig_t *log_config)
+void HyPrintHex(const char *name, uint16_t line,
+        const char *buf, size_t len, int8_t flag)
 {
-    if (!log_config) {
-        return NULL;
+    if (len <= 0) {
+        return;
     }
 
-    context = (log_context_t *)calloc(1, sizeof(*context));
-    if (!context) {
-        printf("calloc faild \n");
-        return NULL;
-    }
-
-    context->buf = (char *)calloc(1, log_config->buf_len);
-    if (!context->buf) {
-        printf("buf_union create faild \n");
-        HY_FREE(&context);
-        return NULL;
-    }
-
-    context->buf_len    = log_config->buf_len;
-    context->level      = log_config->level;
-
-    return context;
-}
-
-void HyLogDestroy(void **handle)
-{
-    if (context) {
-        if (context->buf) {
-            HY_FREE(&context->buf);
+    hy_uint8_t cnt = 0;
+    printf("[%s %d]len: %zu \r\n", name, line, len);
+    for (size_t i = 0; i < len; i++) {
+        if (flag == 1) {
+            if (buf[i] == 0x0d || buf[i] == 0x0a || buf[i] < 32 || buf[i] >= 127) {
+                printf("%02x[ ]  ", (hy_uint8_t)buf[i]);
+            } else {
+                printf("%02x[%c]  ", (hy_uint8_t)buf[i], (hy_uint8_t)buf[i]);
+            }
+        } else {
+            printf("%02x ", (hy_uint8_t)buf[i]);
         }
-
-        HY_FREE(handle);
+        cnt++;
+        if (cnt == 16) {
+            cnt = 0;
+            printf("\r\n");
+        }
     }
+    printf("\r\n");
 }
 
 /*设置输出前景色*/
@@ -153,31 +147,32 @@ void HyLogWrite(int level, const char *file, const char *func,
     }
 }
 
-void HyPrintHex(const char *name, uint16_t line,
-        const char *buf, size_t len, int8_t flag)
+void HyLogDestroy(void **handle)
 {
-    if (len <= 0) {
-        return;
-    }
+    if (context) {
+        if (context->buf) {
+            HY_FREE(&context->buf);
+        }
 
-    hy_uint8_t cnt = 0;
-    printf("[%s %d]len: %zu \r\n", name, line, len);
-    for (size_t i = 0; i < len; i++) {
-        if (flag == 1) {
-            if (buf[i] == 0x0d || buf[i] == 0x0a || buf[i] < 32 || buf[i] >= 127) {
-                printf("%02x[ ]  ", (hy_uint8_t)buf[i]);
-            } else {
-                printf("%02x[%c]  ", (hy_uint8_t)buf[i], (hy_uint8_t)buf[i]);
-            }
-        } else {
-            printf("%02x ", (hy_uint8_t)buf[i]);
-        }
-        cnt++;
-        if (cnt == 16) {
-            cnt = 0;
-            printf("\r\n");
-        }
+        HY_FREE(&context);
     }
-    printf("\r\n");
+}
+
+void *HyLogCreate(HyLogConfig_t *log_config)
+{
+    ASSERT_NULL_RET_VAL(!log_config, NULL);
+
+    do {
+        context = HY_MALLOC_BREAK(sizeof(*context));
+        context->buf = HY_MALLOC_BREAK(log_config->buf_len);
+
+        context->buf_len    = log_config->buf_len;
+        context->level      = log_config->level;
+
+        return context;
+    } while (0);
+
+    HyLogDestroy((void **)&context);
+    return NULL;
 }
 

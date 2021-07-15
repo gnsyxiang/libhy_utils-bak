@@ -24,6 +24,8 @@
 #include "hy_sort.h"
 
 #include "hy_log.h"
+#include "hy_assert.h"
+#include "hy_mem.h"
 
 #define ALONE_DEBUG 1
 
@@ -38,20 +40,14 @@ static inline void _mem_swap(void *dst, void *src,
 void HySortBubble(void *array, hy_uint32_t len,
         hy_uint32_t item_len, HySortSwapCb_t swap_cb)
 {
-    if (!array || !swap_cb) {
-        LOGE("the array or swap_cb is NULL \n");
-        return;
-    }
+    ASSERT_NULL_RET(!array || !swap_cb);
+
     if (0 == len || 0 == item_len) {
         LOGE("the len or item_len is zero \n");
         return;
     }
 
-    char *tmp = calloc(1, item_len);
-    if (!tmp) {
-        LOGE("calloc is faild \n");
-        return;
-    }
+    char *tmp = HY_MALLOC_RET(item_len);
 
     for (hy_uint32_t i = 0; i < len; i++) {
         for (hy_uint32_t j = 0; j + 1 < len - i; j++) {
@@ -63,7 +59,7 @@ void HySortBubble(void *array, hy_uint32_t len,
         }
     }
 
-    free(tmp);
+    HY_FREE(&tmp);
 }
 
 static hy_uint32_t _partition(void *array, hy_int32_t low, hy_int32_t high,
@@ -72,15 +68,9 @@ static hy_uint32_t _partition(void *array, hy_int32_t low, hy_int32_t high,
 #define _ARRAY_LOW (array + low * item_len)
 #define _ARRAY_HIGHT (array + high * item_len)
 
-    void *swap_tmp = calloc(1, item_len);
-    if (!swap_tmp) {
-        LOGE("calloc faild \n");
-    }
+    void *tmp = HY_MALLOC_RET_VAL(item_len, -1);
+    void *swap_tmp = HY_MALLOC_RET_VAL(item_len, -1);
 
-    void *tmp = calloc(1, item_len);
-    if (!tmp) {
-        LOGE("calloc faild \n");
-    }
     memcpy(tmp, _ARRAY_LOW, item_len);
 
     while (low < high) {
@@ -97,8 +87,8 @@ static hy_uint32_t _partition(void *array, hy_int32_t low, hy_int32_t high,
 
     memcpy(_ARRAY_LOW, tmp, item_len);
 
-    free(tmp);
-    free(swap_tmp);
+    HY_FREE(&tmp);
+    HY_FREE(&swap_tmp);
 
     return low;
 }
@@ -106,10 +96,8 @@ static hy_uint32_t _partition(void *array, hy_int32_t low, hy_int32_t high,
 void HySortQuick(void *array, hy_int32_t low, hy_int32_t high,
         hy_uint32_t item_len, HySortSwapCb_t swap_cb)
 {
-    if (!array || !swap_cb) {
-        LOGE("the array or swap_cb is NULL \n");
-        return;
-    }
+    ASSERT_NULL_RET(!array || !swap_cb);
+
     if (0 == item_len) {
         LOGE("the item_len is zero \n");
         return;

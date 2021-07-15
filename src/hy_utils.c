@@ -24,15 +24,13 @@
 #include "hy_utils.h"
 
 #include "hy_log.h"
+#include "hy_assert.h"
 
 #define ALONE_DEBUG 1
 
 void HyIpStr2Int(const char *ip_str, uint32_t *ip_num)
 {
-    if (!ip_str) {
-        LOGE("the param is NULL \r\n");
-        return;
-    }
+    ASSERT_NULL_RET(!ip_str);
 
     int num[IP_DOT_LEN];
 
@@ -47,10 +45,7 @@ void HyIpStr2Int(const char *ip_str, uint32_t *ip_num)
 
 void HyIpInt2Str(uint32_t ip_num, char *ip_str, uint8_t ip_str_len)
 {
-    if (!ip_str) {
-        LOGE("the param is NULL \r\n");
-        return;
-    }
+    ASSERT_NULL_RET(!ip_str);
 
     uint8_t *tmp = (uint8_t *)&ip_num;
     uint8_t len = 0;

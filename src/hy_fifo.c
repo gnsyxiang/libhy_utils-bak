@@ -24,6 +24,7 @@
 
 #include "hy_fifo.h"
 
+#include "hy_assert.h"
 #include "hy_utils.h"
 #include "hy_type.h"
 #include "hy_mem.h"
@@ -221,7 +222,7 @@ void HyFifoDump(void *handle)
 
 void HyFifoClean(void *handle)
 {
-    JUDGE_NULL(!handle);
+    ASSERT_NULL_RET(!handle);
 
     fifo_context_t *context = handle;
 
@@ -231,7 +232,7 @@ void HyFifoClean(void *handle)
 
 void HyFifoDestroy(void **handle)
 {
-    JUDGE_NULL(!handle || !*handle);
+    ASSERT_NULL_RET(!handle || !*handle);
 
     fifo_context_t *context = *handle;
 
@@ -246,31 +247,29 @@ void HyFifoDestroy(void **handle)
 
 void *HyFifoCreate(uint32_t size)
 {
-    if (size <= 0) {
-        LOGE("the param is NULL, len: %d \n", size);
-        return NULL;
-    }
+    fifo_context_t *context = NULL;
 
-    if (!HyUtilsIsPowerOf2(size) || size > 0x80000000) {
-        size = HyUtilsNumTo2N2(size);
-        LOGE("size must be power of 2, new size: %d \n", size);
-    }
+    do {
+        if (size <= 0) {
+            LOGE("the param is NULL, len: %d \n", size);
+            break;
+        }
 
-    fifo_context_t *context = calloc(1, sizeof(*context));
-    if (!context) {
-        LOGE("calloc faild \n");
-        return NULL;
-    }
+        if (!HyUtilsIsPowerOf2(size) || size > 0x80000000) {
+            size = HyUtilsNumTo2N2(size);
+            LOGE("size must be power of 2, new size: %d \n", size);
+        }
 
-    context->buf = calloc(1, size);
-    if (!context->buf) {
-        LOGE("calloc faild \n");
+        context = HY_MALLOC_BREAK(sizeof(*context));
+        context->buf = HY_MALLOC_BREAK(size);
 
-        HY_FREE(&context);
-        return NULL;
-    }
-    context->size = size;
+        context->size = size;
 
-    return context;
+        return context;
+    } while (0);
+
+    HyFifoDestroy((void **)&context);
+
+    return NULL;
 }
 

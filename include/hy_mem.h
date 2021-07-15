@@ -27,7 +27,7 @@ extern "C" {
 #include <stdio.h>
 #include <stdlib.h>
 
-#define HY_MALLOC_RETURN_VAL(size, ret) \
+#define HY_MALLOC_RET_VAL(size, ret)    \
     ({                                  \
         void *ptr = NULL;               \
         ptr = malloc(size);             \
@@ -40,7 +40,7 @@ extern "C" {
         ptr;                            \
      })
 
-#define HY_MALLOC_RETURN(size)          \
+#define HY_MALLOC_RET(size)             \
     ({                                  \
         void *ptr = NULL;               \
         ptr = malloc(size);             \

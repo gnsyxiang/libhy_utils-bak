@@ -84,5 +84,5 @@ hy_utils.pc
 *.o
 *.lo
 *.la
-example/test_hy*
+example/hy_*_test
 

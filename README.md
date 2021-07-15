@@ -38,5 +38,5 @@ $ make install
 
 ## 交叉编译
 
-详见`build.sh`
+详见[build.sh](./build.sh)
 
