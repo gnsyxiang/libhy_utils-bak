@@ -36,7 +36,9 @@ _no_error_com   += -Wno-error=address
 
 _include_com    += -I$(top_srcdir)/include
 
-_sources_com    += hy_fifo.c
+_sources_com    += \
+                   hy_bitset.c \
+                   hy_fifo.c
 
 if COMPILE_LIBLOG4CPLUS
 _sources_com    += hy_log4cplus_wrapper.cpp

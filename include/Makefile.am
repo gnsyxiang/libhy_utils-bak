@@ -27,6 +27,7 @@ NO_INSTALL_HEADERS_COM  +=
 
 INSTALL_HEADERS_COM     += \
                            hy_assert.h \
+                           hy_bitset.h \
                            hy_compile.h \
                            hy_error.h \
                            hy_fifo.h \
