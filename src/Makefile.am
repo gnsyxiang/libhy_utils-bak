@@ -52,6 +52,7 @@ _sources_com    += \
                    hy_math.c \
                    hy_mem.c \
                    hy_sort.c \
+                   hy_timerwheel_rotation.c \
                    hy_utils.c
 
 _cppflags_com   += \

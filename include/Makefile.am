@@ -38,6 +38,7 @@ INSTALL_HEADERS_COM     += \
                            hy_module.h \
                            hy_sort.h \
                            hy_string.h \
+                           hy_timerwheel_rotation.h \
                            hy_type.h \
                            hy_utils.h
 
