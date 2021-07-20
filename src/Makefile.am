@@ -38,7 +38,11 @@ _include_com    += -I$(top_srcdir)/include
 
 _sources_com    += \
                    hy_bitset.c \
-                   hy_fifo.c
+                   hy_fifo.c \
+                   hy_math.c \
+                   hy_mem.c \
+                   hy_sort.c \
+                   hy_utils.c
 
 if COMPILE_LIBLOG4CPLUS
 _sources_com    += hy_log4cplus_wrapper.cpp
@@ -48,12 +52,11 @@ if COMPILE_MYLOG
 _sources_com    += hy_log.c
 endif
 
+if COMPILE_SELECT_TARGET_OS_LINUX
 _sources_com    += \
-                   hy_math.c \
-                   hy_mem.c \
-                   hy_sort.c \
-                   hy_timerwheel_rotation.c \
-                   hy_utils.c
+                   hy_signal.c \
+                   hy_timerwheel_rotation.c
+endif
 
 _cppflags_com   += \
                    $(_no_error_com) \

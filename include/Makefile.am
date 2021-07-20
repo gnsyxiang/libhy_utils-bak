@@ -38,9 +38,14 @@ INSTALL_HEADERS_COM     += \
                            hy_module.h \
                            hy_sort.h \
                            hy_string.h \
-                           hy_timerwheel_rotation.h \
                            hy_type.h \
                            hy_utils.h
+
+if COMPILE_SELECT_TARGET_OS_LINUX
+INSTALL_HEADERS_COM     += \
+                           hy_signal.h \
+                           hy_timerwheel_rotation.h
+endif
 
 noinst_HEADERS          = $(NO_INSTALL_HEADERS_COM)
 install_include_HEADERS = $(INSTALL_HEADERS_COM)

@@ -24,14 +24,21 @@
 
 #include "hy_module.h"
 #include "hy_mem.h"
+#include "hy_signal.h"
 #include "hy_log.h"
 
 #define ALONE_DEBUG 1
 
 typedef struct {
     void *log_handle;
+    void *signal_handle;
     void *timerwheel_totation_handle;
 } _main_context_t;
+
+static void _signal_cb(void *args)
+{
+    LOGD("-----signal cb\n");
+}
 
 static void _module_destroy(_main_context_t **context_pp)
 {
@@ -40,6 +47,7 @@ static void _module_destroy(_main_context_t **context_pp)
     // note: 增加或删除要同步到module_create_t中
     module_destroy_t module[] = {
         {"timerwheel_totation", &context->timerwheel_totation_handle,   HyTimerWheelRotationDestroy},
+        {"signal",              &context->signal_handle,                HySignalDestroy},
         {"log",                 &context->log_handle,                   HyLogDestroy},
     };
 
@@ -57,6 +65,12 @@ static _main_context_t *_module_create(void)
     log_config.level        = HY_LOG_LEVEL_TRACE;
     log_config.config_file  = "./res/config/log4cplus.rc";
 
+    HySignalConfig_t signal_config;
+    signal_config.appname       = "timerwheel_totation_test";
+    signal_config.coredump_path = "./";
+    signal_config.handle_cb     = _signal_cb;
+    signal_config.args          = context;
+
     HyTimerWheelRotationConfig_t timerwheel_rotation_config;
     timerwheel_rotation_config.slot_interval = 1;
     timerwheel_rotation_config.slot_num = 60;
@@ -64,6 +78,7 @@ static _main_context_t *_module_create(void)
     // note: 增加或删除要同步到module_destroy_t中
     module_create_t module[] = {
         {"log",                 &context->log_handle,                   &log_config,                    (create_t)HyLogCreate,                  HyLogDestroy},
+        {"signal",              &context->signal_handle,                &signal_config,                 (create_t)HySignalCreate,               HySignalDestroy},
         {"timerwheel_totation", &context->timerwheel_totation_handle,   &timerwheel_rotation_config,    (create_t)HyTimerWheelRotationCreate,   HyTimerWheelRotationDestroy},
     };
 

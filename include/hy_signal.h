@@ -24,13 +24,15 @@
 extern "C" {
 #endif
 
-typedef void (*HySignalHandleFrameCb_t)(void *args);
 typedef struct {
-    HySignalHandleFrameCb_t     handle_frame_cb;
-    void                        *args;
-} HySignalHandleCb_t;
+    const char *appname;
+    const char *coredump_path;
+    void (*handle_cb)(void *args);
+    void *args;
+} HySignalConfig_t;
 
-void HySignalInit(const char *appname, const char *coredump_path, HySignalHandleCb_t *handle_cb);
+void *HySignalCreate(HySignalConfig_t *signal_config);
+void HySignalDestroy(void **handle);
 
 #ifdef __cplusplus
 }
