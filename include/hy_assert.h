@@ -24,22 +24,22 @@
 extern "C" {
 #endif
 
-#define ASSERT_NULL_BREAK(param)        \
-    if (param) {                        \
-        LOGE("the param is NULL \n");   \
-        break;                          \
+#define HY_ASSERT_NULL_BREAK(param)         \
+    if (param) {                            \
+        LOGE("the param is NULL \n");       \
+        break;                              \
     }
 
-#define ASSERT_NULL_RET(param)          \
-    if (param) {                        \
-        LOGE("the param is NULL \n");   \
-        return ;                        \
+#define HY_ASSERT_NULL_RET(param)           \
+    if (param) {                            \
+        LOGE("the param is NULL \n");       \
+        return ;                            \
     }
 
-#define ASSERT_NULL_RET_VAL(param, ret) \
-    if (param) {                        \
-        LOGE("the param is NULL \n");   \
-        return ret;                     \
+#define HY_ASSERT_NULL_RET_VAL(param, ret)  \
+    if (param) {                            \
+        LOGE("the param is NULL \n");       \
+        return ret;                         \
     }
 
 #ifdef __cplusplus

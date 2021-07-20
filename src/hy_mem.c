@@ -55,7 +55,7 @@ void *HyCalloc(size_t nmemb, size_t size)
 
 void *HyRealloc(void *ptr, size_t size)
 {
-    ASSERT_NULL_RET_VAL(!ptr, NULL);
+    HY_ASSERT_NULL_RET_VAL(!ptr, NULL);
     return realloc(ptr, size);
 }
 

@@ -55,7 +55,7 @@ typedef struct {
 
 void *HyTimerWheelRotationAdd(void *handle, HyTimerHandleConfig_t *timer_config)
 {
-    ASSERT_NULL_RET_VAL(!handle || !timer_config, NULL);
+    HY_ASSERT_NULL_RET_VAL(!handle || !timer_config, NULL);
     _timerwheel_context_t *context = handle;
 
     _timer_t *timer = HY_MALLOC_RET_VAL(sizeof(*timer), NULL);
@@ -72,7 +72,7 @@ void *HyTimerWheelRotationAdd(void *handle, HyTimerHandleConfig_t *timer_config)
 
 void HyTimerWheelRotationDel(void *handle, void *timer_handle)
 {
-    ASSERT_NULL_RET(!handle || !timer_handle);
+    HY_ASSERT_NULL_RET(!handle || !timer_handle);
 
     _timerwheel_context_t *context = handle;
     _timer_t *timer = timer_handle;
@@ -128,7 +128,7 @@ static void *_timer_wheel_loop(void *args)
 void HyTimerWheelRotationDestroy(void **handle)
 {
     LOGT("%s:%d \n", __func__, __LINE__);
-    ASSERT_NULL_RET(!handle || !*handle);
+    HY_ASSERT_NULL_RET(!handle || !*handle);
 
     _timerwheel_context_t *context = *handle;
 

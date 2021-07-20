@@ -95,10 +95,10 @@ int main(int argc, char *argv[])
         HyTimerWheelRotationAdd(context->timerwheel_totation_handle, &timer_config);
     }
 
-    sleep(8);
-    // while (1) {
-        // sleep(1);
-    // }
+    int cnt = 0;
+    while (cnt++ < 8) {
+        sleep(1);
+    }
 
     _module_destroy(&context);
 

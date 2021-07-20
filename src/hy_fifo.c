@@ -222,7 +222,7 @@ void HyFifoDump(void *handle)
 
 void HyFifoClean(void *handle)
 {
-    ASSERT_NULL_RET(!handle);
+    HY_ASSERT_NULL_RET(!handle);
 
     fifo_context_t *context = handle;
 
@@ -232,7 +232,7 @@ void HyFifoClean(void *handle)
 
 void HyFifoDestroy(void **handle)
 {
-    ASSERT_NULL_RET(!handle || !*handle);
+    HY_ASSERT_NULL_RET(!handle || !*handle);
 
     fifo_context_t *context = *handle;
 
