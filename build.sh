@@ -4,7 +4,7 @@
 
 help_info()
 {
-    echo "eg: ./build.sh pc/arm/mcu [_build]"
+    echo "eg: ./build.sh pc/hisi/fulhan/mcu [_build]"
     exit
 }
 
@@ -18,12 +18,19 @@ if [ x$1 = x"pc" ]; then
     vender=pc
     gcc_version=x86_64-linux-gnu
     _param_com="--enable-log4cplus --disable-mylog"
-elif [ x$1 = x"arm" ]; then
+elif [ x$1 = x"hisi" ]; then
     vender=hisi
     host=arm-himix200-linux
     gcc_version=arm-himix200-linux
     gcc_prefix=arm-himix200-linux
     cross_gcc_path=${data_disk_path}/opt/toolchains/${vender}/${gcc_version}/bin/${gcc_prefix}-
+    _param_com="--enable-log4cplus --disable-mylog"
+elif [ x$1 = x"fulhan" ]; then
+    vender=fulhan
+    host=arm-mol-linux
+    gcc_version=molchipv500-armgcc-uclibc
+    gcc_prefix=arm-mol-linux-uclibcgnueabihf-
+    cross_gcc_path=${data_disk_path}/opt/toolchains/${vender}/${gcc_version}/bin/${gcc_prefix}
     _param_com="--enable-log4cplus --disable-mylog"
 elif [ x$1 = x"mcu" ]; then
     vender=gnu_arm_embedded
