@@ -160,7 +160,7 @@ void HyLogDestroy(void **handle)
 
 void *HyLogCreate(HyLogConfig_t *log_config)
 {
-    ASSERT_NULL_RET_VAL(!log_config, NULL);
+    HY_ASSERT_NULL_RET_VAL(!log_config, NULL);
 
     do {
         context = HY_MALLOC_BREAK(sizeof(*context));
