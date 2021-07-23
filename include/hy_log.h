@@ -64,7 +64,7 @@ void HyPrintHex(const char *name, uint16_t line,
 typedef struct {
     int32_t     level;
     uint32_t    buf_len;
-    char        *config_file;
+    const char  *config_file;
 } HyLogConfig_t;
 
 /**

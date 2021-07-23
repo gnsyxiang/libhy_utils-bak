@@ -29,7 +29,7 @@ extern "C" {
 typedef void *(*create_t)(void *config);
 typedef void (*destroy_t)(void **handle);
 typedef struct {
-    char        *name;
+    const char  *name;
     void        **handle;
     void        *config;
     create_t    create;
@@ -37,7 +37,7 @@ typedef struct {
 } module_create_t;
 
 typedef struct {
-    char        *name;
+    const char  *name;
     void        **handle;
     destroy_t   destroy;
 } module_destroy_t;
