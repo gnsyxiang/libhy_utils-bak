@@ -54,8 +54,7 @@ endif
 
 if COMPILE_SELECT_TARGET_OS_LINUX
 _sources_com    += \
-                   hy_signal.c \
-                   hy_timerwheel_rotation.c
+                   hy_signal.c
 endif
 
 _cppflags_com   += \

@@ -43,8 +43,7 @@ INSTALL_HEADERS_COM     += \
 
 if COMPILE_SELECT_TARGET_OS_LINUX
 INSTALL_HEADERS_COM     += \
-                           hy_signal.h \
-                           hy_timerwheel_rotation.h
+                           hy_signal.h
 endif
 
 noinst_HEADERS          = $(NO_INSTALL_HEADERS_COM)
