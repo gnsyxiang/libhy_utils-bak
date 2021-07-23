@@ -58,7 +58,8 @@ typedef struct {
         }                                                           \
                                                                     \
         if (i < len) {                                              \
-            for (int j = i - 1; j >= 0; j--) {                      \
+            int j;                                                  \
+            for (j = i - 1; j >= 0; j--) {                          \
                 module_create_t *create = &module[j];               \
                 if (create->destroy) {                              \
                     create->destroy(create->handle);                \
@@ -70,7 +71,8 @@ typedef struct {
 
 #define RUN_DESTROY(module)                                         \
     do {                                                            \
-        for (int i = 0; i < HyUtilsArrayCnt(module); ++i) {         \
+        int i;                                                      \
+        for (i = 0; i < HyUtilsArrayCnt(module); ++i) {             \
             module_destroy_t *destroy = &module[i];                 \
             if (destroy->destroy) {                                 \
                 destroy->destroy(destroy->handle);                  \

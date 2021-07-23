@@ -31,8 +31,6 @@ elif [ x$1 = x"fulhan" ]; then
     gcc_version=molchipv500-armgcc-uclibc
     gcc_prefix=arm-mol-linux-uclibcgnueabihf-
     cross_gcc_path=${data_disk_path}/opt/toolchains/${vender}/${gcc_version}/bin/${gcc_prefix}
-    _cflags_com="-std=c11"
-    _cxxflags_com="-std=c++11"
     _param_com="--enable-log4cplus --disable-mylog"
 elif [ x$1 = x"mcu" ]; then
     vender=gnu_arm_embedded
