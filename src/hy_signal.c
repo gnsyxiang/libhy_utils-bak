@@ -19,14 +19,16 @@
  */
 #include <stdio.h>
 
+#include "hy_signal.h"
+
+#if (__linux__ && __GLIBC__ && !__UCLIBC__) || __APPLE__
+
 #include <sys/types.h>
 #include <unistd.h>
 #include <execinfo.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <string.h>
-
-#include "hy_signal.h"
 
 #include "hy_log.h"
 #include "hy_assert.h"
@@ -140,4 +142,8 @@ void *HySignalCreate(HySignalConfig_t *signal_config)
     HySignalDestroy((void **)&context);
     return NULL;
 }
+#else
+void *HySignalCreate(HySignalConfig_t *signal_config) {return NULL;}
+void HySignalDestroy(void **handle) {}
+#endif
 
