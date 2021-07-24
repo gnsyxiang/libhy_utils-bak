@@ -35,17 +35,17 @@ typedef struct {
     void *log_handle;
 } _main_context_t;
 
-static hy_int32_t _swap_int_cb(void *src, void *dst)
+static hy_s32_t _swap_int_cb(void *src, void *dst)
 {
-    hy_int32_t  *a = src;
-    hy_int32_t  *b = dst;
+    hy_s32_t  *a = src;
+    hy_s32_t  *b = dst;
 
     return *a - *b;
 }
 
-static void _dump_int(hy_int32_t *a, hy_uint32_t len)
+static void _dump_int(hy_s32_t *a, hy_u32_t len)
 {
-    for (hy_uint32_t i = 0; i < len; ++i) {
+    for (hy_u32_t i = 0; i < len; ++i) {
         printf("%d ", *(a + i));
     }
     printf("\n");
@@ -53,8 +53,8 @@ static void _dump_int(hy_int32_t *a, hy_uint32_t len)
 
 static void _test_int(void)
 {
-    hy_int32_t a[] = {3, 4, 1, 5, 8, 0, 9};
-    hy_uint32_t len = HyUtilsArrayCnt(a);
+    hy_s32_t a[] = {3, 4, 1, 5, 8, 0, 9};
+    hy_u32_t len = HyUtilsArrayCnt(a);
 
     _dump_int(a, len);
     // HySortBubble(a, len, sizeof(a[0]),  _swap_int_cb);
@@ -68,23 +68,23 @@ static void _test_int(void)
  *  Detailed description
  */
 typedef struct _student {
-    hy_uint32_t id;         /*!< Description */
+    hy_u32_t id;         /*!< Description */
     char        name[32];
     float       score[3];
 } student_t;
 
-static hy_int32_t _swap_stu_cb(void *src, void *dst)
+static hy_s32_t _swap_stu_cb(void *src, void *dst)
 {
     student_t *a = src;
     student_t *b = dst;
 
-    return (hy_int32_t)(a->score[0] - b->score[0]);
+    return (hy_s32_t)(a->score[0] - b->score[0]);
     // return a->id - b->id;
 }
 
-static void _dum_student(student_t *stu, hy_uint32_t len)
+static void _dum_student(student_t *stu, hy_u32_t len)
 {
-    for (hy_uint32_t i = 0; i < len; ++i) {
+    for (hy_u32_t i = 0; i < len; ++i) {
         printf("id: %d, name: %s, score: %f, %f, %f \n",
                 stu[i].id, stu[i].name, stu[i].score[0],stu[i].score[1], stu[i].score[2]);
     }
@@ -97,7 +97,7 @@ static void _test_struct(void)
         {1007, "jim", {44, 55, 99}},
         {1003, "jac", {11, 88, 66}},
     };
-    hy_uint32_t len = HyUtilsArrayCnt(stu);
+    hy_u32_t len = HyUtilsArrayCnt(stu);
 
     _dum_student(stu, len);
     // HySortBubble(stu, len, sizeof(stu[0]),  _swap_stu_cb);

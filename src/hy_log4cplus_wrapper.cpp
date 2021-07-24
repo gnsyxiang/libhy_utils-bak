@@ -42,7 +42,7 @@ using namespace log4cplus;
 
 typedef struct {
     char        *buf;
-    uint32_t    buf_len;
+    hy_u32_t    buf_len;
 
     Logger      root;
 } context_t;
@@ -50,7 +50,7 @@ typedef struct {
 static context_t *context = nullptr;
 
 void HyLogWrite(LogLevel level, const char *file,
-        const char *func, uint32_t line, char *fmt, ...)
+        const char *func, hy_u32_t line, char *fmt, ...)
 {
     if (context && context->root.isEnabledFor(level)) {
         memset(context->buf, '\0', context->buf_len);
@@ -72,17 +72,17 @@ void HyPrintHex(const char *name, uint16_t line,
         return;
     }
 
-    hy_uint8_t cnt = 0;
+    hy_u8_t cnt = 0;
     printf("[%s %d]len: %zu \r\n", name, line, len);
     for (size_t i = 0; i < len; i++) {
         if (flag == 1) {
             if (buf[i] == 0x0d || buf[i] == 0x0a || buf[i] < 32 || buf[i] >= 127) {
-                printf("%02x[ ]  ", (hy_uint8_t)buf[i]);
+                printf("%02x[ ]  ", (hy_u8_t)buf[i]);
             } else {
-                printf("%02x[%c]  ", (hy_uint8_t)buf[i], (hy_uint8_t)buf[i]);
+                printf("%02x[%c]  ", (hy_u8_t)buf[i], (hy_u8_t)buf[i]);
             }
         } else {
-            printf("%02x ", (hy_uint8_t)buf[i]);
+            printf("%02x ", (hy_u8_t)buf[i]);
         }
         cnt++;
         if (cnt == 16) {

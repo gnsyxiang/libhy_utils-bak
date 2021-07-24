@@ -75,7 +75,7 @@ extern "C" {
  *
  * @param range: 随机数范围0 - range
  */
-hy_uint32_t HyMathGenerateRandom(hy_uint32_t range);
+hy_u32_t HyMathGenerateRandom(hy_u32_t range);
 
 #ifdef __cplusplus
 }

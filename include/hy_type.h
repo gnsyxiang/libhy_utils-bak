@@ -25,15 +25,15 @@
 extern "C" {
 #endif
 
-typedef char                hy_int8_t;
-typedef short               hy_int16_t;
-typedef int                 hy_int32_t;
-typedef long long           hy_int64_t;
+typedef char                hy_s8_t;
+typedef short               hy_s16_t;
+typedef int                 hy_s32_t;
+typedef long long           hy_s64_t;
 
-typedef unsigned char       hy_uint8_t;
-typedef unsigned short      hy_uint16_t;
-typedef unsigned int        hy_uint32_t;
-typedef unsigned long long  hy_uint64_t;
+typedef unsigned char       hy_u8_t;
+typedef unsigned short      hy_u16_t;
+typedef unsigned int        hy_u32_t;
+typedef unsigned long long  hy_u64_t;
 
 typedef char                hy_char_t;
 typedef double              hy_double_t;

@@ -30,15 +30,15 @@
 #define ALONE_DEBUG 1
 
 static inline void _mem_swap(void *dst, void *src,
-        void *tmp, hy_uint32_t item_len)
+        void *tmp, hy_u32_t item_len)
 {
     memcpy(tmp, dst, item_len);
     memcpy(dst, src, item_len);
     memcpy(src, tmp, item_len);
 }
 
-void HySortBubble(void *array, hy_uint32_t len,
-        hy_uint32_t item_len, HySortSwapCb_t swap_cb)
+void HySortBubble(void *array, hy_u32_t len,
+        hy_u32_t item_len, HySortSwapCb_t swap_cb)
 {
     HY_ASSERT_NULL_RET(!array || !swap_cb);
 
@@ -49,8 +49,8 @@ void HySortBubble(void *array, hy_uint32_t len,
 
     char *tmp = HY_MALLOC_RET(item_len);
 
-    for (hy_uint32_t i = 0; i < len; i++) {
-        for (hy_uint32_t j = 0; j + 1 < len - i; j++) {
+    for (hy_u32_t i = 0; i < len; i++) {
+        for (hy_u32_t j = 0; j + 1 < len - i; j++) {
             void *src = array + item_len * j;
             void *dst = array + item_len * (j + 1);
             if (swap_cb(src, dst) > 0) {
@@ -62,8 +62,8 @@ void HySortBubble(void *array, hy_uint32_t len,
     HY_FREE(&tmp);
 }
 
-static hy_uint32_t _partition(void *array, hy_int32_t low, hy_int32_t high,
-        hy_uint32_t item_len, HySortSwapCb_t swap_cb)
+static hy_u32_t _partition(void *array, hy_s32_t low, hy_s32_t high,
+        hy_u32_t item_len, HySortSwapCb_t swap_cb)
 {
 #define _ARRAY_LOW (array + low * item_len)
 #define _ARRAY_HIGHT (array + high * item_len)
@@ -93,8 +93,8 @@ static hy_uint32_t _partition(void *array, hy_int32_t low, hy_int32_t high,
     return low;
 }
 
-void HySortQuick(void *array, hy_int32_t low, hy_int32_t high,
-        hy_uint32_t item_len, HySortSwapCb_t swap_cb)
+void HySortQuick(void *array, hy_s32_t low, hy_s32_t high,
+        hy_u32_t item_len, HySortSwapCb_t swap_cb)
 {
     HY_ASSERT_NULL_RET(!array || !swap_cb);
 
@@ -104,9 +104,9 @@ void HySortQuick(void *array, hy_int32_t low, hy_int32_t high,
     }
 
     if (low < high) {
-        hy_uint32_t positiion = _partition(array, low, high, item_len, swap_cb);
+        hy_u32_t positiion = _partition(array, low, high, item_len, swap_cb);
 
-        // note: 不能用hy_uint32_t类型，否则会出现负数导致程序出错
+        // note: 不能用hy_u32_t类型，否则会出现负数导致程序出错
         HySortQuick(array, low, positiion - 1, item_len, swap_cb);
         HySortQuick(array, positiion + 1, high, item_len, swap_cb);
     }

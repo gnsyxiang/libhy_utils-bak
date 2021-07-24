@@ -28,13 +28,13 @@
 
 #define ALONE_DEBUG 1
 
-__WEAK hy_uint64_t HyTimeGetCurrentTime2Us(void)
+__WEAK hy_u64_t HyTimeGetCurrentTime2Us(void)
 {
     LOGE("please link libhy_hal.so \n");
     return 0;
 }
 
-hy_uint32_t HyMathGenerateRandom(hy_uint32_t range)
+hy_u32_t HyMathGenerateRandom(hy_u32_t range)
 {
     srand(HyTimeGetCurrentTime2Us());
     return rand() % range;

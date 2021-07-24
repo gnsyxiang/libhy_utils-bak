@@ -32,12 +32,12 @@
 #define ALONE_DEBUG 1
 
 typedef struct {
-    hy_uint32_t buf_len;
+    hy_u32_t buf_len;
     char        *buf;
 
-    hy_uint32_t cur_len;
+    hy_u32_t cur_len;
 
-    hy_uint8_t  level;
+    hy_u8_t  level;
 } _log_context_t;
 
 static _log_context_t *context = NULL;
@@ -49,17 +49,17 @@ void HyPrintHex(const char *name, uint16_t line,
         return;
     }
 
-    hy_uint8_t cnt = 0;
+    hy_u8_t cnt = 0;
     printf("[%s %d]len: %zu \r\n", name, line, len);
     for (size_t i = 0; i < len; i++) {
         if (flag == 1) {
             if (buf[i] == 0x0d || buf[i] == 0x0a || buf[i] < 32 || buf[i] >= 127) {
-                printf("%02x[ ]  ", (hy_uint8_t)buf[i]);
+                printf("%02x[ ]  ", (hy_u8_t)buf[i]);
             } else {
-                printf("%02x[%c]  ", (hy_uint8_t)buf[i], (hy_uint8_t)buf[i]);
+                printf("%02x[%c]  ", (hy_u8_t)buf[i], (hy_u8_t)buf[i]);
             }
         } else {
-            printf("%02x ", (hy_uint8_t)buf[i]);
+            printf("%02x ", (hy_u8_t)buf[i]);
         }
         cnt++;
         if (cnt == 16) {
@@ -104,7 +104,7 @@ void HyPrintHex(const char *name, uint16_t line,
 
 // printf("\033[字背景颜色;字体颜色m字符串\033[0m" );
 
-static inline void _output_set_color(HyLogLevel_t level, hy_uint32_t *ret)
+static inline void _output_set_color(HyLogLevel_t level, hy_u32_t *ret)
 {
 #if 0
     hy_char_t *color[HY_LOG_LEVEL_MAX][2] = {
@@ -118,7 +118,7 @@ static inline void _output_set_color(HyLogLevel_t level, hy_uint32_t *ret)
 #endif
 }
 
-static inline void _output_reset_color(HyLogLevel_t level, hy_uint32_t *ret)
+static inline void _output_reset_color(HyLogLevel_t level, hy_u32_t *ret)
 {
 #if 0
     *ret += snprintf(context->buf + *ret, context->buf_len - *ret, "%s", PRINT_ATTR_RESET);
@@ -129,7 +129,7 @@ void HyLogWrite(int level, const char *file, const char *func,
         uint32_t line, char *fmt, ...)
 {
     if (context && context->level <= level) {
-        hy_uint32_t ret = 0;
+        hy_u32_t ret = 0;
         memset(context->buf, '\0', context->buf_len);
 
         _output_set_color(level, &ret);
