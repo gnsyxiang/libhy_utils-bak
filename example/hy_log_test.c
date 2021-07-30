@@ -66,17 +66,12 @@ static void _module_destroy(_main_context_t **context_pp)
 
 static _main_context_t *_module_create(void)
 {
-    _main_context_t *context = malloc(sizeof(*context));
-    if (!context) {
-        LOGE("malloc faild \n");
-        return NULL;
-    }
-    memset(context, '\0', sizeof(*context));
+    _main_context_t *context = (_main_context_t *)HY_MALLOC_RET_VAL(sizeof(*context), NULL);
 
     HyLogConfig_t log_config;
-    log_config.buf_len = 512;
-    log_config.level = HY_LOG_LEVEL_INFO;
-    log_config.config_file = "./res/config/log4cplus.rc";
+    log_config.buf_len      = 512;
+    log_config.level        = HY_LOG_LEVEL_INFO;
+    log_config.config_file  = "./res/config/log4cplus.rc";
 
     // note: 增加或删除要同步到module_destroy_t中
     module_create_t module[] = {
