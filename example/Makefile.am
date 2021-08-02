@@ -76,6 +76,15 @@ hy_sort_test_CXXFLAGS   = $(_cxxflags_com)
 hy_sort_test_LDFLAGS    = $(_ldflags_com)
 hy_sort_test_LDADD      = $(_ldadd_com)
 
+
+bin_PROGRAMS                += hy_arecord_demo
+hy_arecord_demo_SOURCES     = $(_sources_com) hy_arecord_demo.c
+hy_arecord_demo_CPPFLAGS    = $(_cppflags_com)
+hy_arecord_demo_CFLAGS      = $(_cflags_com)
+hy_arecord_demo_CXXFLAGS    = $(_cxxflags_com)
+hy_arecord_demo_LDFLAGS     = $(_ldflags_com)
+hy_arecord_demo_LDADD       = $(_ldadd_com)
+
 if COMPILE_SELECT_TARGET_OS_LINUX
 # bin_PROGRAMS                            += hy_timerwheel_rotation_test
 # hy_timerwheel_rotation_test_SOURCES     = $(_sources_com) hy_timerwheel_rotation_test.c

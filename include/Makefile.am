@@ -26,6 +26,7 @@ install_includedir      = $(includedir)/@project_name@
 NO_INSTALL_HEADERS_COM  +=
 
 INSTALL_HEADERS_COM     += \
+                           hy_alsa.h \
                            hy_assert.h \
                            hy_bitset.h \
                            hy_compile.h \
