@@ -92,6 +92,7 @@ hy_s32_t HyAlsaGetData(void *handle, void *data)
 
 void HyAlsaDestroy(void **handle)
 {
+    LOGT("%s:%d \n", __func__, __LINE__);
     HY_ASSERT_NULL_RET(!handle || !*handle);
 
     _alsa_context_t *context = *handle;
@@ -104,7 +105,9 @@ void HyAlsaDestroy(void **handle)
 
 void *HyAlsaCreate(HyAlsaConfig_t *alsa_config)
 {
+    LOGT("%s:%d \n", __func__, __LINE__);
     _alsa_context_t *context = NULL;
+    snd_pcm_hw_params_t *hwparams = NULL;
 
     do {
         context = (_alsa_context_t *)HY_MALLOC_BREAK(sizeof(*context));
@@ -114,35 +117,43 @@ void *HyAlsaCreate(HyAlsaConfig_t *alsa_config)
         if (snd_pcm_open(&context->alsa_handle,
                     alsa_config->save_config.snd_dev_name,
                     SND_PCM_STREAM_CAPTURE, 0) < 0) {
-            LOGE("snd_pcm_open [ %s]", alsa_config->save_config.snd_dev_name);
+            LOGE("snd_pcm_open [ %s] \n", alsa_config->save_config.snd_dev_name);
             break;
         }
 
-        snd_pcm_hw_params_t *hwparams;
+        if (snd_pcm_hw_params_malloc(&hwparams) < 0) {
+            LOGE("snd_pcm_hw_params_malloc faild  \n");
+            break;
+        }
 
-        snd_pcm_hw_params_alloca(&hwparams);
-
+        // 获取声卡的默认配置
         if (snd_pcm_hw_params_any(context->alsa_handle, hwparams) < 0) {
-            LOGE("snd_pcm_hw_params_any");
+            LOGE("snd_pcm_hw_params_any \n");
             break;
         }
 
+        /*
+         * 设置交错访问方式
+         * snd_pcm_readi/snd_pcm_writei access
+         * SND_PCM_ACCESS_RW_INTERLEAVED
+         */ 
         if (snd_pcm_hw_params_set_access(context->alsa_handle,
                     hwparams, SND_PCM_ACCESS_RW_INTERLEAVED) < 0) {
-            LOGE("snd_pcm_hw_params_set_access");
+            LOGE("snd_pcm_hw_params_set_access \n");
             break;
         }
 
+        // 设置数据格式
         if (snd_pcm_hw_params_set_format(context->alsa_handle,
                     hwparams, snd_pcm_format_value(alsa_config->save_config.format_name)) < 0) {
-            LOGE("snd_pcm_hw_params_set_format");
+            LOGE("snd_pcm_hw_params_set_format \n");
             break;
         }
 
-        /* Set number of channels */
+        // 设置音频通道
         if (snd_pcm_hw_params_set_channels(context->alsa_handle,
                     hwparams, alsa_config->save_config.channels) < 0) {
-            LOGE("snd_pcm_hw_params_set_channels");
+            LOGE("snd_pcm_hw_params_set_channels \n");
             break;
         }
 
@@ -151,14 +162,15 @@ void *HyAlsaCreate(HyAlsaConfig_t *alsa_config)
         /* by the hardware, use nearest possible rate.		 */
         exact_rate = alsa_config->save_config.sample_rate;
 
+        // 设置音频数据的最接近目标的采样率
         if (snd_pcm_hw_params_set_rate_near(context->alsa_handle,
                     hwparams, &exact_rate, 0) < 0) {
-            LOGE("snd_pcm_hw_params_set_rate_near");
+            LOGE("snd_pcm_hw_params_set_rate_near \n");
             break;
         }
 
         if (alsa_config->save_config.sample_rate != exact_rate) {
-            LOGE("The rate %d Hz is not supported by your hardware. ==> Using %d Hz instead.",
+            LOGE("The rate %d Hz is not supported by your hardware. ==> Using %d Hz instead. \n",
                     alsa_config->save_config.sample_rate, exact_rate);
         }
 
@@ -167,10 +179,11 @@ void *HyAlsaCreate(HyAlsaConfig_t *alsa_config)
         hy_u32_t buffer_time;
         if (snd_pcm_hw_params_get_buffer_time_max(hwparams,
                     &buffer_time, 0) < 0) {
-            LOGE("snd_pcm_hw_params_get_buffer_time_max");
+            LOGE("snd_pcm_hw_params_get_buffer_time_max \n");
             break;
         }
 
+        LOGI("buffer_time: %d \n", buffer_time);
         if (!alsa_config->save_config.period_time) {
             if (buffer_time > 500000) 
                 buffer_time = 500000;
@@ -181,19 +194,19 @@ void *HyAlsaCreate(HyAlsaConfig_t *alsa_config)
 
         if (snd_pcm_hw_params_set_buffer_time_near(context->alsa_handle,
                     hwparams, &buffer_time, 0) < 0) {
-            LOGE("snd_pcm_hw_params_set_buffer_time_near");
+            LOGE("snd_pcm_hw_params_set_buffer_time_near \n");
             break;
         }
 
         if (snd_pcm_hw_params_set_period_time_near(context->alsa_handle,
                     hwparams, &context->save_config.period_time, 0) < 0) {
-            LOGE("snd_pcm_hw_params_set_period_time_near");
+            LOGE("snd_pcm_hw_params_set_period_time_near \n");
             break;
         }
 
         /* Set hw params */
         if (snd_pcm_hw_params(context->alsa_handle, hwparams) < 0) {
-            LOGE("snd_pcm_hw_params(handle, params)");
+            LOGE("snd_pcm_hw_params(handle, params) \n");
             break;
         }
 
@@ -201,7 +214,7 @@ void *HyAlsaCreate(HyAlsaConfig_t *alsa_config)
         snd_pcm_hw_params_get_period_size(hwparams, &context->frame_num, 0);
         snd_pcm_hw_params_get_buffer_size(hwparams, &alsa_buffer_size);
         if (context->frame_num == alsa_buffer_size) {
-            LOGE(("Can't use period equal to buffer size (%lu == %lu)"),
+            LOGE(("Can't use period equal to buffer size (%lu == %lu) \n"),
                     context->frame_num, alsa_buffer_size);
             break;
         }
@@ -212,10 +225,16 @@ void *HyAlsaCreate(HyAlsaConfig_t *alsa_config)
         //把frame定义为一个sample的数据，包括每个channel
         context->bits_per_frame = context->bits_per_sample * alsa_config->save_config.channels;
 
-        //snd_pcm_hw_params_free (hwparams);
+        snd_pcm_hw_params_free(hwparams);
 
+        return context;
     } while (0);
 
+    if (hwparams) {
+        snd_pcm_hw_params_free(hwparams);
+    }
+
+    HyAlsaDestroy((void **)&context);
     return NULL;
 }
 
