@@ -1,5 +1,11 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* Define to 1 if you have the <alsa/asoundlib.h> header file. */
+#undef HAVE_ALSA_ASOUNDLIB_H
+
+/* Define if the system has alsa_lib */
+#undef HAVE_ALSA_LIB
+
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
