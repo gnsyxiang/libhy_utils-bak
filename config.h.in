@@ -3,8 +3,8 @@
 /* Define to 1 if you have the <alsa/asoundlib.h> header file. */
 #undef HAVE_ALSA_ASOUNDLIB_H
 
-/* Define if the system has alsa_lib */
-#undef HAVE_ALSA_LIB
+/* Define if the system has asound */
+#undef HAVE_ASOUND
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H

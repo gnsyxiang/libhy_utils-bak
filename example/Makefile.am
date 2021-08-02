@@ -53,8 +53,8 @@ if COMPILE_LIBLOG4CPLUS
 _ldadd_com      += $(LOG4CPLUS_LIBS)
 endif
 
-if COMPILE_ALSA_LIB
-_ldadd_com      += $(ALSA_LIB_LIBS)
+if COMPILE_ASOUND
+_ldadd_com      += $(ASOUND_LIBS)
 endif
 
 # -----------
