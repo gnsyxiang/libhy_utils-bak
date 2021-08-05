@@ -25,6 +25,10 @@
 extern "C" {
 #endif
 
+#ifndef BUF_LEN
+#define BUF_LEN (1024)
+#endif
+
 typedef char                hy_s8_t;
 typedef short               hy_s16_t;
 typedef int                 hy_s32_t;
