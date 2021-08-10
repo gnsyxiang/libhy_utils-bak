@@ -59,17 +59,6 @@ extern "C" {
  */
 #define IS_POWER_OF_2(x) ((x) != 0 && (((x) & ((x) - 1)) == 0))
 
-/* 
- * BYTE_ALIGN:  字节对齐
- * ALIGN4:      4字节对齐
- * ALIGN2:      2字节对齐
- * ALIGN4_UP:   绝对字节对齐(原来已经事4字节对齐，使用后再增加4个字节)
- */
-#define BYTE_ALIGN(len, align)  (((len) + (align) - 1) & ~((align) - 1))
-#define ALIGN4(len)             BYTE_ALIGN(len, 4)
-#define ALIGN2(len)             BYTE_ALIGN(len, 2)
-#define ALIGN4_UP(len)          (BYTE_ALIGN(len, 4) + ALIGN4(1))
-
 /**
  * @brief 产生随机数
  *
