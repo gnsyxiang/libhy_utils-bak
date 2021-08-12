@@ -20,7 +20,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #include "hy_fifo.h"
 
@@ -107,7 +106,7 @@ static uint32_t _get_data_com(fifo_context_t *context, const char *buf, uint32_t
 
 int HyFifoPut(void *handle, void *buf, size_t len)
 {
-    assert(handle || buf || len);
+    // assert(handle || buf || len);
     // if (!handle || !buf || 0 == len) {
         // LOGE("the param is NULL, handle: %p, buf: %p, len: %d \n", handle, buf, len);
         // return 0;
