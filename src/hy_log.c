@@ -104,9 +104,11 @@ void HyPrintHex(const char *name, uint16_t line,
 
 // printf("\033[字背景颜色;字体颜色m字符串\033[0m" );
 
+// #define USE_COLOR_OUTPUT
+
+#ifdef USE_COLOR_OUTPUT
 static inline void _output_set_color(HyLogLevel_t level, hy_u32_t *ret)
 {
-#if 0
     hy_char_t *color[HY_LOG_LEVEL_MAX][2] = {
         {"E", PRINT_FONT_RED},
         {"W", PRINT_FONT_GRE},
@@ -115,15 +117,13 @@ static inline void _output_set_color(HyLogLevel_t level, hy_u32_t *ret)
     };
 
     *ret += snprintf(context->buf + *ret, context->buf_len - *ret, "%s[%s]", color[level][1], color[level][0]);
-#endif
 }
 
 static inline void _output_reset_color(HyLogLevel_t level, hy_u32_t *ret)
 {
-#if 0
     *ret += snprintf(context->buf + *ret, context->buf_len - *ret, "%s", PRINT_ATTR_RESET);
-#endif
 }
+#endif
 
 void HyLogWrite(int level, const char *file, const char *func,
         uint32_t line, char *fmt, ...)
@@ -132,7 +132,9 @@ void HyLogWrite(int level, const char *file, const char *func,
         hy_u32_t ret = 0;
         memset(context->buf, '\0', context->buf_len);
 
+#ifdef USE_COLOR_OUTPUT
         _output_set_color(level, &ret);
+#endif
 
         ret += snprintf(context->buf + ret, context->buf_len - ret, "[%s:%"PRId32"][%s] ", file, line, func); 
 
@@ -141,7 +143,9 @@ void HyLogWrite(int level, const char *file, const char *func,
         ret += vsnprintf(context->buf + ret, context->buf_len - ret, fmt, args);
         va_end(args);
 
+#ifdef USE_COLOR_OUTPUT
         _output_reset_color(level, &ret);
+#endif
 
         printf("%s", (char *)context->buf);
     }

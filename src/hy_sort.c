@@ -51,8 +51,8 @@ void HySortBubble(void *array, hy_u32_t len,
 
     for (hy_u32_t i = 0; i < len; i++) {
         for (hy_u32_t j = 0; j + 1 < len - i; j++) {
-            void *src = array + item_len * j;
-            void *dst = array + item_len * (j + 1);
+            void *src = (char *)array + item_len * j;
+            void *dst = (char *)array + item_len * (j + 1);
             if (swap_cb(src, dst) > 0) {
                 _mem_swap(dst, src, tmp, item_len);
             }
@@ -62,14 +62,16 @@ void HySortBubble(void *array, hy_u32_t len,
     HY_FREE(&tmp);
 }
 
-static hy_u32_t _partition(void *array, hy_s32_t low, hy_s32_t high,
+static hy_s32_t _partition(void *array, hy_s32_t low, hy_s32_t high,
         hy_u32_t item_len, HySortSwapCb_t swap_cb)
 {
-#define _ARRAY_LOW (array + low * item_len)
-#define _ARRAY_HIGHT (array + high * item_len)
+#define _ARRAY_LOW ((char *)array + low * item_len)
+#define _ARRAY_HIGHT ((char *)array + high * item_len)
 
-    void *tmp = HY_MALLOC_RET_VAL(item_len, -1);
-    void *swap_tmp = HY_MALLOC_RET_VAL(item_len, -1);
+    size_t haha = item_len;
+
+    void *tmp = HY_MALLOC_RET_VAL(haha, -1);
+    void *swap_tmp = HY_MALLOC_RET_VAL(haha, -1);
 
     memcpy(tmp, _ARRAY_LOW, item_len);
 
@@ -104,7 +106,7 @@ void HySortQuick(void *array, hy_s32_t low, hy_s32_t high,
     }
 
     if (low < high) {
-        hy_u32_t positiion = _partition(array, low, high, item_len, swap_cb);
+        hy_s32_t positiion = _partition(array, low, high, item_len, swap_cb);
 
         // note: 不能用hy_u32_t类型，否则会出现负数导致程序出错
         HySortQuick(array, low, positiion - 1, item_len, swap_cb);

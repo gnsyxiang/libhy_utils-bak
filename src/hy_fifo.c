@@ -130,10 +130,10 @@ int HyFifoPut(void *handle, void *buf, size_t len)
     len = HyUtilsMinMacro(len, context->size - context->in + context->out);
 
     #define in_index (context->in & (context->size - 1))
-    uint32_t len_tmp = HyUtilsMinMacro(len, context->size - in_index);
+    size_t len_tmp = HyUtilsMinMacro(len, context->size - in_index);
 
     memcpy(context->buf + in_index, buf, len_tmp);
-    memcpy(context->buf, buf + len_tmp, len - len_tmp);
+    memcpy(context->buf, (char *)buf + len_tmp, len - len_tmp);
     context->in += len;
 
     return len;
