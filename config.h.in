@@ -19,12 +19,6 @@
    to 0 otherwise. */
 #undef HAVE_MALLOC
 
-/* enable mcu at32f407vgt7 */
-#undef HAVE_MCU_AT32F407VGT7
-
-/* enable mcu at32f4xx */
-#undef HAVE_MCU_AT32F4XX
-
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
