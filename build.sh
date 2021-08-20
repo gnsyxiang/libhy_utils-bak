@@ -39,7 +39,14 @@ elif [ x$1 = x"mcu" ]; then
     gcc_prefix=arm-none-eabi
     cross_gcc_path=${data_disk_path}/opt/toolchains/${vender}/${gcc_version}/bin/${gcc_prefix}-
     _ldflag_com="-specs=nano.specs -specs=nosys.specs"
-    _param_com="--with-target_os=mcu --with-mcu_cortex=m4 --disable-log4cplus --enable-mylog"
+
+    # _cppflags_com=""
+    # _cflags_com="-mcpu=cortex-m0 -mthumb"
+    # _param_com="--with-target_os=mcu --disable-log4cplus --enable-mylog"
+
+    _cppflags_com=""
+    _cflags_com="-mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard"
+    _param_com="--with-target_os=mcu --disable-log4cplus --enable-mylog"
 else
     help_info
 fi
@@ -61,7 +68,7 @@ fi
 ${target_path}/configure                                    \
     CC=${cross_gcc_path}gcc                                 \
     CXX=${cross_gcc_path}g++                                \
-    CPPFLAGS="-I${lib_3rd_path}/include"                    \
+    CPPFLAGS="-I${lib_3rd_path}/include ${_cppflags_com}"   \
     CFLAGS="${_cflags_com}"                                 \
     CXXFLAGS="${_cxxflags_com}"                             \
     LDFLAGS="-L${lib_3rd_path}/lib ${_ldflag_com}"          \
