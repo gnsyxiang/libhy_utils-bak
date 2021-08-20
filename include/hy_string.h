@@ -47,6 +47,27 @@ extern "C" {
         strncpy(dst, src, len);                 \
     } while (0)
 
+/**
+ * @brief 从右边开始拷贝字符，直到指定字符停止，不拷贝指定字符
+ *
+ * @param src 原始字符串
+ * @param dst 目的字符串
+ * @param len 目的字符串长度
+ * @param ch 指定分界字符
+ */
+void HyStrCopyRight(const char *src, char *dst, size_t len, char ch);
+
+/**
+ * @brief 从右边开始拷贝字符，直到指定字符停止，不拷贝指定字符
+ *
+ * @param src 原始字符串
+ * @param dst 目的字符串
+ * @param len 目的字符串长度
+ * @param ch 指定第一个分界字符
+ * @param ch2 指定第二个分界字符
+ */
+void HyStrCopyRight2(const char *src, char *dst, size_t len, char ch, char ch2);
+
 #ifdef __cplusplus
 }
 #endif

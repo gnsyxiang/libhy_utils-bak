@@ -26,6 +26,7 @@
 #include "hy_log.h"
 
 #include "hy_assert.h"
+#include "hy_string.h"
 #include "hy_type.h"
 #include "hy_mem.h"
 
@@ -136,7 +137,10 @@ void HyLogWrite(int level, const char *file, const char *func,
         _output_set_color(level, &ret);
 #endif
 
-        ret += snprintf(context->buf + ret, context->buf_len - ret, "[%s:%"PRId32"][%s] ", file, line, func); 
+        #define _SHORT_FILE_LEN_MAX (32)
+        char short_file[_SHORT_FILE_LEN_MAX] = {0};
+        HyStrCopyRight2(file, short_file, _SHORT_FILE_LEN_MAX, '/', 0x5c); // 0x5c == \, 去除windows分界符
+        ret += snprintf(context->buf + ret, context->buf_len - ret, "[%s:%"PRId32"][%s] ", short_file, line, func); 
 
         va_list args;
         va_start(args, fmt);
