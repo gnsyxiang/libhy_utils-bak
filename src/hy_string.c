@@ -31,9 +31,10 @@ void HyStrCopyRight(const char *src, char *dst, size_t len, char ch)
 
     memset(dst, '\0', len);
 
+    size_t src_len = strlen(src);
     size_t cnt = 0;
-    const char *str = src + strlen(src) - 1;
-    while (*str) {
+    const char *str = src + src_len - 1;
+    while (*str && cnt < src_len) {
         if (*str == ch) {
             break;
         }
@@ -54,9 +55,10 @@ void HyStrCopyRight2(const char *src, char *dst, size_t len, char ch, char ch2)
 
     memset(dst, '\0', len);
 
+    size_t src_len = strlen(src);
     size_t cnt = 0;
-    const char *str = src + strlen(src) - 1;
-    while (*str) {
+    const char *str = src + src_len - 1;
+    while (*str && cnt < src_len) {
         if (*str == ch || *str == ch2) {
             break;
         }
