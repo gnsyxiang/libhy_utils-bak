@@ -45,10 +45,6 @@ _sources_com    += \
                    hy_sort.c \
                    hy_utils.c
 
-if COMPILE_LIBLOG4CPLUS
-_sources_com    += hy_log4cplus_wrapper.cpp
-endif
-
 if COMPILE_MYLOG
 _sources_com    += hy_log.c
 endif
