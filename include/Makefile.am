@@ -41,6 +41,10 @@ INSTALL_HEADERS_COM     += \
                            hy_type.h \
                            hy_utils.h
 
+if COMPILE_SELECT_TARGET_OS_LINUX
+INSTALL_HEADERS_COM     += hy_dlopen.h
+endif
+
 noinst_HEADERS          = $(NO_INSTALL_HEADERS_COM)
 install_include_HEADERS = $(INSTALL_HEADERS_COM)
 

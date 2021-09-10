@@ -53,6 +53,10 @@ if COMPILE_LIBLOG4CPLUS
 _ldadd_com      += $(LOG4CPLUS_LIBS)
 endif
 
+if COMPILE_SELECT_TARGET_OS_LINUX
+_ldadd_com      += -ldl
+endif
+
 # -----------
 # compile app
 # -----------
