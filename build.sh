@@ -4,7 +4,7 @@
 
 help_info()
 {
-    echo "eg: ./build.sh pc/hisi/fulhan/mcu [_build]"
+    echo "eg: ./build.sh pc/arm/mcu [_build]"
     exit
 }
 
@@ -18,20 +18,13 @@ if [ x$1 = x"pc" ]; then
     vender=pc
     gcc_version=x86_64-linux-gnu
     _param_com="--disable-log4cplus --enable-mylog"
-elif [ x$1 = x"hisi" ]; then
+elif [ x$1 = x"arm" ]; then
     vender=hisi
     host=arm-himix200-linux
     gcc_version=arm-himix200-linux
     gcc_prefix=arm-himix200-linux
     cross_gcc_path=${data_disk_path}/opt/toolchains/${vender}/${gcc_version}/bin/${gcc_prefix}-
     _param_com="--disable-log4cplus --enable-mylog"
-elif [ x$1 = x"fulhan" ]; then
-    vender=fulhan
-    host=arm-mol-linux
-    gcc_version=molchipv500-armgcc-uclibc
-    gcc_prefix=arm-mol-linux-uclibcgnueabihf-
-    cross_gcc_path=${data_disk_path}/opt/toolchains/${vender}/${gcc_version}/bin/${gcc_prefix}
-    _param_com="--enable-log4cplus --disable-mylog"
 elif [ x$1 = x"mcu" ]; then
     vender=gnu_arm_embedded
     host=arm-none-eabi
@@ -53,6 +46,8 @@ fi
 
 # 3rd_lib path
 lib_3rd_path=${data_disk_path}/install/${vender}/${gcc_version}
+_cppflags_com="${_cppflags_com} -I${lib_3rd_path}/include"
+_ldflag_com="${_ldflag_com} -L${lib_3rd_path}/lib"
 
 # target
 target_path=`pwd`
@@ -68,10 +63,10 @@ fi
 ${target_path}/configure                                    \
     CC=${cross_gcc_path}gcc                                 \
     CXX=${cross_gcc_path}g++                                \
-    CPPFLAGS="-I${lib_3rd_path}/include ${_cppflags_com}"   \
+    CPPFLAGS="${_cppflags_com}"                             \
     CFLAGS="${_cflags_com}"                                 \
     CXXFLAGS="${_cxxflags_com}"                             \
-    LDFLAGS="-L${lib_3rd_path}/lib ${_ldflag_com}"          \
+    LDFLAGS="${_ldflag_com}"                                \
     LIBS=""                                                 \
     PKG_CONFIG_PATH="${lib_3rd_path}/lib/pkgconfig"         \
     --prefix=${prefix_path}                                 \
