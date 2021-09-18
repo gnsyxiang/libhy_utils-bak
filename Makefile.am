@@ -120,9 +120,15 @@ _dist_files_com     += \
                        @project_name@.pc.in
 EXTRA_DIST          = $(_dist_files_com)
 
+if COMPILE_SELECT_TARGET_OS_LINUX
+install-exec-hook:
+	sed -i 's#-lhy_utils$$#-lhy_utils -ldl#g' \
+		$(top_builddir)/@project_name@.pc
+endif
+
 if COMPILE_LIBLOG4CPLUS
 install-exec-hook:
-	sed -i 's/-lhy_utils/-lhy_utils -llog4cplus/g' \
+	sed -i 's#-lhy_utils$$#-lhy_utils -llog4cplus#g' \
 		$(top_builddir)/@project_name@.pc
 endif
 

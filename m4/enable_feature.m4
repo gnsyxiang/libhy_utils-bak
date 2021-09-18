@@ -2,7 +2,7 @@ dnl ===============================================================
 dnl 
 dnl Release under GPLv-3.0.
 dnl 
-dnl @file    enable_mylog.m4
+dnl @file    enable_feature.m4
 dnl @brief   
 dnl @author  gnsyxiang <gnsyxiang@163.com>
 dnl @date    07/06 2021 08:33
@@ -25,7 +25,7 @@ dnl ===============================================================
 AC_DEFUN([ENABLE_MYLOG],
     [
         AC_ARG_ENABLE([mylog],
-            [AS_HELP_STRING([--disable-mylog], [enable support for my_log])],
+            [AS_HELP_STRING([--disable-mylog], [disable support for my_log])],
             [], [enable_mylog=yes])
 
         if test x${enable_mylog} = xyes ; then
