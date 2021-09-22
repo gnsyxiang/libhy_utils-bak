@@ -44,11 +44,12 @@ typedef struct {
 static _log_context_t *context = NULL;
 
 void HyPrintHex(const char *name, uint16_t line,
-        const char *buf, size_t len, int8_t flag)
+        const void *_buf, size_t len, int8_t flag)
 {
     if (len <= 0) {
         return;
     }
+    uint8_t *buf = (uint8_t *)_buf;
 
     hy_u8_t cnt = 0;
     printf("[%s %d]len: %zu \r\n", name, line, len);

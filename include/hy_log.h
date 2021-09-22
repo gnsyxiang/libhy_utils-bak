@@ -59,7 +59,7 @@ void HyLogWrite(int level, const char *file,  const char *func,
         uint32_t line, char *fmt, ...);
 
 void HyPrintHex(const char *name, uint16_t line,
-        const char *buf, size_t len, int8_t flag);
+        const void *buf, size_t len, int8_t flag);
 
 typedef struct {
     int32_t     level;
