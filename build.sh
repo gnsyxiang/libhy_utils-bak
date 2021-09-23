@@ -14,17 +14,17 @@ fi
 
 data_disk_path=/opt/data
 
+_param_com=""
+
 if [ x$1 = x"pc" ]; then
     vender=pc
     gcc_version=x86_64-linux-gnu
-    _param_com="--disable-log4cplus --enable-mylog"
 elif [ x$1 = x"arm" ]; then
     vender=hisi
     host=arm-himix200-linux
     gcc_version=arm-himix200-linux
     gcc_prefix=arm-himix200-linux
     cross_gcc_path=${data_disk_path}/opt/toolchains/${vender}/${gcc_version}/bin/${gcc_prefix}-
-    _param_com="--disable-log4cplus --enable-mylog"
 elif [ x$1 = x"mcu" ]; then
     vender=gnu_arm_embedded
     host=arm-none-eabi
@@ -35,11 +35,11 @@ elif [ x$1 = x"mcu" ]; then
 
     # _cppflags_com=""
     # _cflags_com="-mcpu=cortex-m0 -mthumb"
-    # _param_com="--with-target_os=mcu --disable-log4cplus --enable-mylog"
+    # _param_com="${_param_com} --with-target_os=mcu"
 
     _cppflags_com=""
     _cflags_com="-mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard"
-    _param_com="--with-target_os=mcu --disable-log4cplus --enable-mylog"
+    _param_com="${_param_com} --with-target_os=mcu"
 else
     help_info
 fi

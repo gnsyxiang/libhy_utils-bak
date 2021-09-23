@@ -49,10 +49,6 @@ _ldflags_com    += $(BIN_LDFLAGS_COM)
 
 _ldadd_com      += $(top_builddir)/src/lib@project_name@.la
 
-if COMPILE_LIBLOG4CPLUS
-_ldadd_com      += $(LOG4CPLUS_LIBS)
-endif
-
 if COMPILE_SELECT_TARGET_OS_LINUX
 _ldadd_com      += -ldl
 endif

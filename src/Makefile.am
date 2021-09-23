@@ -49,9 +49,7 @@ if COMPILE_SELECT_TARGET_OS_LINUX
 _sources_com    += hy_dlopen.c
 endif
 
-if COMPILE_MYLOG
 _sources_com    += hy_log.c
-endif
 
 _cppflags_com   += \
                    $(_no_error_com) \

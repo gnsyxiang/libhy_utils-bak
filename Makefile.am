@@ -92,10 +92,6 @@ BIN_LDFLAGS_COM     += -Wl,--as-needed
 # note: 指定参数后面的链接库一律按照前面的参数，直到修改相同功能的配置参数
 # BIN_LDFLAGS_COM     += -Wl,--no-as-needed -lpthread -Wl,--as-needed
 
-if COMPILE_LIBLOG4CPLUS
-CPPFLAGS_COM        += $(LOG4CPLUS_INCS)
-endif
-
 export CPPFLAGS_COM
 export CFLAGS_COM
 export CXXFLAGS_COM
@@ -123,12 +119,6 @@ EXTRA_DIST          = $(_dist_files_com)
 if COMPILE_SELECT_TARGET_OS_LINUX
 install-exec-hook:
 	sed -i 's#-lhy_utils$$#-lhy_utils -ldl#g' \
-		$(top_builddir)/@project_name@.pc
-endif
-
-if COMPILE_LIBLOG4CPLUS
-install-exec-hook:
-	sed -i 's#-lhy_utils$$#-lhy_utils -llog4cplus#g' \
 		$(top_builddir)/@project_name@.pc
 endif
 
