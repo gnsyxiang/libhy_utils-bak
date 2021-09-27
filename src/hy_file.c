@@ -23,9 +23,9 @@
 
 #include "hy_file.h"
 
-uint32_t HyFileWrite(int fd, const void *buf, uint32_t len)
+int32_t HyFileWrite(int32_t fd, const void *buf, uint32_t len)
 {
-    int ret;
+    int32_t ret;
     size_t nleft;
     const void *ptr;
 
@@ -37,8 +37,7 @@ uint32_t HyFileWrite(int fd, const void *buf, uint32_t len)
         if (ret <= 0) {
             if (ret < 0 && errno == EINTR) {
                 ret = 0;
-            }
-            else {
+            } else {
                 return -1;
             }
         }
@@ -50,9 +49,9 @@ uint32_t HyFileWrite(int fd, const void *buf, uint32_t len)
     return len;
 }
 
-uint32_t HyFileRead(int fd, void *buf, uint32_t len)
+int32_t HyFileRead(int32_t fd, void *buf, uint32_t len)
 {
-    int ret;
+    int32_t ret;
     size_t nleft;
     size_t offset = 0;
 
@@ -62,7 +61,7 @@ uint32_t HyFileRead(int fd, void *buf, uint32_t len)
         ret = read(fd, buf + offset, nleft);
         // printf("file_wrapper->read, len: %d \n", ret);
         if (ret < 0) {
-            if (errno == EINTR) {
+            if (EINTR == errno || EAGAIN == errno || EWOULDBLOCK == errno) {
                 ret = 0;
             } else {
                 return -1;

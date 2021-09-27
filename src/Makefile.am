@@ -40,6 +40,7 @@ _sources_com    += \
                    hy_string.c \
                    hy_bitset.c \
                    hy_fifo.c \
+                   hy_file.c \
                    hy_math.c \
                    hy_mem.c \
                    hy_sort.c \

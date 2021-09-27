@@ -31,6 +31,7 @@ INSTALL_HEADERS_COM     += \
                            hy_compile.h \
                            hy_error.h \
                            hy_fifo.h \
+                           hy_file.h \
                            hy_list.h \
                            hy_log.h \
                            hy_math.h \

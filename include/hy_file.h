@@ -26,10 +26,8 @@ extern "C" {
 
 #include <stdint.h>
 
-#include "hy_utils.h"
-
-uint32_t HyFileWrite(int fd, const void *buf, uint32_t len);
-uint32_t HyFileRead(int fd, void *buf, uint32_t len);
+int32_t HyFileWrite(int32_t fd, const void *buf, uint32_t len);
+int32_t HyFileRead(int32_t fd, void *buf, uint32_t len);
 
 #ifdef __cplusplus
 }
