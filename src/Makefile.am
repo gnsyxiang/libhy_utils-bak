@@ -40,6 +40,7 @@ _no_error_com   += -Wno-error=address
 _include_com    += -I$(top_srcdir)/include
 
 _sources_com    += \
+                   hy_fifo.c \
                    hy_string.c \
                    hy_mem.c \
                    hy_log.c
