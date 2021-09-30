@@ -32,7 +32,7 @@ install_includedir      = $(includedir)/@project_name@
 _no_install_headers_com +=
 
 _install_headers_com    += \
-                           module_a.h \
+                           hy_type.h \
                            hy_assert.h
 
 # ------------------
