@@ -47,6 +47,13 @@ typedef double              hy_double_t;
 #define NULL (void *)0
 #endif
 
+typedef enum {
+    HY_FLAG_DISABLE,
+    HY_FLAG_ENABLE,
+
+    HY_FLAG_MAX,
+} HyFlag_t;
+
 #ifdef __cplusplus
 }
 #endif
