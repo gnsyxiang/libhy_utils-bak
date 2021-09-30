@@ -20,6 +20,8 @@ _cxxflags_com=""
 _ldflag_com=""
 _param_com=""
 
+_cppflags_com="${_cppflags_com} -DNDEBUG"
+
 _cppflags_com="${_cppflags_com} -W -Wall -Werror"
 _cppflags_com="${_cppflags_com} -Wno-unused-parameter"
 _cppflags_com="${_cppflags_com} -Wno-error=unused-but-set-variable"

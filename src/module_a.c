@@ -21,8 +21,12 @@
 
 #include "module_a.h"
 
+#include "hy_assert.h"
+
 void HyModuleAInit(void)
 {
+    HY_ASSERT(0);
+
     printf("module a init successful \n");
 }
 
