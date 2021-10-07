@@ -53,7 +53,7 @@ _ldflags_com    += $(BIN_LDFLAGS_COM)
 
 _ldadd_com      += $(top_builddir)/src/lib@project_name@.la
 
-_ldadd_com      += -lpthread
+_ldadd_com      += -lpthread -ldl
 
 bin_PROGRAMS                += hy_log_test
 hy_log_test_SOURCES         = $(_sources_com) hy_log_test.c
