@@ -1,11 +1,11 @@
 # ===============================================================
 # 
-# Release under GPL-3.0.
+# Release under GPLv-3.0.
 # 
 # @file    Makefile.am
 # @brief   
 # @author  gnsyxiang <gnsyxiang@163.com>
-# @date    21/03 2020 14:09
+# @date    05/03 2021 10:35
 # @version v0.0.1
 # 
 # @since    note
@@ -13,28 +13,34 @@
 # 
 #     change log:
 #     NO.     Author              Date            Modified
-#     00      zhenquan.qiu        21/03 2020      create the file
+#     00      zhenquan.qiu        05/03 2021      create the file
 # 
-#     last modified: 21/03 2020 14:09
+#     last modified: 05/03 2021 10:35
 # ===============================================================
 
-NO_INSTALL_HEADERS_COM  =
-INSTALL_HEADERS_COM     =
+# ------------------
+# defining variables
+# ------------------
+_no_install_headers_com =
+_install_headers_com    =
+
 install_includedir      = $(includedir)/@project_name@
 
-# ----------------------------------------------------
-NO_INSTALL_HEADERS_COM  +=
+# ---------------------
+# add necessary content
+# ---------------------
+_no_install_headers_com +=
 
-INSTALL_HEADERS_COM     += \
+_install_headers_com    += \
                            hy_assert.h \
-                           hy_bitset.h \
+                           hy_bit.h \
                            hy_compile.h \
                            hy_error.h \
                            hy_fifo.h \
-                           hy_file.h \
                            hy_list.h \
                            hy_log.h \
                            hy_math.h \
+                           hy_md5sum.h \
                            hy_mem.h \
                            hy_module.h \
                            hy_sort.h \
@@ -43,9 +49,14 @@ INSTALL_HEADERS_COM     += \
                            hy_utils.h
 
 if COMPILE_SELECT_TARGET_OS_LINUX
-INSTALL_HEADERS_COM     += hy_dlopen.h
+_install_headers_com    += \
+                           hy_dlopen.h \
+                           hy_thread.h
 endif
 
-noinst_HEADERS          = $(NO_INSTALL_HEADERS_COM)
-install_include_HEADERS = $(INSTALL_HEADERS_COM)
+# ------------------
+# make install files
+# ------------------
+noinst_HEADERS          = $(_no_install_headers_com)
+install_include_HEADERS = $(_install_headers_com)
 

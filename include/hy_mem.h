@@ -24,6 +24,9 @@
 extern "C" {
 #endif
 
+#include <stdio.h>
+#include <stdlib.h>
+
 /* 
  * BYTE_ALIGN:  字节对齐
  * ALIGN4:      4字节对齐
@@ -35,62 +38,92 @@ extern "C" {
 #define ALIGN2(len)             BYTE_ALIGN(len, 2)
 #define ALIGN4_UP(len)          (BYTE_ALIGN(len, 4) + ALIGN4(1))
 
-#include <stdio.h>
-#include <stdlib.h>
-
-#define HY_MALLOC_RET_VAL(size, ret)    \
-    ({                                  \
-        void *ptr = NULL;               \
-        ptr = malloc(size);             \
-        if (!ptr) {                     \
-            LOGE("malloc faild \n");    \
-            return ret;                 \
-        } else {                        \
-            memset(ptr, '\0', size);    \
-        }                               \
-        ptr;                            \
+#define HY_MALLOC_RET_VAL(type, size, ret)  \
+    ({                                      \
+        void *ptr = malloc((size));         \
+        if (!ptr) {                         \
+            LOGE("malloc faild \n");        \
+            return ret;                     \
+        } else {                            \
+            memset(ptr, '\0', (size));      \
+        }                                   \
+        (type)ptr;                          \
      })
 
-#define HY_MALLOC_RET(size)             \
-    ({                                  \
-        void *ptr = NULL;               \
-        ptr = malloc(size);             \
-        if (!ptr) {                     \
-            LOGE("malloc faild \n");    \
-            return;                     \
-        } else {                        \
-            memset(ptr, '\0', size);    \
-        }                               \
-        ptr;                            \
+#define HY_MALLOC_RET(type, size)           \
+    ({                                      \
+        void *ptr = malloc((size));         \
+        if (!ptr) {                         \
+            LOGE("malloc faild \n");        \
+            return;                         \
+        } else {                            \
+            memset(ptr, '\0', (size));      \
+        }                                   \
+        (type)ptr;                          \
      })
 
-#define HY_MALLOC_BREAK(size)           \
-    ({                                  \
-        void *ptr = NULL;               \
-        ptr = malloc(size);             \
-        if (!ptr) {                     \
-            LOGE("malloc faild \n");    \
-            break;                      \
-        } else {                        \
-            memset(ptr, '\0', size);    \
-        }                               \
-        ptr;                            \
+#define HY_MALLOC_BREAK(type, size)         \
+    ({                                      \
+        void *ptr = malloc((size));         \
+        if (!ptr) {                         \
+            LOGE("malloc faild \n");        \
+            break;                          \
+        } else {                            \
+            memset(ptr, '\0', (size));      \
+        }                                   \
+        (type)ptr;                          \
      })
 
-#define HY_FREE(pptr)                   \
-    do {                                \
-        if (pptr && *pptr) {            \
-            free(*pptr);                \
-            *pptr = NULL;               \
-        }                               \
+#define HY_FREE_P(ptr)                      \
+    do {                                    \
+        if (ptr) {                          \
+            free(ptr);                      \
+            ptr = NULL;                     \
+        }                                   \
     } while (0)
 
+#define HY_FREE_PP(pptr)                    \
+    do {                                    \
+        if (pptr && *pptr) {                \
+            free(*pptr);                    \
+            *pptr = NULL;                   \
+        }                                   \
+    } while (0)
+
+/**
+ * @brief
+ *
+ * @param size
+ *
+ * @return 
+ */
 void *HyMalloc(size_t size);
 
+/**
+ * @brief 
+ *
+ * @param pptr
+ */
 void HyFree(void **pptr);
 
+/**
+ * @brief 
+ *
+ * @param nmemb
+ * @param size
+ *
+ * @return 
+ */
 void *HyCalloc(size_t nmemb, size_t size);
 
+/**
+ * @brief 
+ *
+ * @param ptr
+ * @param size
+ *
+ * @return 
+ */
 void *HyRealloc(void *ptr, size_t size);
 
 #ifdef __cplusplus

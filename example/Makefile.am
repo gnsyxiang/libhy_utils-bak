@@ -1,11 +1,11 @@
 # ===============================================================
 # 
-# Release under GPL-3.0.
+# Release under GPLv-3.0.
 # 
 # @file    Makefile.am
 # @brief   
 # @author  gnsyxiang <gnsyxiang@163.com>
-# @date    21/03 2020 14:10
+# @date    05/03 2021 10:38
 # @version v0.0.1
 # 
 # @since    note
@@ -13,14 +13,15 @@
 # 
 #     change log:
 #     NO.     Author              Date            Modified
-#     00      zhenquan.qiu        21/03 2020      create the file
+#     00      zhenquan.qiu        05/03 2021      create the file
 # 
-#     last modified: 21/03 2020 14:10
+#     last modified: 05/03 2021 10:38
 # ===============================================================
 
 # ------------------
 # defining variables
 # ------------------
+_no_error_com   =
 _include_com    =
 _sources_com    =
 _cppflags_com   =
@@ -33,12 +34,15 @@ bin_PROGRAMS    =
 # ---------------------
 # add necessary content
 # ---------------------
+_no_error_com   +=
+
 _include_com    += -I$(top_srcdir)/include
 
 _sources_com    +=
 
 _cppflags_com   += \
                    $(CPPFLAGS_COM) \
+                   $(_no_error_com) \
                    $(_include_com)
 
 _cflags_com     += $(CFLAGS_COM)
@@ -49,36 +53,68 @@ _ldflags_com    += $(BIN_LDFLAGS_COM)
 
 _ldadd_com      += $(top_builddir)/src/lib@project_name@.la
 
-if COMPILE_SELECT_TARGET_OS_LINUX
-_ldadd_com      += -ldl
-endif
+_ldadd_com      += -lpthread -ldl
 
-# -----------
-# compile app
-# -----------
-bin_PROGRAMS            += hy_log_test
-hy_log_test_SOURCES     = $(_sources_com) hy_log_test.c
-hy_log_test_CPPFLAGS    = $(_cppflags_com)
-hy_log_test_CFLAGS      = $(_cflags_com)
-hy_log_test_CXXFLAGS    = $(_cxxflags_com)
-hy_log_test_LDFLAGS     = $(_ldflags_com)
-hy_log_test_LDADD       = $(_ldadd_com)
+bin_PROGRAMS                += hy_log_test
+hy_log_test_SOURCES         = $(_sources_com) hy_log_test.c
+hy_log_test_CPPFLAGS        = $(_cppflags_com)
+hy_log_test_CFLAGS          = $(_cflags_com)
+hy_log_test_CXXFLAGS        = $(_cxxflags_com)
+hy_log_test_LDFLAGS         = $(_ldflags_com)
+hy_log_test_LDADD           = $(_ldadd_com)
 
-bin_PROGRAMS            += hy_sort_test
-hy_sort_test_SOURCES    = $(_sources_com) hy_sort_test.c
-hy_sort_test_CPPFLAGS   = $(_cppflags_com)
-hy_sort_test_CFLAGS     = $(_cflags_com)
-hy_sort_test_CXXFLAGS   = $(_cxxflags_com)
-hy_sort_test_LDFLAGS    = $(_ldflags_com)
-hy_sort_test_LDADD      = $(_ldadd_com)
+bin_PROGRAMS                += hy_thread_test
+hy_thread_test_SOURCES      = $(_sources_com) hy_thread_test.c
+hy_thread_test_CPPFLAGS     = $(_cppflags_com)
+hy_thread_test_CFLAGS       = $(_cflags_com)
+hy_thread_test_CXXFLAGS     = $(_cxxflags_com)
+hy_thread_test_LDFLAGS      = $(_ldflags_com)
+hy_thread_test_LDADD        = $(_ldadd_com)
 
-if COMPILE_SELECT_TARGET_OS_LINUX
-# bin_PROGRAMS                            += hy_timerwheel_rotation_test
-# hy_timerwheel_rotation_test_SOURCES     = $(_sources_com) hy_timerwheel_rotation_test.c
-# hy_timerwheel_rotation_test_CPPFLAGS    = $(_cppflags_com)
-# hy_timerwheel_rotation_test_CFLAGS      = $(_cflags_com)
-# hy_timerwheel_rotation_test_CXXFLAGS    = $(_cxxflags_com)
-# hy_timerwheel_rotation_test_LDFLAGS     = $(_ldflags_com)
-# hy_timerwheel_rotation_test_LDADD       = $(_ldadd_com)
-endif
+bin_PROGRAMS                += hy_fifo_test
+hy_fifo_test_SOURCES        = $(_sources_com) hy_fifo_test.c
+hy_fifo_test_CPPFLAGS       = $(_cppflags_com)
+hy_fifo_test_CFLAGS         = $(_cflags_com)
+hy_fifo_test_CXXFLAGS       = $(_cxxflags_com)
+hy_fifo_test_LDFLAGS        = $(_ldflags_com)
+hy_fifo_test_LDADD          = $(_ldadd_com)
 
+bin_PROGRAMS                += hy_list_test
+hy_list_test_SOURCES        = $(_sources_com) hy_list_test.c
+hy_list_test_CPPFLAGS       = $(_cppflags_com)
+hy_list_test_CFLAGS         = $(_cflags_com)
+hy_list_test_CXXFLAGS       = $(_cxxflags_com)
+hy_list_test_LDFLAGS        = $(_ldflags_com)
+hy_list_test_LDADD          = $(_ldadd_com)
+
+bin_PROGRAMS                += hy_md5sum_test
+hy_md5sum_test_SOURCES      = $(_sources_com) hy_md5sum_test.c
+hy_md5sum_test_CPPFLAGS     = $(_cppflags_com)
+hy_md5sum_test_CFLAGS       = $(_cflags_com)
+hy_md5sum_test_CXXFLAGS     = $(_cxxflags_com)
+hy_md5sum_test_LDFLAGS      = $(_ldflags_com)
+hy_md5sum_test_LDADD        = $(_ldadd_com)
+
+bin_PROGRAMS                += hy_sort_test
+hy_sort_test_SOURCES        = $(_sources_com) hy_sort_test.c
+hy_sort_test_CPPFLAGS       = $(_cppflags_com)
+hy_sort_test_CFLAGS         = $(_cflags_com)
+hy_sort_test_CXXFLAGS       = $(_cxxflags_com)
+hy_sort_test_LDFLAGS        = $(_ldflags_com)
+hy_sort_test_LDADD          = $(_ldadd_com)
+
+bin_PROGRAMS                += hy_utils_test
+hy_utils_test_SOURCES       = $(_sources_com) hy_utils_test.c
+hy_utils_test_CPPFLAGS      = $(_cppflags_com)
+hy_utils_test_CFLAGS        = $(_cflags_com)
+hy_utils_test_CXXFLAGS      = $(_cxxflags_com)
+hy_utils_test_LDFLAGS       = $(_ldflags_com)
+hy_utils_test_LDADD         = $(_ldadd_com)
+
+bin_PROGRAMS                += hy_template_test
+hy_template_test_SOURCES    = $(_sources_com) hy_template_test.c
+hy_template_test_CPPFLAGS   = $(_cppflags_com)
+hy_template_test_CFLAGS     = $(_cflags_com)
+hy_template_test_CXXFLAGS   = $(_cxxflags_com)
+hy_template_test_LDFLAGS    = $(_ldflags_com)
+hy_template_test_LDADD      = $(_ldadd_com)

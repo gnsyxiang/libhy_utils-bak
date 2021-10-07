@@ -29,18 +29,58 @@ extern "C" {
 
 /**
  * @brief 打印等级定义
+ *
+ * @note 数字越小越紧急
  */
 typedef enum {
-    HY_LOG_LEVEL_OFF        = 60000,
-    HY_LOG_LEVEL_FATAL      = 50000,
-    HY_LOG_LEVEL_ERROR      = 40000,
-    HY_LOG_LEVEL_WARN       = 30000,
-    HY_LOG_LEVEL_INFO       = 20000,
-    HY_LOG_LEVEL_DEBUG      = 10000,
-    HY_LOG_LEVEL_TRACE      = 0,
-    HY_LOG_LEVEL_ALL        = HY_LOG_LEVEL_TRACE,
-    HY_LOG_LEVEL_NOT_SET    = -1,
+    HY_LOG_LEVEL_FATAL,             ///< 致命错误，立刻停止程序
+    HY_LOG_LEVEL_ERROR,             ///< 错误，停止程序
+    HY_LOG_LEVEL_WARN,              ///< 警告
+    HY_LOG_LEVEL_INFO,              ///< 追踪，记录程序运行到哪里
+    HY_LOG_LEVEL_DEBUG,             ///< 调试程序相关打印
+    HY_LOG_LEVEL_TRACE,             ///< 程序打点调试
+
+    HY_LOG_LEVEL_MAX
 } HyLogLevel_t;
+
+/**
+ * @brief 模块配置参数
+ */
+typedef struct {
+    int32_t level;                  ///< 打印等级，详见HyLogLevel_t
+    size_t  buf_len;                ///< 打印buf长度
+    int32_t color_output;           ///< 是否颜色输出
+} HyLogSaveConfig_t;
+
+/**
+ * @brief 模块配置参数
+ */
+typedef struct {
+    HyLogSaveConfig_t save_config;  ///< 参数，详见HyLogSaveConfig_t
+} HyLogConfig_t;
+
+/**
+ * @brief 创建log模块
+ *
+ * @param config 配置参数，详见HyLogConfig_t
+ *
+ * @return 模块句柄
+ */
+void *HyLogCreate(HyLogConfig_t *config);
+
+/**
+ * @brief 销毁log模块
+ *
+ * @param handle 模块句柄的地址
+ */
+void HyLogDestroy(void **handle);
+
+#if 1
+void HyLogWrite(int32_t level, const char *file,  const char *func,
+        uint32_t line, char *fmt, ...);
+
+void HyLogHex(const char *name, uint32_t line,
+       void *buf, size_t len, int8_t flag);
 
 /**
  * @brief 输出log宏转义
@@ -54,32 +94,7 @@ typedef enum {
                     (char *)fmt, ##__VA_ARGS__);                        \
         }                                                               \
     } while (0)
-
-void HyLogWrite(int level, const char *file,  const char *func,
-        uint32_t line, char *fmt, ...);
-
-void HyPrintHex(const char *name, uint16_t line,
-        const void *buf, size_t len, int8_t flag);
-
-typedef struct {
-    int32_t     level;
-    uint32_t    buf_len;
-    const char  *config_file;
-} HyLogConfig_t;
-
-/**
- * @brief 创建log打印系统
- *
- * @param level: 打印等级
- * @param buf_len: 一行log的buf长度
- * @param config_file: 配置文件
- */
-void *HyLogCreate(HyLogConfig_t *log_config);
-
-/**
- * @brief 销毁log系统
- */
-void HyLogDestroy(void **handle);
+#endif
 
 /**
  * @brief 输出对应的log等级函数
@@ -91,8 +106,8 @@ void HyLogDestroy(void **handle);
 #define LOGD(fmt, ...) LOG(ALONE_DEBUG, HY_LOG_LEVEL_DEBUG, fmt, ##__VA_ARGS__)
 #define LOGT(fmt, ...) LOG(ALONE_DEBUG, HY_LOG_LEVEL_TRACE, fmt, ##__VA_ARGS__)
 
-#define PRINT_HEX_ASCII(buf, len) HyPrintHex(__func__, __LINE__, buf, len, 1)
-#define PRINT_HEX(buf, len) HyPrintHex(__func__, __LINE__, buf, len, 0)
+#define LOG_HEX_ASCII(buf, len) HyLogHex(__func__, __LINE__, buf, len, 1)
+#define LOG_HEX(buf, len) HyLogHex(__func__, __LINE__, buf, len, 0)
 
 #ifdef __cplusplus
 }

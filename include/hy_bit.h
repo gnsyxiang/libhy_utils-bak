@@ -2,7 +2,7 @@
  *
  * Release under GPLv-3.0.
  * 
- * @file    hy_bitset.h
+ * @file    hy_bit.h
  * @brief   
  * @author  gnsyxiang <gnsyxiang@163.com>
  * @date    16/07 2021 11:29
@@ -17,16 +17,18 @@
  * 
  *     last modified: 16/07 2021 11:29
  */
-#ifndef __LIBHY_UTILS_INCLUDE_HY_BITSET_H_
-#define __LIBHY_UTILS_INCLUDE_HY_BITSET_H_
+#ifndef __LIBHY_UTILS_INCLUDE_HY_BIT_H_
+#define __LIBHY_UTILS_INCLUDE_HY_BIT_H_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void HyBitSetSet(char *byte, int index);
+#include <stdint.h>
 
-int HyBitSetVal(char *byte, int index);
+void HyBitSet(char *byte, uint32_t index);
+
+int32_t HyBitVal(char *byte, uint32_t index);
 
 #ifdef __cplusplus
 }

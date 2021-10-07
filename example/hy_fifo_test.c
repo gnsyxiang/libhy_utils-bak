@@ -18,102 +18,88 @@
  *     last modified: 23/09 2020 16:08
  */
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
-#include "hy_time.h"
-#include "hy_pthread.h"
+#include "hy_module.h"
+#include "hy_mem.h"
+#include "hy_string.h"
+#include "hy_type.h"
+#include "hy_utils.h"
 #include "hy_fifo.h"
+#include "hy_thread.h"
 #include "hy_log.h"
 
-#ifdef USE_DEBUG
-    #define ALONE_DEBUG 1
-    #define LOG_CATEGORY_TAG "hy_fifo_test"
-#endif
-
-#define TEST_FIFO_BUF_LEN   (8)
+#define ALONE_DEBUG 1
 
 typedef struct {
-    void        *fifo_handle;
-    void        *write_thread_handle;
-    void        *read_thread_handle;
-    uint32_t    cnt;
-} main_context_t;
+    void *log_handle;
+    void *fifo_handle;
+} _main_context_t;
 
-static main_context_t main_context;
-
-static void _put_data_cb(void *args)
+static void _module_destroy(_main_context_t **context_pp)
 {
-    main_context_t *context = args;
+    _main_context_t *context = *context_pp;
 
-    static char i = 0;
-    // LOGD("i: %d \n", i);
+    // note: 增加或删除要同步到module_create_t中
+    module_destroy_t module[] = {
+        {"fifo",            &context->fifo_handle,  HyFifoDestroy},
+        {"log",             &context->log_handle,   HyLogDestroy},
+    };
 
-    HyTimeDelayUs(50);
+    RUN_DESTROY(module);
 
-    HyFifoPut(context->fifo_handle, &i, 1);
-    HyFifoDump(context->fifo_handle);
-
-    i++;
+    HY_FREE_PP(context_pp);
 }
 
-static void _get_data_cb(void *args)
+static _main_context_t *_module_create(void)
 {
-    main_context_t *context = args;
+    _main_context_t *context = HY_MALLOC_RET_VAL(_main_context_t *, sizeof(*context), NULL);
 
-    char buf[TEST_FIFO_BUF_LEN] = {0};
-    // HyFifoPeekData(context->fifo_handle, buf, TEST_FIFO_BUF_LEN);
-    // HyFifoDump(context->fifo_handle);
+    HyLogConfig_t log_config;
+    log_config.save_config.buf_len      = 512;
+    log_config.save_config.level        = HY_LOG_LEVEL_TRACE;
+    log_config.save_config.color_output = HY_FLAG_ENABLE;
 
-    uint32_t len = HyFifoGet(context->fifo_handle, buf, TEST_FIFO_BUF_LEN);
-    LOGD("len: %d \n", len);
+    HyFifoConfig_t fifo_config;
+    fifo_config.save_config.size = 16;
 
-    HyTimeDelayUs(60);
-    HyFifoDump(context->fifo_handle);
+    // note: 增加或删除要同步到module_destroy_t中
+    module_create_t module[] = {
+        {"log",             &context->log_handle,   &log_config,            (create_t)HyLogCreate,    HyLogDestroy},
+        {"fifo",            &context->fifo_handle,  &fifo_config,           (create_t)HyFifoCreate,   HyFifoDestroy},
+    };
 
-    PRINT_HEX_ASCII(buf, len);
+    RUN_CREATE(module);
+
+    return context;
 }
 
-int main(int argc, char const* argv[])
+int main(int argc, char *argv[])
 {
-    HyLogCreate(USE_LOG_LEVEL, 1024);
-
-    main_context_t *context = &main_context;
-    memset(context, '\0', sizeof(*context));
-
-    context->fifo_handle = HyFifoCreate(TEST_FIFO_BUF_LEN);
-    if (!context->fifo_handle) {
-        LOGE("hy_fifo create faild \n");
+    int32_t i;
+    char c = 'a';
+    _main_context_t *context = _module_create();
+    if (!context) {
+        LOGE("_module_create faild \n");
         return -1;
     }
 
-    HyPthreadHandleCb_t handle_cb;
-    handle_cb.loop_cb   = _put_data_cb;
-    handle_cb.args      = context;
-    context->write_thread_handle = HyPthreadCreate(&handle_cb);
-    if (!context->write_thread_handle) {
-        LOGE("hy_thread crteate faild \n");
-        return -1;
+    LOGI("version: %s, data: %s, time: %s \n", "0.1.0", __DATE__, __TIME__);
+
+    for (i = 0; i < 17; ++i) {
+        HyFifoPut(context->fifo_handle, &c, 1);
+        c++;
     }
 
-    handle_cb.loop_cb   = _get_data_cb;
-    context->read_thread_handle = HyPthreadCreate(&handle_cb);
-    if (!context->read_thread_handle) {
-        LOGE("hy_thread crteate faild \n");
-        return -1;
-    }
+    HyFifoDump(context->fifo_handle);
 
-    while (context->cnt < 2) {
-        sleep(1);
-        // HyTimeDelayUs(50);
-        context->cnt++;
-    }
+    // while (1) {
+        // sleep(1);
+    // }
 
-    HyPthreadDestroy(context->write_thread_handle);
-    HyPthreadDestroy(context->read_thread_handle);
-
-    HyFifoDestroy(context->fifo_handle);
-    HyLogDestory();
+    _module_destroy(&context);
 
     return 0;
 }

@@ -1,11 +1,11 @@
 # ===============================================================
 # 
-# Release under GPL-3.0.
+# Release under GPLv-3.0.
 # 
 # @file    Makefile.am
 # @brief   
 # @author  gnsyxiang <gnsyxiang@163.com>
-# @date    06/04 2020 21:55
+# @date    08/03 2021 08:16
 # @version v0.0.1
 # 
 # @since    note
@@ -13,12 +13,10 @@
 # 
 #     change log:
 #     NO.     Author              Date            Modified
-#     00      zhenquan.qiu        06/04 2020      create the file
+#     00      zhenquan.qiu        08/03 2021      create the file
 # 
-#     last modified: 06/04 2020 21:55
+#     last modified: 08/03 2021 08:16
 # ===============================================================
-
-SUBDIRS = config
 
 # ------------------
 # defining variables

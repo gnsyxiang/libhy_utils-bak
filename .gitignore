@@ -52,7 +52,7 @@ aclocal.m4
 configure
 config.h.in~
 
-Makefile.in
+*.in
 
 # ignore for configure
 .deps/
@@ -78,11 +78,12 @@ _build/
 install/
 doxygen/
 
-hy_utils.pc
-
-*.log
 *.o
 *.lo
 *.la
+
+hy_utils.pc
 example/hy_*_test
+
+
 

@@ -2,10 +2,10 @@
  * 
  * Release under GPLv-3.0.
  * 
- * @file    hy_log_test.c
+ * @file    hy_utils_test.c
  * @brief   
  * @author  gnsyxiang <gnsyxiang@163.com>
- * @date    18/03 2021 20:22
+ * @date    07/10 2021 13:54
  * @version v0.0.1
  * 
  * @since    note
@@ -13,42 +13,26 @@
  * 
  *     change log:
  *     NO.     Author              Date            Modified
- *     00      zhenquan.qiu        18/03 2021      create the file
+ *     00      zhenquan.qiu        07/10 2021      create the file
  * 
- *     last modified: 18/03 2021 20:22
+ *     last modified: 07/10 2021 13:54
  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
-#include "hy_log.h"
 #include "hy_module.h"
-#include "hy_utils.h"
-#include "hy_type.h"
 #include "hy_mem.h"
+#include "hy_type.h"
+#include "hy_utils.h"
+#include "hy_log.h"
 
 #define ALONE_DEBUG 1
 
 typedef struct {
     void *log_handle;
 } _main_context_t;
-
-static void _test_log(void)
-{
-    LOGE("-1-hello world\n");
-    LOGW("-2-hello world\n");
-    LOGD("-3-hello world\n");
-    LOGI("-4-hello world\n");
-}
-
-static void _test_log_hex(void)
-{
-    char *str = "hello world! hello world! hello world! hello world!";
-
-    LOG_HEX_ASCII(str, strlen(str));
-
-    LOG_HEX(str, strlen(str));
-}
 
 static void _module_destroy(_main_context_t **context_pp)
 {
@@ -91,8 +75,56 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    _test_log();
-    _test_log_hex();
+    LOGI("version: %s, data: %s, time: %s \n", "0.1.0", __DATE__, __TIME__);
+
+    {
+        uint32_t ip_num = 0;
+        char *ip_str = "192.168.1.110";
+
+        HyIpStr2Int(ip_str, &ip_num);
+        LOGE("ip_num: %u \n", ip_num);
+    }
+
+    {
+        uint32_t ip_num = 3232235886;
+        char ip_str[IP_STR_DOT_LEN] = {0};
+
+        HyIpInt2Str(ip_num, ip_str, sizeof(ip_str));
+        LOGE("ip_str: %s \n", ip_str);
+    }
+
+    {
+        char addr[] = {0x10, 0x11, 0x12};
+        char buf[BUF_LEN] = {0};
+
+        HyHex2Int2Str(addr, HyUtilsArrayCnt(addr), buf, sizeof(buf));
+        LOGE("buf: %s \n", buf);
+    }
+
+    {
+        char *buf = "016017018";
+        char addr[3];
+
+        HyStr2Int2Hex(buf, strlen(buf), addr, 3);
+        for (int i = 0; i < 3; ++i) {
+            LOGE("%02x \n", addr[i]);
+        }
+    }
+
+    {
+        uint32_t dec = 0;
+        char *buf = "10101010";
+        dec = HyBitStr2Dec(buf, strlen(buf));
+        LOGE("dec: %d, %02x \n", dec, dec);
+    }
+
+    {
+        uint32_t dec = 0xaa;
+        char buf[BUF_LEN] = {0};
+
+        HyDec2BitStr(dec, 8, buf, sizeof(buf));
+        LOGE("buf: %s \n", buf);
+    }
 
     _module_destroy(&context);
 

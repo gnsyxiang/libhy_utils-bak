@@ -24,8 +24,6 @@
 extern "C" {
 #endif
 
-#include "hy_type.h"
-
 /**
  * @brief 32位无符号最小值
  */
@@ -58,13 +56,6 @@ extern "C" {
  * @brief 判断x是否是2的次方
  */
 #define IS_POWER_OF_2(x) ((x) != 0 && (((x) & ((x) - 1)) == 0))
-
-/**
- * @brief 产生随机数
- *
- * @param range: 随机数范围0 - range
- */
-hy_u32_t HyMathGenerateRandom(hy_u32_t range);
 
 #ifdef __cplusplus
 }

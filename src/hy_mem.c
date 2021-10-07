@@ -18,44 +18,36 @@
  *     last modified: 22/02 2020 16:42
  */
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #include "hy_mem.h"
 
-#include "hy_assert.h"
 #include "hy_log.h"
 
 #define ALONE_DEBUG 1
 
 void *HyMalloc(size_t size)
 {
-    void *ptr = malloc(size);
-    if (!ptr) {
-        LOGE("malloc faild \n");
-        return NULL;
-    }
-    memset(ptr, '\0', size);
+    LOGE("HyMalloc error \n");
 
-    return ptr;
+    return NULL;
 }
 
 void HyFree(void **pptr)
 {
-    if (pptr && *pptr) {
-        free(*pptr);
-        *pptr = NULL;
-    }
+    LOGE("HyFree error \n");
 }
 
 void *HyCalloc(size_t nmemb, size_t size)
 {
-    return calloc(nmemb, size);
+    LOGE("HyCalloc error \n");
+
+    return NULL;
 }
 
 void *HyRealloc(void *ptr, size_t size)
 {
-    HY_ASSERT_NULL_RET_VAL(!ptr, NULL);
-    return realloc(ptr, size);
+    LOGE("HyRealloc error \n");
+
+    return NULL;
 }
 

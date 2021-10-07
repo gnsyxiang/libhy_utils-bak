@@ -29,18 +29,15 @@
 #include "hy_mem.h"
 #include "hy_log.h"
 
-#ifndef NDEBUG
-#   define ALONE_DEBUG 1
-// #   define FIFO_PRINT_ALL
-#endif
+#define ALONE_DEBUG 1
 
 typedef struct {
-    char        *buf;
-    uint32_t    size;
+    char    *buf;
+    size_t  size;
 
-    uint32_t    in;
-    uint32_t    out;
-} fifo_context_t;
+    size_t  in;
+    size_t  out;
+} _fifo_context_t;
 
 static inline void _print_hex_ascii(char *buf, uint32_t len)
 {
@@ -54,7 +51,7 @@ static inline void _print_hex_ascii(char *buf, uint32_t len)
 }
 
 #ifdef FIFO_PRINT_ALL
-static inline void _print_all_buf(fifo_context_t *context)
+static inline void _print_all_buf(_fifo_context_t *context)
 {
     LOGE("len: %d \n", context->size);
     _print_hex_ascii(context->buf, context->size);
@@ -62,20 +59,22 @@ static inline void _print_all_buf(fifo_context_t *context)
 }
 #endif
 
-static inline void _print_content(fifo_context_t *context)
+static inline void _print_content(_fifo_context_t *context)
 {
     uint32_t fifo_len = context->in - context->out;
 
-    LOGE("cnt: %d, in: %d, out: %d \n", fifo_len, context->in, context->out);
+    LOGI("cnt: %d, in: %d, out: %d \n", fifo_len, context->in, context->out);
 
     #define out_index (context->out & (context->size - 1))
     uint32_t len_tmp = HyUtilsMinMacro(fifo_len, context->size- out_index);
+
     _print_hex_ascii(context->buf + out_index, len_tmp);
     _print_hex_ascii(context->buf, fifo_len - len_tmp);
+
     printf("\n");
 }
 
-static uint32_t _get_data_com(fifo_context_t *context, const char *buf, uint32_t len)
+static uint32_t _get_data_com(_fifo_context_t *context, const char *buf, uint32_t len)
 {
 #if 0
     /**
@@ -104,14 +103,14 @@ static uint32_t _get_data_com(fifo_context_t *context, const char *buf, uint32_t
 
 //---------------------------------------------------------------------------
 
-int HyFifoPut(void *handle, void *buf, size_t len)
+size_t HyFifoPut(void *handle, void *buf, size_t len)
 {
     // assert(handle || buf || len);
     // if (!handle || !buf || 0 == len) {
         // LOGE("the param is NULL, handle: %p, buf: %p, len: %d \n", handle, buf, len);
         // return 0;
     // }
-    fifo_context_t *context = handle;
+    _fifo_context_t *context = handle;
 
 #if 0
     /**
@@ -138,38 +137,38 @@ int HyFifoPut(void *handle, void *buf, size_t len)
     return len;
 }
 
-uint32_t HyFifoGet(void *handle, void *buf, size_t len)
+size_t HyFifoGet(void *handle, void *buf, size_t len)
 {
     if (!handle || !buf || 0 == len) {
         LOGE("the param is NULL, handle: %p, buf: %p, len: %d \n", handle, buf, len);
         return 0;
     }
-    fifo_context_t *context = handle;
+    _fifo_context_t *context = handle;
     len = _get_data_com(context, buf, len);
     context->out += len;
 
     return len;
 }
 
-uint32_t HyFifoPeek(void *handle, void *buf, size_t len)
+size_t HyFifoPeek(void *handle, void *buf, size_t len)
 {
     if (!handle || !buf || 0 == len) {
         LOGE("the param is NULL, handle: %p, buf: %p, len: %d \n", handle, buf, len);
         return 0;
     }
-    fifo_context_t *context = handle;
+    _fifo_context_t *context = handle;
     len = _get_data_com(context, buf, len);
 
     return len;
 }
 
-uint32_t HyFifoUpdateOut(void *handle, uint32_t len)
+size_t HyFifoUpdateOut(void *handle, size_t len)
 {
     if (!handle || 0 == len) {
         LOGE("the param is NULL, handle: %p, len: %d \n", handle, len);
         return 0;
     }
-    fifo_context_t *context = handle;
+    _fifo_context_t *context = handle;
 
     char buf[1024] = {0};
     len = _get_data_com(context, buf, len);
@@ -178,31 +177,26 @@ uint32_t HyFifoUpdateOut(void *handle, uint32_t len)
     return len;
 }
 
-int32_t HyFifoGetInfo(void *handle, HyFifoInfoType_t type)
+void HyFifoGetInfo(void *handle, HyFifoInfoType_t type, void *val)
 {
-    if (!handle) {
-        LOGE("the param is NULL \n");
-        return -1;
-    }
-    fifo_context_t *context = handle;
-    uint32_t len = 0;
+    HY_ASSERT_VAL_RET(!handle || !val);
+
+    _fifo_context_t *context = handle;
 
     switch (type) {
-        case HY_FIFO_TOTAL_LEN:
-            len = context->size;
+        case HY_FIFO_INFO_TOTAL_LEN:
+            *((size_t *)val) = context->size;
             break;
-        case HY_FIFO_USED_LEN:
-            len = context->in - context->out;
+        case HY_FIFO_INFO_USED_LEN:
+            *((size_t *)val) = context->out;
             break;
-        case HY_FIFO_FREE_LEN:
-            len = context->size - (context->in + context->out);
+        case HY_FIFO_INFO_FREE_LEN:
+            *((size_t *)val) = context->size - (context->in + context->out);
             break;
         default:
             LOGE("the type is ERROR, type: %d \n", type);
             break;
     }
-
-    return len;
 }
 
 void HyFifoDump(void *handle)
@@ -211,7 +205,7 @@ void HyFifoDump(void *handle)
         LOGE("the param is NULL, handle: %p \n", handle);
         return;
     }
-    fifo_context_t *context = handle;
+    _fifo_context_t *context = handle;
 
 #ifdef FIFO_PRINT_ALL
     _print_all_buf(context);
@@ -221,9 +215,9 @@ void HyFifoDump(void *handle)
 
 void HyFifoClean(void *handle)
 {
-    HY_ASSERT_NULL_RET(!handle);
+    HY_ASSERT_VAL_RET(!handle);
 
-    fifo_context_t *context = handle;
+    _fifo_context_t *context = handle;
 
     memset(context->buf, '\0', context->size);
     context->in = context->out = 0;
@@ -231,44 +225,54 @@ void HyFifoClean(void *handle)
 
 void HyFifoDestroy(void **handle)
 {
-    HY_ASSERT_NULL_RET(!handle || !*handle);
+    HY_ASSERT_VAL_RET(!handle || !*handle);
 
-    fifo_context_t *context = *handle;
+    _fifo_context_t *context = *handle;
 
-    if (context) {
-        if (context->buf) {
-            HY_FREE(&context->buf);
-        }
-
-        HY_FREE(handle);
+    if (context->buf) {
+        HY_FREE_PP(&context->buf);
     }
+
+    HY_FREE_PP(handle);
+
+    LOGI("fifo destroy successful \n");
 }
 
-void *HyFifoCreate(uint32_t size)
+static uint32_t _HyUtilsNumTo2N2(uint32_t num)
 {
-    fifo_context_t *context = NULL;
+    uint32_t i = 1;
+    uint32_t num_tmp = num;
 
+    while (num >>= 1) {
+        i <<= 1;
+    }
+
+    return (i < num_tmp) ? i << 1 : i;
+}
+
+void *HyFifoCreate(HyFifoConfig_t *config)
+{
+    HY_ASSERT_VAL_RET_VAL(!config, NULL);
+
+    _fifo_context_t *context = NULL;
     do {
-        if (size <= 0) {
-            LOGE("the param is NULL, len: %d \n", size);
-            break;
-        }
+        size_t size = config->save_config.size;
 
         if (!HyUtilsIsPowerOf2(size) || size > 0x80000000) {
-            size = HyUtilsNumTo2N2(size);
+            size = _HyUtilsNumTo2N2(size);
             LOGE("size must be power of 2, new size: %d \n", size);
         }
 
-        context = HY_MALLOC_BREAK(sizeof(*context));
-        context->buf = HY_MALLOC_BREAK(size);
+        context = HY_MALLOC_BREAK(_fifo_context_t *, sizeof(*context));
+        context->buf = HY_MALLOC_BREAK(char *, size);
 
         context->size = size;
 
+        LOGI("fifo create successful \n");
         return context;
     } while (0);
 
     HyFifoDestroy((void **)&context);
-
     return NULL;
 }
 

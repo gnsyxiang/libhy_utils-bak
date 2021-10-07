@@ -2,10 +2,10 @@
  * 
  * Release under GPLv-3.0.
  * 
- * @file    hy_list_test.c
+ * @file    hy_thread_test.c
  * @brief   
  * @author  gnsyxiang <gnsyxiang@163.com>
- * @date    08/04 2020 16:12
+ * @date    07/10 2021 09:47
  * @version v0.0.1
  * 
  * @since    note
@@ -13,9 +13,9 @@
  * 
  *     change log:
  *     NO.     Author              Date            Modified
- *     00      zhenquan.qiu        08/04 2020      create the file
+ *     00      zhenquan.qiu        07/10 2021      create the file
  * 
- *     last modified: 08/04 2020 16:12
+ *     last modified: 07/10 2021 09:47
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,26 +24,38 @@
 
 #include "hy_module.h"
 #include "hy_mem.h"
-#include "hy_string.h"
 #include "hy_type.h"
 #include "hy_utils.h"
-#include "hy_list.h"
+#include "hy_thread.h"
+#include "hy_string.h"
 #include "hy_log.h"
 
 #define ALONE_DEBUG 1
-
-typedef struct {
-    char name[32];
-    int32_t id;
-
-    struct list_head list;
-} _student_t;
+#define TEST_MEMORY_LEAK
 
 typedef struct {
     void *log_handle;
-
-    struct list_head list;
+    void *thread_handle;
 } _main_context_t;
+
+#ifdef TEST_MEMORY_LEAK
+static int32_t exit_flag = 0;
+#endif
+
+static int32_t _print_loop_cb(void *args)
+{
+#ifdef TEST_MEMORY_LEAK
+    while (!exit_flag) {
+        LOGE("haha \n");
+        sleep(1);
+    }
+    return -1;
+#else
+    LOGE("haha \n");
+    sleep(1);
+    return 0;
+#endif
+}
 
 static void _module_destroy(_main_context_t **context_pp)
 {
@@ -51,7 +63,8 @@ static void _module_destroy(_main_context_t **context_pp)
 
     // note: 增加或删除要同步到module_create_t中
     module_destroy_t module[] = {
-        {"log",     &context->log_handle,   HyLogDestroy},
+        {"thread",  &context->thread_handle,    HyThreadDestroy},
+        {"log",     &context->log_handle,       HyLogDestroy},
     };
 
     RUN_DESTROY(module);
@@ -68,9 +81,15 @@ static _main_context_t *_module_create(void)
     log_config.save_config.level        = HY_LOG_LEVEL_TRACE;
     log_config.save_config.color_output = HY_FLAG_ENABLE;
 
+    HyThreadConfig_t thread_config;
+    thread_config.save_config.thread_loop_cb    = _print_loop_cb;
+    thread_config.save_config.args              = context;
+    HY_MEMCPY(&thread_config.save_config.name, "print");
+
     // note: 增加或删除要同步到module_destroy_t中
     module_create_t module[] = {
-        {"log",  &context->log_handle,   &log_config,    (create_t)HyLogCreate,    HyLogDestroy},
+        {"log",     &context->log_handle,       &log_config,        (create_t)HyLogCreate,      HyLogDestroy},
+        {"thread",  &context->thread_handle,    &thread_config,     (create_t)HyThreadCreate,   HyThreadDestroy},
     };
 
     RUN_CREATE(module);
@@ -88,36 +107,18 @@ int main(int argc, char *argv[])
 
     LOGI("version: %s, data: %s, time: %s \n", "0.1.0", __DATE__, __TIME__);
 
-    INIT_LIST_HEAD(&context->list);
-
-    int32_t i;
-    char buf[32];
-    #define STUDENT_CNT (5)
-    _student_t student[STUDENT_CNT];
-    for (i = 0; i < STUDENT_CNT; ++i) {
-        snprintf(buf, 32, "student%d", i);
-        HY_MEMCPY(&student[i].name, buf);
-        student[i].id = i;
-
-        list_add_tail(&student[i].list, &context->list);
+#ifdef TEST_MEMORY_LEAK
+    int32_t cnt = 0;
+    while (cnt++ < 5) {
+        sleep(1);
     }
-
-    _student_t *pos, *n;
-    list_for_each_entry(pos, &context->list, list) {
-        if (pos) {
-            LOGI("name: %s, id: %d \n", pos->name, pos->id);
-        }
-    }
-
-    list_for_each_entry_safe(pos, n, &context->list, list) {
-        LOGI("name: %s, id: %d \n", pos->name, pos->id);
-
-        list_del(&pos->list);
-    }
-
+    exit_flag = 1;
+    sleep(2);
+#else
     while (1) {
         sleep(1);
     }
+#endif
 
     _module_destroy(&context);
 

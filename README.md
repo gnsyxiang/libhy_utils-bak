@@ -29,13 +29,6 @@ $ make install
 
 * `PKG_CONFIG_PATH`: 使用`pkg-config`检测依赖库
 
-* `--disable-hy_hal`: 默认打开`hy_hal`检测，需要关闭时启用该选项
-
-* `--enable-log4cplus`: 默认关闭`log4cplus`检测，需要打开时启用该选项
-
-* `--disable-mylog`: 默认打开`mylog`检测，需要关闭时启用该选项
-
-
 ## 交叉编译
 
 详见[build.sh](./build.sh)

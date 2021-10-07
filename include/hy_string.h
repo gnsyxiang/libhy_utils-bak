@@ -34,17 +34,13 @@ extern "C" {
 
 #define HY_MEMCPY(dst, src)                     \
     do {                                        \
-        memcpy((dst), src, sizeof(*(dst)));     \
+        memcpy((dst), (src), sizeof(*(dst)));   \
     } while (0)
 
 #define HY_STRNCPY(dst, src, max_len)           \
     do {                                        \
         memset(dst, '\0', max_len);             \
-        size_t len = strlen(src);               \
-        if (len >= max_len) {                   \
-            len = max_len - 1;                  \
-        }                                       \
-        strncpy(dst, src, len);                 \
+        strncpy(dst, src, max_len - 1);         \
     } while (0)
 
 /**

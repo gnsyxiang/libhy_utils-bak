@@ -22,7 +22,7 @@
 
 #include "hy_md5sum.h"
 
-hal_int32_t main(hal_int32_t argc, const hal_char_t *argv[])
+int main(int argc, const char *argv[])
 {
     uint8_t digest[16] = {0};
     uint8_t md5sum[16] = {

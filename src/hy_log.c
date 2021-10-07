@@ -32,46 +32,6 @@
 
 #define ALONE_DEBUG 1
 
-typedef struct {
-    hy_u32_t buf_len;
-    char        *buf;
-
-    hy_u32_t cur_len;
-
-    hy_u8_t  level;
-} _log_context_t;
-
-static _log_context_t *context = NULL;
-
-void HyPrintHex(const char *name, uint16_t line,
-        const void *_buf, size_t len, int8_t flag)
-{
-    if (len <= 0) {
-        return;
-    }
-    uint8_t *buf = (uint8_t *)_buf;
-
-    hy_u8_t cnt = 0;
-    printf("[%s %d]len: %zu \r\n", name, line, len);
-    for (size_t i = 0; i < len; i++) {
-        if (flag == 1) {
-            if (buf[i] == 0x0d || buf[i] == 0x0a || buf[i] < 32 || buf[i] >= 127) {
-                printf("%02x[ ]  ", (hy_u8_t)buf[i]);
-            } else {
-                printf("%02x[%c]  ", (hy_u8_t)buf[i], (hy_u8_t)buf[i]);
-            }
-        } else {
-            printf("%02x ", (hy_u8_t)buf[i]);
-        }
-        cnt++;
-        if (cnt == 16) {
-            cnt = 0;
-            printf("\r\n");
-        }
-    }
-    printf("\r\n");
-}
-
 /*设置输出前景色*/
 #define PRINT_FONT_BLA      "\033[30m"      //黑色
 #define PRINT_FONT_RED      "\033[31m"      //红色
@@ -106,51 +66,99 @@ void HyPrintHex(const char *name, uint16_t line,
 
 // printf("\033[字背景颜色;字体颜色m字符串\033[0m" );
 
-// #define USE_COLOR_OUTPUT
+typedef struct {
+    HyLogSaveConfig_t save_config;
 
-#ifdef USE_COLOR_OUTPUT
+    char *buf;
+    size_t cur_len;
+} _log_context_t;
+
+static _log_context_t *context = NULL;
+
+void HyLogHex(const char *name, uint32_t line,
+        void *_buf, size_t len, int8_t flag)
+{
+    if (len <= 0) {
+        return;
+    }
+    uint8_t *buf = (uint8_t *)_buf;
+
+    hy_u8_t cnt = 0;
+    printf("[%s %d]len: %zu \r\n", name, line, len);
+    for (size_t i = 0; i < len; i++) {
+        if (flag == 1) {
+            if (buf[i] == 0x0d || buf[i] == 0x0a
+                    || buf[i] < 32 || buf[i] >= 127) {
+                printf("%02x[ ]  ", buf[i]);
+            } else {
+                printf("%02x[%c]  ", buf[i], buf[i]);
+            }
+        } else {
+            printf("%02x ", buf[i]);
+        }
+        cnt++;
+        if (cnt == 16) {
+            cnt = 0;
+            printf("\r\n");
+        }
+    }
+    printf("\r\n");
+}
+
 static inline void _output_set_color(HyLogLevel_t level, hy_u32_t *ret)
 {
     hy_char_t *color[HY_LOG_LEVEL_MAX][2] = {
+        {"F", PRINT_FONT_RED},
         {"E", PRINT_FONT_RED},
         {"W", PRINT_FONT_GRE},
-        {"D", ""},
         {"I", ""},
+        {"D", ""},
+        {"T", ""},
     };
 
-    *ret += snprintf(context->buf + *ret, context->buf_len - *ret, "%s[%s]", color[level][1], color[level][0]);
+    *ret += snprintf(context->buf + *ret,
+            context->save_config.buf_len - *ret,
+            "%s[%s]",
+            color[level][1], color[level][0]);
 }
 
 static inline void _output_reset_color(HyLogLevel_t level, hy_u32_t *ret)
 {
-    *ret += snprintf(context->buf + *ret, context->buf_len - *ret, "%s", PRINT_ATTR_RESET);
+    *ret += snprintf(context->buf + *ret,
+            context->save_config.buf_len - *ret,
+            "%s",
+            PRINT_ATTR_RESET);
 }
-#endif
 
 void HyLogWrite(int level, const char *file, const char *func,
         uint32_t line, char *fmt, ...)
 {
-    if (context && context->level <= level) {
-        hy_u32_t ret = 0;
-        memset(context->buf, '\0', context->buf_len);
-
-#ifdef USE_COLOR_OUTPUT
-        _output_set_color(level, &ret);
-#endif
-
+    if (context && context->save_config.level > level) {
         #define _SHORT_FILE_LEN_MAX (32)
         char short_file[_SHORT_FILE_LEN_MAX] = {0};
-        HyStrCopyRight2(file, short_file, _SHORT_FILE_LEN_MAX, '/', 0x5c); // 0x5c == \, 去除windows分界符
-        ret += snprintf(context->buf + ret, context->buf_len - ret, "[%s:%"PRId32"][%s] ", short_file, line, func); 
+        hy_u32_t ret = 0;
+        size_t buf_len = context->save_config.buf_len;
+
+        memset(context->buf, '\0', buf_len);
+
+        if (context->save_config.color_output) {
+            _output_set_color(level, &ret);
+        }
+
+        // 0x5c == \, 去除windows分界符
+        HyStrCopyRight2(file, short_file, _SHORT_FILE_LEN_MAX, '/', 0x5c);
+        ret += snprintf(context->buf + ret,
+                buf_len - ret, "[%s:%"PRId32"][%s] ",
+                short_file, line, func); 
 
         va_list args;
         va_start(args, fmt);
-        ret += vsnprintf(context->buf + ret, context->buf_len - ret, fmt, args);
+        ret += vsnprintf(context->buf + ret, buf_len - ret, fmt, args);
         va_end(args);
 
-#ifdef USE_COLOR_OUTPUT
-        _output_reset_color(level, &ret);
-#endif
+        if (context->save_config.color_output) {
+            _output_reset_color(level, &ret);
+        }
 
         printf("%s", (char *)context->buf);
     }
@@ -160,23 +168,22 @@ void HyLogDestroy(void **handle)
 {
     if (context) {
         if (context->buf) {
-            HY_FREE(&context->buf);
+            HY_FREE_PP(&context->buf);
         }
 
-        HY_FREE(&context);
+        HY_FREE_PP(&context);
     }
 }
 
-void *HyLogCreate(HyLogConfig_t *log_config)
+void *HyLogCreate(HyLogConfig_t *config)
 {
-    HY_ASSERT_NULL_RET_VAL(!log_config, NULL);
+    HY_ASSERT_VAL_RET_VAL(!config, NULL);
 
     do {
-        context = HY_MALLOC_BREAK(sizeof(*context));
-        context->buf = HY_MALLOC_BREAK(log_config->buf_len);
+        context = HY_MALLOC_BREAK(_log_context_t *, sizeof(*context));
+        context->buf = HY_MALLOC_BREAK(char *, config->save_config.buf_len);
 
-        context->buf_len    = log_config->buf_len;
-        context->level      = log_config->level;
+        HY_MEMCPY(&context->save_config, &config->save_config);
 
         return context;
     } while (0);

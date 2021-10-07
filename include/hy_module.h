@@ -24,28 +24,27 @@
 extern "C" {
 #endif
 
-#include "hy_utils.h"
-
 typedef void *(*create_t)(void *config);
 typedef void (*destroy_t)(void **handle);
+
 typedef struct {
     const char  *name;
-    void        **handle;
-    void        *config;
-    create_t    create;
-    destroy_t   destroy;
+    void **handle;
+    void *config;
+    create_t create;
+    destroy_t destroy;
 } module_create_t;
 
 typedef struct {
-    const char  *name;
-    void        **handle;
-    destroy_t   destroy;
+    const char *name;
+    void **handle;
+    destroy_t destroy;
 } module_destroy_t;
 
 #define RUN_CREATE(module)                                          \
     do {                                                            \
-        int i = 0;                                                  \
-        int len = HyUtilsArrayCnt(module);                          \
+        int32_t i;                                                  \
+        int32_t len = HyUtilsArrayCnt(module);                      \
         for (i = 0; i < len; ++i) {                                 \
             module_create_t *create = &module[i];                   \
             if (create->create) {                                   \
@@ -58,7 +57,7 @@ typedef struct {
         }                                                           \
                                                                     \
         if (i < len) {                                              \
-            int j;                                                  \
+            int32_t j;                                              \
             for (j = i - 1; j >= 0; j--) {                          \
                 module_create_t *create = &module[j];               \
                 if (create->destroy) {                              \
@@ -71,7 +70,7 @@ typedef struct {
 
 #define RUN_DESTROY(module)                                         \
     do {                                                            \
-        int i;                                                      \
+        int32_t i;                                                  \
         for (i = 0; i < HyUtilsArrayCnt(module); ++i) {             \
             module_destroy_t *destroy = &module[i];                 \
             if (destroy->destroy) {                                 \
