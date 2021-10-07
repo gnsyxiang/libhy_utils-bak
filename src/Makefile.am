@@ -44,6 +44,7 @@ _sources_com    += \
                    hy_log.c \
                    hy_md5sum.c \
                    hy_mem.c \
+                   hy_sort.c \
                    hy_string.c \
                    hy_thread.c
 
