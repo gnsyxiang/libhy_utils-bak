@@ -39,18 +39,34 @@ typedef enum {
 } HyFifoInfoType_t;
 
 /**
+ * @brief 模块配置参数
+ */
+typedef struct {
+    size_t size;                ///< fifo数据空间长度
+} HyFifoSaveConfig_t;
+
+/**
+ * @brief 模块配置参数
+ */
+typedef struct {
+    HyFifoSaveConfig_t save_config;     ///< 参数，详见HyFifoSaveConfig_t
+} HyFifoConfig_t;
+
+/**
  * @brief 创建fifo模块
  *
- * @param size 存储fifo数据空间长度
+ * @param config 配置参数，详见HyFifoConfig_t
  *
- * @return 操作fifo句柄
+ * @return fifo句柄
+ *
+ * @note 如果读取速度很慢且空间开辟的很小，则会丢弃数据
  */
-void *HyFifoCreate(size_t size);
+void *HyFifoCreate(HyFifoConfig_t *config);
 
 /**
  * @brief 销毁fifo模块
  *
- * @param handle 操作fifo句柄的地址
+ * @param handle fifo句柄的地址
  */
 void HyFifoDestroy(void **handle);
 
