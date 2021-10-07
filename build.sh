@@ -38,12 +38,16 @@ _ldflag_com="${_ldflag_com} -Wl,--as-needed"
 if [ x$1 = x"pc" ]; then
     vender=pc
     gcc_version=x86_64-linux-gnu
+
+    _param_com="${_param_com} --with-target_os=linux"
 elif [ x$1 = x"arm" ]; then
     vender=hisi
     host=arm-himix200-linux
     gcc_version=arm-himix200-linux
     gcc_prefix=arm-himix200-linux
     cross_gcc_path=${data_disk_path}/opt/toolchains/${vender}/${gcc_version}/bin/${gcc_prefix}-
+
+    _param_com="${_param_com} --with-target_os=linux"
 elif [ x$1 = x"mcu" ]; then
     vender=gnu_arm_embedded
     host=arm-none-eabi
@@ -52,6 +56,7 @@ elif [ x$1 = x"mcu" ]; then
     cross_gcc_path=${data_disk_path}/opt/toolchains/${vender}/${gcc_version}/bin/${gcc_prefix}-
 
     _ldflag_com="${_ldflag_com} -specs=nano.specs -specs=nosys.specs"
+    _param_com="${_param_com} --with-target_os=mcu"
 else
     help_info
 fi

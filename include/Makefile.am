@@ -35,7 +35,6 @@ _install_headers_com    += \
                            hy_assert.h \
                            hy_bit.h \
                            hy_compile.h \
-                           hy_dlopen.h \
                            hy_error.h \
                            hy_fifo.h \
                            hy_list.h \
@@ -46,9 +45,14 @@ _install_headers_com    += \
                            hy_module.h \
                            hy_sort.h \
                            hy_string.h \
-                           hy_thread.h \
                            hy_type.h \
                            hy_utils.h
+
+if COMPILE_SELECT_TARGET_OS_LINUX
+_install_headers_com    += \
+                           hy_dlopen.h \
+                           hy_thread.h
+endif
 
 # ------------------
 # make install files

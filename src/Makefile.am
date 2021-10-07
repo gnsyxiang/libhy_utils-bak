@@ -41,15 +41,19 @@ _include_com    += -I$(top_srcdir)/include
 
 _sources_com    += \
                    hy_bit.c \
-                   hy_dlopen.c \
                    hy_fifo.c \
                    hy_log.c \
                    hy_md5sum.c \
                    hy_mem.c \
                    hy_sort.c \
                    hy_string.c \
-                   hy_thread.c \
                    hy_utils.c
+
+if COMPILE_SELECT_TARGET_OS_LINUX
+_sources_com    += \
+                   hy_dlopen.c \
+                   hy_thread.c
+endif
 
 _cppflags_com   += \
                    -D_GNU_SOURCE \
