@@ -38,6 +38,7 @@ _install_headers_com    += \
                            hy_fifo.h \
                            hy_list.h \
                            hy_log.h \
+                           hy_math.h \
                            hy_mem.h \
                            hy_module.h \
                            hy_string.h \
