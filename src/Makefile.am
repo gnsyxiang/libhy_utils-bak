@@ -46,7 +46,8 @@ _sources_com    += \
                    hy_mem.c \
                    hy_sort.c \
                    hy_string.c \
-                   hy_thread.c
+                   hy_thread.c \
+                   hy_utils.c
 
 _cppflags_com   += \
                    -D_GNU_SOURCE \
