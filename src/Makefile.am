@@ -40,12 +40,14 @@ _no_error_com   += -Wno-error=address
 _include_com    += -I$(top_srcdir)/include
 
 _sources_com    += \
+                   hy_thread.c \
                    hy_fifo.c \
                    hy_string.c \
                    hy_mem.c \
                    hy_log.c
 
 _cppflags_com   += \
+                   -D_GNU_SOURCE \
                    $(CPPFLAGS_COM) \
                    $(_no_error_com) \
                    $(_include_com)

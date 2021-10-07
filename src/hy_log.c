@@ -87,13 +87,14 @@ void HyLogHex(const char *name, uint32_t line,
     printf("[%s %d]len: %zu \r\n", name, line, len);
     for (size_t i = 0; i < len; i++) {
         if (flag == 1) {
-            if (buf[i] == 0x0d || buf[i] == 0x0a || buf[i] < 32 || buf[i] >= 127) {
-                printf("%02x[ ]  ", (hy_u8_t)buf[i]);
+            if (buf[i] == 0x0d || buf[i] == 0x0a
+                    || buf[i] < 32 || buf[i] >= 127) {
+                printf("%02x[ ]  ", buf[i]);
             } else {
-                printf("%02x[%c]  ", (hy_u8_t)buf[i], (hy_u8_t)buf[i]);
+                printf("%02x[%c]  ", buf[i], buf[i]);
             }
         } else {
-            printf("%02x ", (hy_u8_t)buf[i]);
+            printf("%02x ", buf[i]);
         }
         cnt++;
         if (cnt == 16) {

@@ -251,7 +251,6 @@ static uint32_t _HyUtilsNumTo2N2(uint32_t num)
 void *HyFifoCreate(size_t size)
 {
     _fifo_context_t *context = NULL;
-
     do {
         if (size <= 0) {
             LOGE("the param is NULL, len: %d \n", size);
