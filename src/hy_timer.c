@@ -44,6 +44,7 @@ typedef struct {
     HyTimerServiceSaveConfig_t save_config;
 
     uint32_t cur_slot;
+    pthread_mutex_t mutex;
 
     pthread_t id;
     int exit_flag;
@@ -80,8 +81,11 @@ void HyTimerDel(void **timer_handle)
         list_for_each_entry_safe(pos, n, &context->list_head[i], list) {
             if (*timer_handle == pos) {
                 list_del(&pos->list);
+
+                pthread_mutex_lock(&context->mutex);
                 HY_FREE_PP(&pos);
                 *timer_handle = NULL;
+                pthread_mutex_unlock(&context->mutex);
 
                 goto DEL_ERR_1;
             }
@@ -116,9 +120,13 @@ static void *_timer_loop_cb(void *args)
                 pos->rotation--;
             } else {
                 timer_config = &pos->timer_config;
+
+                pthread_mutex_lock(&context->mutex);
                 if (timer_config->timer_cb) {
                     timer_config->timer_cb(timer_config->args);
                 }
+                pthread_mutex_unlock(&context->mutex);
+
                 list_del(&pos->list);
 
                 if (pos->timer_config.repeat_flag) {
@@ -155,6 +163,8 @@ void HyTimerDestroy(void)
         }
     }
 
+    pthread_mutex_destroy(&context->mutex);
+
     HY_FREE_PP(&context->list_head);
 
     HY_FREE_PP(&context);
@@ -176,6 +186,8 @@ void HyTimerCreate(HyTimerServiceConfig_t *config)
         for (uint32_t i = 0; i < config->save_config.slot_num; ++i) {
             INIT_LIST_HEAD(&context->list_head[i]);
         }
+
+        pthread_mutex_init(&context->mutex, NULL);
 
         pthread_create(&context->id, NULL, _timer_loop_cb, context);
 
