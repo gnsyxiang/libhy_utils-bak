@@ -19,6 +19,7 @@
  */
 #include <stdio.h>
 #include <pthread.h>
+#include <unistd.h>
 
 #include "hy_thread.h"
 
@@ -42,13 +43,14 @@ static void *_thread_loop_cb(void *args)
     HyThreadSaveConfig_t *save_config = &context->save_config;
     int32_t ret = 0;
 
+    usleep(1000);
     LOGI("%s thread loop start \n", save_config->name);
 
 #ifdef _GNU_SOURCE
         pthread_setname_np(context->id, save_config->name);
 #endif
 
-    while (!context->exit_flag || !ret) {
+    while (!context->exit_flag && !ret) {
         ret = save_config->thread_loop_cb(save_config->args);
     }
 
