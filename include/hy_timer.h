@@ -41,11 +41,13 @@ void HyTimerDestroy(void);
 
 typedef struct {
     size_t expires;
+    int32_t repeat_flag;
+
     void (*timer_cb)(void *args);
     void *args;
-} HyTimerHandleConfig_t;
+} HyTimerConfig_t;
 
-void *HyTimerAdd(HyTimerHandleConfig_t *timer_config);
+void *HyTimerAdd(HyTimerConfig_t *timer_config);
 void HyTimerDel(void *timer_handle);
 
 #ifdef __cplusplus

@@ -30,6 +30,7 @@
 #include "hy_log.h"
 
 #define ALONE_DEBUG 1
+// #define TEST_MEMORY_LEAK
 
 typedef struct {
     void *log_handle;
@@ -87,17 +88,24 @@ int main(int argc, char *argv[])
 
     HyTimerCreate(&timer_service_config);
 
-    HyTimerHandleConfig_t timer_config;
-    timer_config.args       = context;
-    timer_config.expires    = 5;
-    timer_config.timer_cb   = _timer_cb;
+    HyTimerConfig_t timer_config;
+    timer_config.expires        = 1;
+    timer_config.repeat_flag    = 1;
+    timer_config.timer_cb       = _timer_cb;
+    timer_config.args           = context;
 
     HyTimerAdd(&timer_config);
 
+#ifdef TEST_MEMORY_LEAK
     int cnt = 0;
     while (cnt++ < 8) {
         sleep(1);
     }
+#else
+    while (1) {
+        sleep(1);
+    }
+#endif
 
     HyTimerDestroy();
 

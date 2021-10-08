@@ -33,7 +33,7 @@
 #define ALONE_DEBUG 1
 
 typedef struct {
-    HyTimerHandleConfig_t timer_config;
+    HyTimerConfig_t timer_config;
 
     size_t rotation;
 
@@ -53,7 +53,7 @@ typedef struct {
 
 static _timer_context_t *context = NULL;
 
-void *HyTimerAdd(HyTimerHandleConfig_t *timer_config)
+void *HyTimerAdd(HyTimerConfig_t *timer_config)
 {
     HY_ASSERT_VAL_RET_VAL(!timer_config, NULL);
 
@@ -106,13 +106,20 @@ static void *_timer_loop_cb(void *args)
             if (pos->rotation > 0) {
                 pos->rotation--;
             } else {
-                HyTimerHandleConfig_t *timer_config = &pos->timer_config;
+                HyTimerConfig_t *timer_config = &pos->timer_config;
                 if (timer_config->timer_cb) {
                     timer_config->timer_cb(timer_config->args);
                 }
                 list_del(&pos->list);
 
-                HY_FREE_PP(&pos);
+                if (pos->timer_config.repeat_flag) {
+                    pos->rotation = timer_config->expires / context->save_config.slot_num;
+                    size_t slot     = timer_config->expires % context->save_config.slot_num;
+
+                    list_add_tail(&pos->list, &context->list_head[slot + context->cur_slot]);
+                } else {
+                    HY_FREE_PP(&pos);
+                }
             }
         }
 
