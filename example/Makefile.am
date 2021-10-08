@@ -63,14 +63,6 @@ hy_log_test_CXXFLAGS        = $(_cxxflags_com)
 hy_log_test_LDFLAGS         = $(_ldflags_com)
 hy_log_test_LDADD           = $(_ldadd_com)
 
-bin_PROGRAMS                += hy_thread_test
-hy_thread_test_SOURCES      = $(_sources_com) hy_thread_test.c
-hy_thread_test_CPPFLAGS     = $(_cppflags_com)
-hy_thread_test_CFLAGS       = $(_cflags_com)
-hy_thread_test_CXXFLAGS     = $(_cxxflags_com)
-hy_thread_test_LDFLAGS      = $(_ldflags_com)
-hy_thread_test_LDADD        = $(_ldadd_com)
-
 bin_PROGRAMS                += hy_fifo_test
 hy_fifo_test_SOURCES        = $(_sources_com) hy_fifo_test.c
 hy_fifo_test_CPPFLAGS       = $(_cppflags_com)
@@ -118,3 +110,21 @@ hy_template_test_CFLAGS     = $(_cflags_com)
 hy_template_test_CXXFLAGS   = $(_cxxflags_com)
 hy_template_test_LDFLAGS    = $(_ldflags_com)
 hy_template_test_LDADD      = $(_ldadd_com)
+
+if COMPILE_SELECT_TARGET_OS_LINUX
+bin_PROGRAMS                += hy_thread_test
+hy_thread_test_SOURCES      = $(_sources_com) hy_thread_test.c
+hy_thread_test_CPPFLAGS     = $(_cppflags_com)
+hy_thread_test_CFLAGS       = $(_cflags_com)
+hy_thread_test_CXXFLAGS     = $(_cxxflags_com)
+hy_thread_test_LDFLAGS      = $(_ldflags_com)
+hy_thread_test_LDADD        = $(_ldadd_com)
+
+bin_PROGRAMS                += hy_timer_test
+hy_timer_test_SOURCES       = $(_sources_com) hy_timer_test.c
+hy_timer_test_CPPFLAGS      = $(_cppflags_com)
+hy_timer_test_CFLAGS        = $(_cflags_com)
+hy_timer_test_CXXFLAGS      = $(_cxxflags_com)
+hy_timer_test_LDFLAGS       = $(_ldflags_com)
+hy_timer_test_LDADD         = $(_ldadd_com)
+endif

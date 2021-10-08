@@ -2,7 +2,7 @@
  *
  * Release under GPLv-3.0.
  * 
- * @file    hy_timerwheel_rotation.h
+ * @file    hy_timer.h
  * @brief   
  * @author  gnsyxiang <gnsyxiang@163.com>
  * @date    16/07 2021 14:25
@@ -17,8 +17,8 @@
  * 
  *     last modified: 16/07 2021 14:25
  */
-#ifndef __LIBHY_UTILS_INCLUDE_HY_TIMERWHEEL_ROTATION_H_
-#define __LIBHY_UTILS_INCLUDE_HY_TIMERWHEEL_ROTATION_H_
+#ifndef __LIBHY_UTILS_INCLUDE_HY_TIMER_H_
+#define __LIBHY_UTILS_INCLUDE_HY_TIMER_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,12 +28,16 @@ extern "C" {
 #include <stdint.h>
 
 typedef struct {
-    uint32_t slot_num;
-    uint32_t slot_interval;
-} HyTimerWheelRotationConfig_t;
+    uint32_t slot_num;              ///< 一格周期的总格子数
+    uint32_t slot_interval_ms;      ///< 一格子定时的最小刻度
+} HyTimerServiceSaveConfig_t;
 
-void *HyTimerWheelRotationCreate(HyTimerWheelRotationConfig_t *timerwheel_rotation_config);
-void HyTimerWheelRotationDestroy(void **handle);
+typedef struct {
+    HyTimerServiceSaveConfig_t save_config;
+} HyTimerServiceConfig_t;
+
+void HyTimerCreate(HyTimerServiceConfig_t *config);
+void HyTimerDestroy(void);
 
 typedef struct {
     size_t expires;
@@ -41,8 +45,8 @@ typedef struct {
     void *args;
 } HyTimerHandleConfig_t;
 
-void *HyTimerWheelRotationAdd(void *handle, HyTimerHandleConfig_t *timer_config);
-void HyTimerWheelRotationDel(void *handle, void *timer_handle);
+void *HyTimerAdd(HyTimerHandleConfig_t *timer_config);
+void HyTimerDel(void *timer_handle);
 
 #ifdef __cplusplus
 }
