@@ -93,10 +93,15 @@ static void *_timer_loop_cb(void *args)
     struct timeval tv;
     int err;
     _timer_t *pos, *n;
+    time_t sec, usec;
+    HyTimerConfig_t *timer_config = NULL;
+
+    sec = context->save_config.slot_interval_ms / 1000;
+    usec = (context->save_config.slot_interval_ms % 1000) * 1000;
 
     while (!context->exit_flag) {
-        tv.tv_sec   = 1;
-        tv.tv_usec  = 0;
+        tv.tv_sec   = sec;
+        tv.tv_usec  = usec;
 
         do {
             err = select(0, NULL, NULL, NULL, &tv);
@@ -106,7 +111,7 @@ static void *_timer_loop_cb(void *args)
             if (pos->rotation > 0) {
                 pos->rotation--;
             } else {
-                HyTimerConfig_t *timer_config = &pos->timer_config;
+                timer_config = &pos->timer_config;
                 if (timer_config->timer_cb) {
                     timer_config->timer_cb(timer_config->args);
                 }
@@ -115,8 +120,10 @@ static void *_timer_loop_cb(void *args)
                 if (pos->timer_config.repeat_flag) {
                     pos->rotation = timer_config->expires / context->save_config.slot_num;
                     size_t slot     = timer_config->expires % context->save_config.slot_num;
+                    slot += context->cur_slot;
+                    slot %= context->save_config.slot_num;
 
-                    list_add_tail(&pos->list, &context->list_head[slot + context->cur_slot]);
+                    list_add_tail(&pos->list, &context->list_head[slot]);
                 } else {
                     HY_FREE_PP(&pos);
                 }
@@ -124,6 +131,7 @@ static void *_timer_loop_cb(void *args)
         }
 
         context->cur_slot++;
+        context->cur_slot %= context->save_config.slot_num;
     }
 
     return NULL;

@@ -84,12 +84,12 @@ int main(int argc, char *argv[])
 
     HyTimerServiceConfig_t timer_service_config;
     timer_service_config.save_config.slot_interval_ms   = 1;
-    timer_service_config.save_config.slot_num           = 60;
+    timer_service_config.save_config.slot_num           = 1000;
 
     HyTimerCreate(&timer_service_config);
 
     HyTimerConfig_t timer_config;
-    timer_config.expires        = 1;
+    timer_config.expires        = 500;
     timer_config.repeat_flag    = 1;
     timer_config.timer_cb       = _timer_cb;
     timer_config.args           = context;
