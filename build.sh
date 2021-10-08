@@ -77,6 +77,7 @@ if [ $# = 2 ]; then
     cd $2/${vender}
 fi
 
+export STRIP=${cross_gcc_path}strip
 ${target_path}/configure                                    \
     CC=${cross_gcc_path}gcc                                 \
     CXX=${cross_gcc_path}g++                                \
