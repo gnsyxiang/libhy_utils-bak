@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    LOGI("version: %s, data: %s, time: %s \n", "0.1.0", __DATE__, __TIME__);
+    LOGE("version: %s, data: %s, time: %s \n", "0.1.0", __DATE__, __TIME__);
 
     while (1) {
         sleep(1);

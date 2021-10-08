@@ -69,23 +69,27 @@ void *HyTimerAdd(HyTimerConfig_t *timer_config)
     return timer;
 }
 
-void HyTimerDel(void *timer_handle)
+void HyTimerDel(void **timer_handle)
 {
-    HY_ASSERT_VAL_RET(!timer_handle);
-
-    _timer_t *timer = timer_handle;
-
-    size_t slot = timer->timer_config.expires % context->save_config.slot_num;
+    HY_ASSERT_VAL_RET(!timer_handle || !*timer_handle);
 
     _timer_t *pos, *n;
-    list_for_each_entry_safe(pos, n, &context->list_head[slot], list) {
-        if (timer_handle == pos) {
-            list_del(&pos->list);
+    uint32_t i;
 
-            HY_FREE_PP(&pos);
-            break;
+    for (i = 0; i < context->save_config.slot_num; ++i) {
+        list_for_each_entry_safe(pos, n, &context->list_head[i], list) {
+            if (*timer_handle == pos) {
+                list_del(&pos->list);
+                HY_FREE_PP(&pos);
+                *timer_handle = NULL;
+
+                goto DEL_ERR_1;
+            }
         }
     }
+
+DEL_ERR_1:
+    return;
 }
 
 static void *_timer_loop_cb(void *args)

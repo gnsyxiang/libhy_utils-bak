@@ -48,7 +48,7 @@ typedef struct {
 } HyTimerConfig_t;
 
 void *HyTimerAdd(HyTimerConfig_t *timer_config);
-void HyTimerDel(void *timer_handle);
+void HyTimerDel(void **timer_handle);
 
 #ifdef __cplusplus
 }

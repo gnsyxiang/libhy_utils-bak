@@ -25,8 +25,10 @@
 
 #include "hy_module.h"
 #include "hy_mem.h"
+#include "hy_string.h"
 #include "hy_utils.h"
 #include "hy_type.h"
+#include "hy_thread.h"
 #include "hy_log.h"
 
 #define ALONE_DEBUG 1
@@ -34,7 +36,23 @@
 
 typedef struct {
     void *log_handle;
+    void *thread_handle;
+    void *timer_handle;
 } _main_context_t;
+
+static int32_t _del_timer_cb(void *args)
+{
+    _main_context_t *context = args;
+
+    while (1) {
+        sleep(3);
+
+        HyTimerDel(&context->timer_handle);
+        break;
+    }
+
+    return -1;
+}
 
 static void _module_destroy(_main_context_t **context_pp)
 {
@@ -42,6 +60,7 @@ static void _module_destroy(_main_context_t **context_pp)
 
     // note: 增加或删除要同步到module_create_t中
     module_destroy_t module[] = {
+        {"thread",  &context->thread_handle,    HyThreadDestroy},
         {"log",     &context->log_handle,       HyLogDestroy},
     };
 
@@ -59,9 +78,15 @@ static _main_context_t *_module_create(void)
     log_config.save_config.level        = HY_LOG_LEVEL_TRACE;
     log_config.save_config.color_output = HY_FLAG_ENABLE;
 
+    HyThreadConfig_t thread_config;
+    thread_config.save_config.thread_loop_cb    = _del_timer_cb;
+    thread_config.save_config.args              = context;
+    HY_MEMCPY(&thread_config.save_config.name, "del-timer");
+
     // note: 增加或删除要同步到module_destroy_t中
     module_create_t module[] = {
-        {"log",     &context->log_handle,   &log_config,    (create_t)HyLogCreate,      HyLogDestroy},
+        {"log",     &context->log_handle,       &log_config,        (create_t)HyLogCreate,      HyLogDestroy},
+        {"thread",  &context->thread_handle,    &thread_config,     (create_t)HyThreadCreate,   HyThreadDestroy},
     };
 
     RUN_CREATE(module);
@@ -82,6 +107,8 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    LOGE("version: %s, data: %s, time: %s \n", "0.1.0", __DATE__, __TIME__);
+
     HyTimerServiceConfig_t timer_service_config;
     timer_service_config.save_config.slot_interval_ms   = 1;
     timer_service_config.save_config.slot_num           = 1000;
@@ -94,7 +121,10 @@ int main(int argc, char *argv[])
     timer_config.timer_cb       = _timer_cb;
     timer_config.args           = context;
 
-    HyTimerAdd(&timer_config);
+    context->timer_handle = HyTimerAdd(&timer_config);
+    if (!context->timer_handle) {
+        LOGE("HyTimerAdd failed \n");
+    }
 
 #ifdef TEST_MEMORY_LEAK
     int cnt = 0;
