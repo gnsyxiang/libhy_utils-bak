@@ -129,7 +129,7 @@ static void *_timer_loop_cb(void *args)
 
                 list_del(&pos->list);
 
-                if (pos->timer_config.repeat_flag) {
+                if (pos->timer_config.repeat_flag == HY_TIMER_MODE_REPEAT) {
                     pos->rotation = timer_config->expires / context->save_config.slot_num;
                     size_t slot     = timer_config->expires % context->save_config.slot_num;
                     slot += context->cur_slot;
