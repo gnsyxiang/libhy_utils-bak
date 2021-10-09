@@ -40,11 +40,6 @@
 
 #define ALONE_DEBUG 1
 
-typedef struct {
-    hy_s32_t led;
-    hy_s32_t mode;
-} _led_mode_t;
-
 struct mii_data {
     hy_u16_t phy_id;
     hy_u16_t reg_num;
@@ -53,24 +48,27 @@ struct mii_data {
 };
 
 typedef struct {
-    HyNetWiredSaveConfig_t save_config;
+    hy_s32_t led;
+    hy_s32_t mode;
+} _led_mode_t;
 
-    void *led_thread_handle;
-    void *led_blink_thread_handle;
-    void *fifo_handle;
+typedef struct {
+    _led_mode_t led_mode;
+    hy_s32_t    cnt;
+    hy_s32_t    flag;
+} _led_blink_mode_t;
 
-    hy_s32_t exit_flag;
+typedef struct {
+    HyNetWiredSaveConfig_t  save_config;
+
+    void                    *led_thread_handle;
+    void                    *led_fifo_handle;
+    _led_blink_mode_t       led_blink_mode[HY_NET_WIRED_LED_MAX];
+
+    hy_s32_t                exit_flag;
 } _net_wired_context_t;
 
 static _net_wired_context_t *context = NULL;
-
-static hy_s32_t _led_blink_loop_cb(void *args)
-{
-    while (!context->exit_flag) {
-        sleep(1);
-    }
-    return -1;
-}
 
 #define _MII_SET(fd, ifr, reg_val)                                      \
     do {                                                                \
@@ -121,27 +119,57 @@ void HyNetWiredSetLed(hy_s32_t led, hy_s32_t mode)
     led_mode.led = led;
     led_mode.mode = mode;
 
-    HyFifoPut(context->fifo_handle, &led_mode, sizeof(led_mode));
+    HyFifoPut(context->led_fifo_handle, &led_mode, sizeof(led_mode));
 }
 
 static hy_s32_t _led_loop_cb(void *args)
 {
     size_t val = 0;
     _led_mode_t led_mode;
+    hy_s32_t i;
+    _led_blink_mode_t *led_blink_mode = &context->led_blink_mode[0];
+    hy_s32_t judge_condition[HY_NET_WIRED_LED_MAX][2] = {
+        {HY_NET_WIRED_LED_MODE_SLOW_BLINK,  5},
+        {HY_NET_WIRED_LED_MODE_FAST_BLINK,  3},
+    };
 
     while (!context->exit_flag) {
+        val = 0;
         while (0 == val) {
-            HyFifoGetInfo(context->fifo_handle, HY_FIFO_INFO_USED_LEN, &val);
+            HyFifoGetInfo(context->led_fifo_handle, HY_FIFO_INFO_USED_LEN, &val);
             usleep(100 * 1000);
+
+            for (i = 0; i < HY_NET_WIRED_LED_MAX; ++i) {
+                led_blink_mode[i].cnt++;
+                led_mode.led = i;
+
+                if (led_blink_mode[i].led_mode.mode == judge_condition[i][0]
+                        && led_blink_mode[i].cnt == judge_condition[i][1]) {
+                    led_blink_mode[i].cnt = 0;
+
+                    if (led_blink_mode[i].flag) {
+                        led_mode.mode = HY_NET_WIRED_LED_MODE_OFF;
+                    } else {
+                        led_mode.mode = HY_NET_WIRED_LED_MODE_ON;
+                    }
+                    led_blink_mode[i].flag = !led_blink_mode[i].flag;
+                    _led_set(&led_mode);
+                }
+            }
         }
 
-        HyFifoGet(context->fifo_handle, &led_mode, sizeof(led_mode));
+        HyFifoGet(context->led_fifo_handle, &led_mode, sizeof(led_mode));
+
+        for (i = 0; i < HY_NET_WIRED_LED_MAX; ++i) {
+            if (led_mode.led == i) {
+                memcpy(&context->led_blink_mode[i].led_mode,
+                        &led_mode, sizeof(led_mode));
+            }
+        }
 
         if (led_mode.mode == HY_NET_WIRED_LED_MODE_OFF
                 || led_mode.mode == HY_NET_WIRED_LED_MODE_ON) {
             _led_set(&led_mode);
-        } else {
-
         }
     }
 
@@ -153,9 +181,8 @@ void HyNetWiredDestroy(void **handle)
     context->exit_flag = 1;
 
     HyThreadDestroy(&context->led_thread_handle);
-    HyThreadDestroy(&context->led_blink_thread_handle);
 
-    HyFifoDestroy(&context->fifo_handle);
+    HyFifoDestroy(&context->led_fifo_handle);
 
     HY_FREE_PP(&context);
 
@@ -170,10 +197,10 @@ void *HyNetWiredCreate(HyNetWiredConfig_t *config)
         context = HY_MALLOC_BREAK(_net_wired_context_t *, sizeof(*context));
         HY_MEMCPY(&context->save_config, &config->save_config);
 
-        HyFifoConfig_t fifo_config;
-        fifo_config.save_config.size = sizeof(_led_mode_t) * 6;
-        context->fifo_handle = HyFifoCreate(&fifo_config);
-        if (!context->fifo_handle) {
+        HyFifoConfig_t led_fifo_config;
+        led_fifo_config.save_config.size = sizeof(_led_mode_t) * 6;
+        context->led_fifo_handle = HyFifoCreate(&led_fifo_config);
+        if (!context->led_fifo_handle) {
             LOGE("HyFifoCreate failed \n");
             break;
         }
@@ -184,16 +211,6 @@ void *HyNetWiredCreate(HyNetWiredConfig_t *config)
         HY_MEMCPY(&led_config.save_config.name, "net_led");
         context->led_thread_handle = HyThreadCreate(&led_config);
         if (!context->led_thread_handle) {
-            LOGE("HyThreadCreate failed \n");
-            break;
-        }
-
-        HyThreadConfig_t led_blink_config;
-        led_blink_config.save_config.thread_loop_cb     = _led_blink_loop_cb;
-        led_blink_config.save_config.args               = context;
-        HY_MEMCPY(&led_blink_config.save_config.name, "net_led_blink");
-        context->led_blink_thread_handle = HyThreadCreate(&led_blink_config);
-        if (!context->led_blink_thread_handle) {
             LOGE("HyThreadCreate failed \n");
             break;
         }

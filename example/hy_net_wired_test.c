@@ -101,13 +101,16 @@ int main(int argc, char *argv[])
 
     LOGE("version: %s, data: %s, time: %s \n", "0.1.0", __DATE__, __TIME__);
 
-    while (1) {
-        HyNetWiredSetLed(HY_NET_WIRED_LED_0, HY_NET_WIRED_LED_MODE_ON);
-        HyNetWiredSetLed(HY_NET_WIRED_LED_1, HY_NET_WIRED_LED_MODE_OFF);
-        usleep(100 * 1000);
+    HyNetWiredSetLed(HY_NET_WIRED_LED_0, HY_NET_WIRED_LED_MODE_SLOW_BLINK);
+    HyNetWiredSetLed(HY_NET_WIRED_LED_1, HY_NET_WIRED_LED_MODE_FAST_BLINK);
 
-        HyNetWiredSetLed(HY_NET_WIRED_LED_0, HY_NET_WIRED_LED_MODE_OFF);
-        HyNetWiredSetLed(HY_NET_WIRED_LED_1, HY_NET_WIRED_LED_MODE_ON);
+    while (1) {
+        // HyNetWiredSetLed(HY_NET_WIRED_LED_0, HY_NET_WIRED_LED_MODE_ON);
+        // HyNetWiredSetLed(HY_NET_WIRED_LED_1, HY_NET_WIRED_LED_MODE_OFF);
+        // usleep(100 * 1000);
+        //
+        // HyNetWiredSetLed(HY_NET_WIRED_LED_0, HY_NET_WIRED_LED_MODE_OFF);
+        // HyNetWiredSetLed(HY_NET_WIRED_LED_1, HY_NET_WIRED_LED_MODE_ON);
         usleep(100 * 1000);
     }
 
