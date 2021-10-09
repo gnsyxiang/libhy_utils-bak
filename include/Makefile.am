@@ -50,6 +50,7 @@ _install_headers_com    += \
 
 if COMPILE_SELECT_TARGET_OS_LINUX
 _install_headers_com    += \
+                           hy_net_wired.h \
                            hy_timer.h \
                            hy_dlopen.h \
                            hy_thread.h
