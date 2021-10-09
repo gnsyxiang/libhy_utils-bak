@@ -149,7 +149,7 @@ static void *_timer_loop_cb(void *args)
     return NULL;
 }
 
-void HyTimerDestroy(void)
+void HyTimerDestroy(void **handle)
 {
     context->exit_flag = 1;
     pthread_join(context->id, NULL);
@@ -172,9 +172,9 @@ void HyTimerDestroy(void)
     LOGI("timer destroy successful \n");
 }
 
-void HyTimerCreate(HyTimerServiceConfig_t *config)
+void *HyTimerCreate(HyTimerServiceConfig_t *config)
 {
-    HY_ASSERT_VAL_RET(!config);
+    HY_ASSERT_VAL_RET_VAL(!config, NULL);
 
     do {
         context = HY_MALLOC_BREAK(_timer_context_t *, sizeof(*context));
@@ -192,8 +192,9 @@ void HyTimerCreate(HyTimerServiceConfig_t *config)
         pthread_create(&context->id, NULL, _timer_loop_cb, context);
 
         LOGI("timer create successful \n");
-        return;
+        return context;
     } while (0);
 
-    HyTimerDestroy();
+    HyTimerDestroy(NULL);
+    return NULL;
 }

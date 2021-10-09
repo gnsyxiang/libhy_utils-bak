@@ -36,8 +36,7 @@ typedef struct {
     HyTimerServiceSaveConfig_t save_config;
 } HyTimerServiceConfig_t;
 
-void HyTimerCreate(HyTimerServiceConfig_t *config);
-void HyTimerDestroy(void);
+void *HyTimerCreate(HyTimerServiceConfig_t *config);
 
 typedef struct {
     size_t expires;
@@ -46,6 +45,7 @@ typedef struct {
     void (*timer_cb)(void *args);
     void *args;
 } HyTimerConfig_t;
+void HyTimerDestroy(void **handle);
 
 void *HyTimerAdd(HyTimerConfig_t *timer_config);
 void HyTimerDel(void **timer_handle);

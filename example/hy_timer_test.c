@@ -38,6 +38,7 @@ typedef struct {
     void *log_handle;
     void *thread_handle;
     void *timer_handle;
+    void *timer_service_handle;
 } _main_context_t;
 
 static int32_t _del_timer_cb(void *args)
@@ -60,8 +61,9 @@ static void _module_destroy(_main_context_t **context_pp)
 
     // note: 增加或删除要同步到module_create_t中
     module_destroy_t module[] = {
-        {"thread",  &context->thread_handle,    HyThreadDestroy},
-        {"log",     &context->log_handle,       HyLogDestroy},
+        {"timer",   &context->timer_service_handle, HyTimerDestroy},
+        {"thread",  &context->thread_handle,        HyThreadDestroy},
+        {"log",     &context->log_handle,           HyLogDestroy},
     };
 
     RUN_DESTROY(module);
@@ -83,10 +85,15 @@ static _main_context_t *_module_create(void)
     thread_config.save_config.args              = context;
     HY_MEMCPY(&thread_config.save_config.name, "del-timer");
 
+    HyTimerServiceConfig_t timer_service_config;
+    timer_service_config.save_config.slot_interval_ms   = 1;
+    timer_service_config.save_config.slot_num           = 1000;
+
     // note: 增加或删除要同步到module_destroy_t中
     module_create_t module[] = {
-        {"log",     &context->log_handle,       &log_config,        (create_t)HyLogCreate,      HyLogDestroy},
-        {"thread",  &context->thread_handle,    &thread_config,     (create_t)HyThreadCreate,   HyThreadDestroy},
+        {"log",     &context->log_handle,           &log_config,            (create_t)HyLogCreate,      HyLogDestroy},
+        {"thread",  &context->thread_handle,        &thread_config,         (create_t)HyThreadCreate,   HyThreadDestroy},
+        {"timer",   &context->timer_service_handle, &timer_service_config,  (create_t)HyTimerCreate,    HyTimerDestroy},
     };
 
     RUN_CREATE(module);
@@ -109,12 +116,6 @@ int main(int argc, char *argv[])
 
     LOGE("version: %s, data: %s, time: %s \n", "0.1.0", __DATE__, __TIME__);
 
-    HyTimerServiceConfig_t timer_service_config;
-    timer_service_config.save_config.slot_interval_ms   = 1;
-    timer_service_config.save_config.slot_num           = 1000;
-
-    HyTimerCreate(&timer_service_config);
-
     HyTimerConfig_t timer_config;
     timer_config.expires        = 500;
     timer_config.repeat_flag    = 1;
@@ -136,8 +137,6 @@ int main(int argc, char *argv[])
         sleep(1);
     }
 #endif
-
-    HyTimerDestroy();
 
     _module_destroy(&context);
 
