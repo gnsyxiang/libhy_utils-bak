@@ -58,7 +58,6 @@ typedef struct {
     void *led_thread_handle;
     void *led_blink_thread_handle;
     void *fifo_handle;
-    _led_mode_t led_mode[2];
 
     hy_s32_t exit_flag;
 } _net_wired_context_t;
@@ -117,24 +116,30 @@ static int32_t _led_set(_led_mode_t *led_mode)
 
 void HyNetWiredSetLed(hy_s32_t led, hy_s32_t mode)
 {
-    context->led_mode[0].led = led;
-    context->led_mode[0].mode = mode;
+    _led_mode_t led_mode;
+
+    led_mode.led = led;
+    led_mode.mode = mode;
+
+    HyFifoPut(context->fifo_handle, &led_mode, sizeof(led_mode));
 }
 
 static hy_s32_t _led_loop_cb(void *args)
 {
-    _led_mode_t *led_mode = context->led_mode;
+    size_t val = 0;
+    _led_mode_t led_mode;
 
     while (!context->exit_flag) {
-        while (0 == memcmp(&led_mode[0], &led_mode[1], sizeof(_led_mode_t))) {
+        while (0 == val) {
+            HyFifoGetInfo(context->fifo_handle, HY_FIFO_INFO_USED_LEN, &val);
             usleep(100 * 1000);
         }
 
-        memcpy(&led_mode[1], &led_mode[0], sizeof(_led_mode_t));
+        HyFifoGet(context->fifo_handle, &led_mode, sizeof(led_mode));
 
-        if (led_mode->mode == HY_NET_WIRED_LED_MODE_OFF
-                || led_mode->mode == HY_NET_WIRED_LED_MODE_ON) {
-            _led_set(led_mode);
+        if (led_mode.mode == HY_NET_WIRED_LED_MODE_OFF
+                || led_mode.mode == HY_NET_WIRED_LED_MODE_ON) {
+            _led_set(&led_mode);
         } else {
 
         }
@@ -166,7 +171,7 @@ void *HyNetWiredCreate(HyNetWiredConfig_t *config)
         HY_MEMCPY(&context->save_config, &config->save_config);
 
         HyFifoConfig_t fifo_config;
-        fifo_config.save_config.size = sizeof(_led_mode_t) * 2;
+        fifo_config.save_config.size = sizeof(_led_mode_t) * 6;
         context->fifo_handle = HyFifoCreate(&fifo_config);
         if (!context->fifo_handle) {
             LOGE("HyFifoCreate failed \n");
