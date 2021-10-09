@@ -33,7 +33,9 @@
 
 typedef struct {
     char    *buf;
+
     size_t  size;
+    size_t  use_cnt;
 
     size_t  in;
     size_t  out;
@@ -133,6 +135,7 @@ size_t HyFifoPut(void *handle, void *buf, size_t len)
     memcpy(context->buf + in_index, buf, len_tmp);
     memcpy(context->buf, (char *)buf + len_tmp, len - len_tmp);
     context->in += len;
+    context->use_cnt += len;
 
     return len;
 }
@@ -146,6 +149,7 @@ size_t HyFifoGet(void *handle, void *buf, size_t len)
     _fifo_context_t *context = handle;
     len = _get_data_com(context, buf, len);
     context->out += len;
+    context->use_cnt -= len;
 
     return len;
 }
@@ -188,7 +192,7 @@ void HyFifoGetInfo(void *handle, HyFifoInfoType_t type, void *val)
             *((size_t *)val) = context->size;
             break;
         case HY_FIFO_INFO_USED_LEN:
-            *((size_t *)val) = context->out;
+            *((size_t *)val) = context->use_cnt;
             break;
         case HY_FIFO_INFO_FREE_LEN:
             *((size_t *)val) = context->size - (context->in + context->out);
