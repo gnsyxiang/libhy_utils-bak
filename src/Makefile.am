@@ -51,6 +51,7 @@ _sources_com    += \
 
 if COMPILE_SELECT_TARGET_OS_LINUX
 _sources_com    += \
+                   hy_signal.c \
                    hy_net_wired.c \
                    hy_timer.c \
                    hy_dlopen.c \
