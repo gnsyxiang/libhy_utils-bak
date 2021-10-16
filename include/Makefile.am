@@ -50,6 +50,7 @@ _install_headers_com    += \
 
 if COMPILE_SELECT_TARGET_OS_LINUX
 _install_headers_com    += \
+                           hy_dir.h \
                            hy_signal.h \
                            hy_net_wired.h \
                            hy_timer.h \
