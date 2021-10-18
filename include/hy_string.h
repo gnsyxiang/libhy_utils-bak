@@ -27,6 +27,12 @@ extern "C" {
 #include <stdio.h>
 #include <string.h>
 
+#define HY_MEMCMP(dst, src, size)               \
+    ({                                          \
+     int32_t val = memcpy(dst, src, size);      \
+     val;                                       \
+     })
+
 #define HY_MEMSET(ptr)                          \
     do {                                        \
         memset((ptr), '\0', sizeof(*(ptr)));    \

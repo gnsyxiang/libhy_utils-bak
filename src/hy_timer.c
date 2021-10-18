@@ -37,7 +37,7 @@ typedef struct {
 
     size_t rotation;
 
-    struct list_head list;
+    struct hy_list_head list;
 } _timer_t;
 
 typedef struct {
@@ -49,7 +49,7 @@ typedef struct {
     pthread_t id;
     int exit_flag;
 
-    struct list_head *list_head;
+    struct hy_list_head *list_head;
 } _timer_context_t;
 
 static _timer_context_t *context = NULL;
@@ -178,8 +178,8 @@ void *HyTimerCreate(HyTimerServiceConfig_t *config)
 
     do {
         context = HY_MALLOC_BREAK(_timer_context_t *, sizeof(*context));
-        context->list_head = HY_MALLOC_BREAK(struct list_head *,
-                sizeof(struct list_head) * config->save_config.slot_num);
+        context->list_head = HY_MALLOC_BREAK(struct hy_list_head *,
+                sizeof(struct hy_list_head) * config->save_config.slot_num);
 
         HY_MEMCPY(&context->save_config, &config->save_config);
 

@@ -36,13 +36,13 @@ typedef struct {
     char name[32];
     int32_t id;
 
-    struct list_head list;
+    struct hy_list_head list;
 } _student_t;
 
 typedef struct {
     void *log_handle;
 
-    struct list_head list;
+    struct hy_list_head list;
 } _main_context_t;
 
 static void _module_destroy(_main_context_t **context_pp)
