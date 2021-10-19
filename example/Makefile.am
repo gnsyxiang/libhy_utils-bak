@@ -112,13 +112,21 @@ hy_template_test_LDFLAGS    = $(_ldflags_com)
 hy_template_test_LDADD      = $(_ldadd_com)
 
 if COMPILE_SELECT_TARGET_OS_LINUX
+bin_PROGRAMS                += hy_dir_test
+hy_dir_test_SOURCES         = $(_sources_com) hy_dir_test.c
+hy_dir_test_CPPFLAGS        = $(_cppflags_com)
+hy_dir_test_CFLAGS          = $(_cflags_com)
+hy_dir_test_CXXFLAGS        = $(_cxxflags_com)
+hy_dir_test_LDFLAGS         = $(_ldflags_com)
+hy_dir_test_LDADD           = $(_ldadd_com)
+
 bin_PROGRAMS                += hy_signal_test
-hy_signal_test_SOURCES   = $(_sources_com) hy_signal_test.c
-hy_signal_test_CPPFLAGS  = $(_cppflags_com)
-hy_signal_test_CFLAGS    = $(_cflags_com)
-hy_signal_test_CXXFLAGS  = $(_cxxflags_com)
-hy_signal_test_LDFLAGS   = $(_ldflags_com)
-hy_signal_test_LDADD     = $(_ldadd_com)
+hy_signal_test_SOURCES      = $(_sources_com) hy_signal_test.c
+hy_signal_test_CPPFLAGS     = $(_cppflags_com)
+hy_signal_test_CFLAGS       = $(_cflags_com)
+hy_signal_test_CXXFLAGS     = $(_cxxflags_com)
+hy_signal_test_LDFLAGS      = $(_ldflags_com)
+hy_signal_test_LDADD        = $(_ldadd_com)
 
 bin_PROGRAMS                += hy_net_wired_test
 hy_net_wired_test_SOURCES   = $(_sources_com) hy_net_wired_test.c

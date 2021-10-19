@@ -25,11 +25,40 @@
 #include "hy_dir.h"
 
 #include "hy_type.h"
+#include "hy_string.h"
 #include "hy_log.h"
 
 #define ALONE_DEBUG 1
 
-static void _handle_sub_dir(const char *path, char *name,
+static void _filter_file(const char *path, const char *name,
+        uint8_t type, void *args,
+        HyDirReadCb_t read_cb, const char *filter)
+{
+    char buf[HY_STRING_BUF_MAX_LEN_64] = {0};
+    size_t len;
+
+    if (!read_cb) {
+        return;
+    }
+
+    if (filter) {
+        buf[0] = '.';
+        len = strlen(filter);
+        HyStrCopyRight(name, buf + 1, HY_STRING_BUF_MAX_LEN_64, '.');
+        if (len > HY_STRING_BUF_MAX_LEN_64) {
+            LOGE("the suffix is too long \n");
+            return;
+        } else {
+            if (0 == strncmp(buf, filter, strlen(filter))) {
+                read_cb(path, name, type, args);
+            }
+        }
+    } else {
+        read_cb(path, name, type, args);
+    }
+}
+
+static void _handle_sub_dir(const char *path, char *name, const char *filter,
         HyDirReadCb_t handle_cb, void *args)
 {
     size_t len = strlen(path) + strlen(name) + 1 + 1; // 1 for space('\0'), 1 for '/'
@@ -41,12 +70,13 @@ static void _handle_sub_dir(const char *path, char *name,
     memset(sub_path, '\0', len);
 
     snprintf(sub_path, len, "%s/%s", path, name);
-    HyDirRead(sub_path, handle_cb, args);
+    HyDirReadRecurse(sub_path, filter, handle_cb, args);
 
     free(sub_path);
 }
 
-int32_t HyDirRead(const char *path, HyDirReadCb_t handle_cb, void *args)
+static int32_t _dir_read(int32_t type, const char *path, const char *filter,
+        HyDirReadCb_t read_cb, void *args)
 {
     DIR *dir;
     struct dirent *ptr;
@@ -64,13 +94,17 @@ int32_t HyDirRead(const char *path, HyDirReadCb_t handle_cb, void *args)
 
         switch (ptr->d_type) {
             case DT_REG:
-                if (handle_cb) {
-                    handle_cb(path, ptr->d_name, DT_REG, args);
-                }
+                _filter_file(path, ptr->d_name, HY_DIR_TYPE_FILE, args,
+                        read_cb, filter);
                 break;
 
             case DT_DIR:
-                _handle_sub_dir(path, ptr->d_name, handle_cb, args);
+                if (type) {
+                    _handle_sub_dir(path, ptr->d_name, filter, read_cb, args);
+                } else {
+                    _filter_file(path, ptr->d_name, HY_DIR_TYPE_FILE, args,
+                            read_cb, filter);
+                }
                 break;
 
             default:
@@ -82,3 +116,16 @@ int32_t HyDirRead(const char *path, HyDirReadCb_t handle_cb, void *args)
 
     return 0;
 }
+
+int32_t HyDirRead(const char *path, const char *filter,
+        HyDirReadCb_t read_cb, void *args)
+{
+    return _dir_read(0, path, filter, read_cb, args);
+}
+
+int32_t HyDirReadRecurse(const char *path, const char *filter,
+        HyDirReadCb_t read_cb, void *args)
+{
+    return _dir_read(1, path, filter, read_cb, args);
+}
+

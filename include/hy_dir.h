@@ -26,10 +26,52 @@ extern "C" {
 
 #include <stdint.h>
 
+/**
+ * @brief 类型
+ */
+typedef enum {
+    HY_DIR_TYPE_FILE,       ///< 文件
+    HY_DIR_TYPE_DIR,        ///< 目录
+
+    HY_DIR_TYPE_MAX,
+} HyDirType_t;
+
+/**
+ * @brief 读取到文件的回调函数
+ *
+ * @param path 文件所在的路径
+ * @param name 文件名
+ * @param type 文件的类型，详见HyDirType_t
+ * @param args 上层传递的参数
+ */
 typedef void (*HyDirReadCb_t)(const char *path, const char *name,
         uint8_t type, void *args);
 
-int32_t HyDirRead(const char *path, HyDirReadCb_t read_cb, void *args);
+/**
+ * @brief 读取目录下的所有文件
+ *
+ * @param path 需要读取的路径名
+ * @param filter 过滤后缀，NULL为不过滤
+ * @param read_cb 读取到文件的回调函数，详见HyDirReadCb_t
+ * @param args 上层传递的参数
+ *
+ * @return 成功返回0，失败返回-1
+ */
+int32_t HyDirRead(const char *path, const char *filter,
+        HyDirReadCb_t read_cb, void *args);
+
+/**
+ * @brief 递归读取目录下的所有文件
+ *
+ * @param path 需要读取的路径名
+ * @param filter 过滤后缀，NULL为不过滤
+ * @param read_cb 读取到文件的回调函数，详见HyDirReadCb_t
+ * @param args 上层传递的参数
+ *
+ * @return 成功返回0，失败返回-1
+ */
+int32_t HyDirReadRecurse(const char *path, const char *filter,
+        HyDirReadCb_t read_cb, void *args);
 
 #ifdef __cplusplus
 }

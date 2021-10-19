@@ -27,6 +27,15 @@ extern "C" {
 #include <stdio.h>
 #include <string.h>
 
+#define HY_STRING_BUF_MAX_LEN_4     (4)
+#define HY_STRING_BUF_MAX_LEN_8     (8)
+#define HY_STRING_BUF_MAX_LEN_16    (16)
+#define HY_STRING_BUF_MAX_LEN_32    (32)
+#define HY_STRING_BUF_MAX_LEN_64    (64)
+#define HY_STRING_BUF_MAX_LEN_128   (128)
+#define HY_STRING_BUF_MAX_LEN_256   (256)
+#define HY_STRING_BUF_MAX_LEN_512   (512)
+
 #define HY_MEMCMP(dst, src, size)               \
     ({                                          \
      int32_t val = memcpy(dst, src, size);      \
