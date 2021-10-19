@@ -49,7 +49,18 @@ _cflags_com     += $(CFLAGS_COM)
 
 _cxxflags_com   += $(CXXFLAGS_COM)
 
-_ldflags_com    += $(BIN_LDFLAGS_COM)
+# 用户指定的库全部链接，不管有没有使用
+# _ldflags_com    += -Wl,--no-as-needed
+
+# 用户指定的库按需链接
+_ldflags_com    += -Wl,--as-needed
+
+# 部分库不管有没有使用都链接，其他库按照需要链接
+# note: 指定参数后面的链接库一律按照前面的参数，直到修改相同功能的配置参数
+# _ldflags_com    += -Wl,--no-as-needed -lpthread -Wl,--as-needed
+
+# 不链接未使用函数，减小可执行文件大小
+_ldflags_com    += -Wl,--gc-sections
 
 _ldadd_com      += $(top_builddir)/src/lib@project_name@.la
 
