@@ -24,6 +24,8 @@
 
 #include "hy_module.h"
 #include "hy_mem.h"
+#include "hy_string.h"
+#include "hy_signal.h"
 #include "hy_type.h"
 #include "hy_utils.h"
 #include "hy_log.h"
@@ -32,7 +34,18 @@
 
 typedef struct {
     void *log_handle;
+    void *signal_handle;
 } _main_context_t;
+
+static void _signal_error_cb(void *args)
+{
+    LOGE("------error cb\n");
+}
+
+static void _signal_user_cb(void *args)
+{
+    LOGE("------user cb\n");
+}
 
 static void _module_destroy(_main_context_t **context_pp)
 {
@@ -40,7 +53,8 @@ static void _module_destroy(_main_context_t **context_pp)
 
     // note: 增加或删除要同步到module_create_t中
     module_destroy_t module[] = {
-        {"log",     &context->log_handle,   HyLogDestroy},
+        {"signal",  &context->signal_handle,    HySignalDestroy},
+        {"log",     &context->log_handle,       HyLogDestroy},
     };
 
     RUN_DESTROY(module);
@@ -57,9 +71,29 @@ static _main_context_t *_module_create(void)
     log_config.save_config.level        = HY_LOG_LEVEL_TRACE;
     log_config.save_config.color_output = HY_FLAG_ENABLE;
 
+    int8_t signal_error_num[HY_SIGNAL_NUM_MAX_32] = {
+        SIGQUIT, SIGILL, SIGTRAP, SIGABRT, SIGFPE,
+        SIGSEGV, SIGBUS, SIGSYS, SIGXCPU, SIGXFSZ,
+    };
+
+    int8_t signal_user_num[HY_SIGNAL_NUM_MAX_32] = {
+        SIGINT, SIGTERM, SIGUSR1, SIGUSR2,
+    };
+
+    HySignalConfig_t signal_config;
+    memset(&signal_config, 0, sizeof(signal_config));
+    HY_MEMCPY(&signal_config.error_num, signal_error_num);
+    HY_MEMCPY(&signal_config.user_num, signal_user_num);
+    signal_config.save_config.appname       = "template";
+    signal_config.save_config.coredump_path = "./";
+    signal_config.save_config.error_cb      = _signal_error_cb;
+    signal_config.save_config.user_cb       = _signal_user_cb;
+    signal_config.save_config.args          = context;
+
     // note: 增加或删除要同步到module_destroy_t中
     module_create_t module[] = {
-        {"log",  &context->log_handle,   &log_config,    (create_t)HyLogCreate,    HyLogDestroy},
+        {"log",     &context->log_handle,       &log_config,        (create_t)HyLogCreate,      HyLogDestroy},
+        {"signal",  &context->signal_handle,    &signal_config,     (create_t)HySignalCreate,   HySignalDestroy},
     };
 
     RUN_CREATE(module);
