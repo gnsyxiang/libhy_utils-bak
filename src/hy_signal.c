@@ -29,11 +29,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "hy_utils/hy_assert.h"
-#include "hy_utils/hy_mem.h"
-#include "hy_utils/hy_string.h"
-#include "hy_utils/hy_type.h"
-#include "hy_utils/hy_log.h"
+#include "hy_assert.h"
+#include "hy_mem.h"
+#include "hy_string.h"
+#include "hy_type.h"
+#include "hy_log.h"
 
 #define ALONE_DEBUG 1
 
