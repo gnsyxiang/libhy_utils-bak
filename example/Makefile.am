@@ -64,8 +64,6 @@ _ldflags_com    += -Wl,--gc-sections
 
 _ldadd_com      += $(top_builddir)/src/lib@project_name@.la
 
-_ldadd_com      += -ldl
-
 if COMPILE_THREADS_POSIX
 _ldadd_com      += $(PTHREAD)
 endif
