@@ -9,6 +9,9 @@
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
+/* if you have <pthread.h> */
+#undef HAVE_PTHREAD_H
+
 /* select linux target system */
 #undef HAVE_SELECT_TARGET_OS_LINUX
 
@@ -71,6 +74,9 @@
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
+
+/* if you want POSIX threaded DNS lookup */
+#undef USE_THREADS_POSIX
 
 /* Version number of package */
 #undef VERSION

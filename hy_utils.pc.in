@@ -14,4 +14,4 @@ Conflicts:
 
 Cflags: -I${includedir}
 Libs: -L${libdir} -l@project_name@
-Libs.private:
+Libs.private:@LIBS_PRIVAATE@

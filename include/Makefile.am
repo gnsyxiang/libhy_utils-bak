@@ -54,8 +54,11 @@ _install_headers_com    += \
                            hy_signal.h \
                            hy_net_wired.h \
                            hy_timer.h \
-                           hy_dlopen.h \
-                           hy_thread.h
+                           hy_dlopen.h
+endif
+
+if COMPILE_THREADS_POSIX
+_install_headers_com    += hy_thread.h
 endif
 
 # ------------------

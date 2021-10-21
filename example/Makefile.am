@@ -64,7 +64,11 @@ _ldflags_com    += -Wl,--gc-sections
 
 _ldadd_com      += $(top_builddir)/src/lib@project_name@.la
 
-_ldadd_com      += -lpthread -ldl
+_ldadd_com      += -ldl
+
+if COMPILE_THREADS_POSIX
+_ldadd_com      += $(PTHREAD)
+endif
 
 bin_PROGRAMS                += hy_log_test
 hy_log_test_SOURCES         = $(_sources_com) hy_log_test.c

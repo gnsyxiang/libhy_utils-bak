@@ -64,8 +64,11 @@ _sources_com    += \
                    hy_signal.c \
                    hy_net_wired.c \
                    hy_timer.c \
-                   hy_dlopen.c \
-                   hy_thread.c
+                   hy_dlopen.c
+endif
+
+if COMPILE_THREADS_POSIX
+_sources_com    += hy_thread.c
 endif
 
 _cppflags_com   += \
