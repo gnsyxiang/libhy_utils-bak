@@ -37,26 +37,14 @@ extern "C" {
 #define HY_STRING_BUF_MAX_LEN_256           (256)
 #define HY_STRING_BUF_MAX_LEN_512           (512)
 
-#define HY_MEMCMP(dst, src, size) memcmp(dst, src, size)
+#define HY_MEMCMP(dst, src, size)           memcmp(dst, src, size)
+#define HY_MEMSET(ptr, size)                memset(ptr, '\0', size);
+#define HY_MEMCPY(dst, src, size)           memcpy(dst, src, size)
 
-#define HY_MEMSET(ptr, len)                 \
-    do {                                    \
-        memset((ptr), '\0', len);           \
-    } while (0)
-
-#define HY_MEMCPY(dst, src, len)            \
-    do {                                    \
-        memcpy(dst, src, len);              \
-    } while (0)
-
-#define HY_STRNCPY(dst, src, len)           \
-    do {                                    \
-        assert(sizeof(dst) > len);          \
-        memset(dst, '\0', sizeof(dst));     \
-        strncpy(dst, src, len);             \
-    } while (0)
-
-#define HY_STRLEN(str) strlen(str)
+#define HY_STRLEN(str)                      strlen(str)
+#define HY_STRCMP(src, dst, len)            strcmp(src, dst)
+#define HY_STRNCPY(dst, src, len)           strncpy(dst, src, len)
+#define HY_STRNCMP(src, dst, len)           strncmp(src, dst, len)
 
 /**
  * @brief 从右边开始拷贝字符，直到指定字符停止，不拷贝指定字符
