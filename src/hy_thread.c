@@ -78,7 +78,7 @@ void *HyThreadCreate(HyThreadConfig_t *config)
     _thread_context_t *context = NULL;
     do {
         context = HY_MALLOC_BREAK(_thread_context_t *, sizeof(*context));
-        HY_MEMCPY(&context->save_config, &config->save_config);
+        HY_MEMCPY(&context->save_config, &config->save_config, sizeof(config->save_config));
 
         pthread_create(&context->id, NULL, _thread_loop_cb, context);
 

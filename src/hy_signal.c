@@ -141,7 +141,7 @@ void *HySignalCreate(HySignalConfig_t *config)
 
     do {
         context = HY_MALLOC_BREAK(_signal_context_t *, sizeof(*context));
-        HY_MEMCPY(&context->save_config, &config->save_config);
+        HY_MEMCPY(&context->save_config, &config->save_config, sizeof(config->save_config));
 
         act.sa_flags = SA_RESETHAND;
         sigemptyset(&act.sa_mask);

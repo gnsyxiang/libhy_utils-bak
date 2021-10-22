@@ -83,7 +83,7 @@ static _main_context_t *_module_create(void)
     HyThreadConfig_t thread_config;
     thread_config.save_config.thread_loop_cb    = _del_timer_cb;
     thread_config.save_config.args              = context;
-    HY_MEMCPY(&thread_config.save_config.name, "del-timer");
+    HY_STRNCPY(thread_config.save_config.name, "del-timer", HY_STRLEN("del-timer"));
 
     HyTimerServiceConfig_t timer_service_config;
     timer_service_config.save_config.slot_interval_ms   = 1;

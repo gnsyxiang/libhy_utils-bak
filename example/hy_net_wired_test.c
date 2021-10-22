@@ -77,8 +77,8 @@ static _main_context_t *_module_create(void)
     };
 
     HyNetWiredConfig_t net_wired_config;
-    HY_MEMCPY(&net_wired_config.save_config.dev_name, "eth0");
-    HY_MEMCPY(&net_wired_config.save_config.led, &led);
+    HY_STRNCPY(net_wired_config.save_config.dev_name, "eth0", HY_STRLEN("eth0"));
+    HY_MEMCPY(net_wired_config.save_config.led, &led, sizeof(led));
 
     // note: 增加或删除要同步到module_destroy_t中
     module_create_t module[] = {

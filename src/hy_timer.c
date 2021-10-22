@@ -60,7 +60,7 @@ void *HyTimerAdd(HyTimerConfig_t *timer_config)
 
     _timer_t *timer = HY_MALLOC_RET_VAL(_timer_t *, sizeof(*timer), NULL);
 
-    HY_MEMCPY(&timer->timer_config, timer_config);
+    HY_MEMCPY(&timer->timer_config, timer_config, sizeof(*timer_config));
 
     timer->rotation = timer_config->expires / context->save_config.slot_num;
     size_t slot     = timer_config->expires % context->save_config.slot_num;
@@ -178,10 +178,10 @@ void *HyTimerCreate(HyTimerServiceConfig_t *config)
 
     do {
         context = HY_MALLOC_BREAK(_timer_context_t *, sizeof(*context));
+        HY_MEMCPY(&context->save_config, &config->save_config, sizeof(config->save_config));
+
         context->list_head = HY_MALLOC_BREAK(struct hy_list_head *,
                 sizeof(struct hy_list_head) * config->save_config.slot_num);
-
-        HY_MEMCPY(&context->save_config, &config->save_config);
 
         for (uint32_t i = 0; i < config->save_config.slot_num; ++i) {
             INIT_LIST_HEAD(&context->list_head[i]);

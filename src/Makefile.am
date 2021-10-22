@@ -35,7 +35,9 @@ _ldadd_com      =
 # ---------------------
 # add necessary content
 # ---------------------
-_no_error_com   += -Wno-error=address
+_no_error_com   += \
+                   -Wno-stringop-truncation \
+                   -Wno-address
 
 # 下面两个参数一个显示警告，一个直接通过
 _no_error_com       += -Wno-error=unused-parameter

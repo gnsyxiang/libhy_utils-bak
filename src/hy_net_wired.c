@@ -162,7 +162,7 @@ static hy_s32_t _led_loop_cb(void *args)
 
         for (i = 0; i < HY_NET_WIRED_LED_MAX; ++i) {
             if (led_mode.led == i) {
-                memcpy(&context->led_blink_mode[i].led_mode,
+                HY_MEMCPY(&context->led_blink_mode[i].led_mode,
                         &led_mode, sizeof(led_mode));
             }
         }
@@ -195,7 +195,7 @@ void *HyNetWiredCreate(HyNetWiredConfig_t *config)
 
     do {
         context = HY_MALLOC_BREAK(_net_wired_context_t *, sizeof(*context));
-        HY_MEMCPY(&context->save_config, &config->save_config);
+        HY_MEMCPY(&context->save_config, &config->save_config, sizeof(config->save_config));
 
         HyFifoConfig_t led_fifo_config;
         led_fifo_config.save_config.size = sizeof(_led_mode_t) * 6;
@@ -208,7 +208,7 @@ void *HyNetWiredCreate(HyNetWiredConfig_t *config)
         HyThreadConfig_t led_config;
         led_config.save_config.thread_loop_cb    = _led_loop_cb;
         led_config.save_config.args              = context;
-        HY_MEMCPY(&led_config.save_config.name, "net_led");
+        HY_STRNCPY(led_config.save_config.name, "net_led", HY_STRLEN("net_led"));
         context->led_thread_handle = HyThreadCreate(&led_config);
         if (!context->led_thread_handle) {
             LOGE("HyThreadCreate failed \n");

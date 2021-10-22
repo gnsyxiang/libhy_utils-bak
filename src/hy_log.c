@@ -181,9 +181,9 @@ void *HyLogCreate(HyLogConfig_t *config)
 
     do {
         context = HY_MALLOC_BREAK(_log_context_t *, sizeof(*context));
-        context->buf = HY_MALLOC_BREAK(char *, config->save_config.buf_len);
+        HY_MEMCPY(&context->save_config, &config->save_config, sizeof(config->save_config));
 
-        HY_MEMCPY(&context->save_config, &config->save_config);
+        context->buf = HY_MALLOC_BREAK(char *, config->save_config.buf_len);
 
         return context;
     } while (0);

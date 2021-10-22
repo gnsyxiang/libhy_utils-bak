@@ -33,7 +33,7 @@
 #define ALONE_DEBUG 1
 
 typedef struct {
-    char name[32];
+    char name[HY_STRING_BUF_MAX_LEN_32];
     int32_t id;
 
     struct hy_list_head list;
@@ -91,12 +91,13 @@ int main(int argc, char *argv[])
     INIT_LIST_HEAD(&context->list);
 
     int32_t i;
-    char buf[32];
+    char buf[HY_STRING_BUF_MAX_LEN_32];
     #define STUDENT_CNT (5)
     _student_t student[STUDENT_CNT];
     for (i = 0; i < STUDENT_CNT; ++i) {
-        snprintf(buf, 32, "student%d", i);
-        HY_MEMCPY(&student[i].name, buf);
+        HY_MEMSET(buf, HY_STRING_BUF_MAX_LEN_32);
+        snprintf(buf, HY_STRING_BUF_MAX_LEN_32, "student%d", i);
+        HY_STRNCPY(student[i].name, buf, HY_STRLEN(buf));
         student[i].id = i;
 
         list_add_tail(&student[i].list, &context->list);

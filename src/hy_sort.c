@@ -25,6 +25,7 @@
 
 #include "hy_log.h"
 #include "hy_type.h"
+#include "hy_string.h"
 #include "hy_assert.h"
 #include "hy_mem.h"
 
@@ -33,9 +34,9 @@
 static inline void _mem_swap(void *dst, void *src,
         void *tmp, hy_u32_t item_len)
 {
-    memcpy(tmp, dst, item_len);
-    memcpy(dst, src, item_len);
-    memcpy(src, tmp, item_len);
+    HY_MEMCPY(tmp, dst, item_len);
+    HY_MEMCPY(dst, src, item_len);
+    HY_MEMCPY(src, tmp, item_len);
 }
 
 void HySortBubble(void *array, size_t len,
@@ -74,7 +75,7 @@ static hy_s32_t _partition(void *array, hy_s32_t low, hy_s32_t high,
     void *tmp = HY_MALLOC_RET_VAL(void *, haha, -1);
     void *swap_tmp = HY_MALLOC_RET_VAL(void *, haha, -1);
 
-    memcpy(tmp, _ARRAY_LOW, item_len);
+    HY_MEMCPY(tmp, _ARRAY_LOW, item_len);
 
     while (low < high) {
         while (low < high && swap_cb(_ARRAY_HIGHT, tmp) >= 0) {
@@ -88,7 +89,7 @@ static hy_s32_t _partition(void *array, hy_s32_t low, hy_s32_t high,
         _mem_swap(_ARRAY_HIGHT, _ARRAY_LOW, swap_tmp, item_len);
     }
 
-    memcpy(_ARRAY_LOW, tmp, item_len);
+    HY_MEMCPY(_ARRAY_LOW, tmp, item_len);
 
     HY_FREE_PP(&tmp);
     HY_FREE_PP(&swap_tmp);

@@ -34,7 +34,7 @@ bin_PROGRAMS    =
 # ---------------------
 # add necessary content
 # ---------------------
-_no_error_com   +=
+_no_error_com   += -Wno-stringop-truncation
 
 _include_com    += -I$(top_srcdir)/include
 

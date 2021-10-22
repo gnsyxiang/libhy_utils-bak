@@ -25,38 +25,38 @@ extern "C" {
 #endif
 
 #include <stdio.h>
+#include <assert.h>
 #include <string.h>
 
-#define HY_STRING_BUF_MAX_LEN_4     (4)
-#define HY_STRING_BUF_MAX_LEN_8     (8)
-#define HY_STRING_BUF_MAX_LEN_16    (16)
-#define HY_STRING_BUF_MAX_LEN_32    (32)
-#define HY_STRING_BUF_MAX_LEN_64    (64)
-#define HY_STRING_BUF_MAX_LEN_128   (128)
-#define HY_STRING_BUF_MAX_LEN_256   (256)
-#define HY_STRING_BUF_MAX_LEN_512   (512)
+#define HY_STRING_BUF_MAX_LEN_4             (4)
+#define HY_STRING_BUF_MAX_LEN_8             (8)
+#define HY_STRING_BUF_MAX_LEN_16            (16)
+#define HY_STRING_BUF_MAX_LEN_32            (32)
+#define HY_STRING_BUF_MAX_LEN_64            (64)
+#define HY_STRING_BUF_MAX_LEN_128           (128)
+#define HY_STRING_BUF_MAX_LEN_256           (256)
+#define HY_STRING_BUF_MAX_LEN_512           (512)
 
-#define HY_MEMCMP(dst, src, size)               \
-    ({                                          \
-     int32_t val = memcpy(dst, src, size);      \
-     val;                                       \
-     })
+#define HY_MEMCMP(dst, src, size) memcmp(dst, src, size)
 
-#define HY_MEMSET(ptr)                          \
-    do {                                        \
-        memset((ptr), '\0', sizeof(*(ptr)));    \
+#define HY_MEMSET(ptr, len)                 \
+    do {                                    \
+        memset((ptr), '\0', len);           \
     } while (0)
 
-#define HY_MEMCPY(dst, src)                     \
-    do {                                        \
-        memcpy((dst), (src), sizeof(*(dst)));   \
+#define HY_MEMCPY(dst, src, len)            \
+    do {                                    \
+        memcpy(dst, src, len);              \
     } while (0)
 
-#define HY_STRNCPY(dst, src, max_len)           \
-    do {                                        \
-        memset(dst, '\0', max_len);             \
-        strncpy(dst, src, max_len - 1);         \
+#define HY_STRNCPY(dst, src, len)           \
+    do {                                    \
+        assert(sizeof(dst) > len);          \
+        memset(dst, '\0', sizeof(dst));     \
+        strncpy(dst, src, len);             \
     } while (0)
+
+#define HY_STRLEN(str) strlen(str)
 
 /**
  * @brief 从右边开始拷贝字符，直到指定字符停止，不拷贝指定字符
