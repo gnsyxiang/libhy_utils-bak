@@ -35,16 +35,24 @@
 typedef struct {
     void *log_handle;
     void *signal_handle;
+
+    hy_s32_t exit_flag;
 } _main_context_t;
 
 static void _signal_error_cb(void *args)
 {
     LOGE("------error cb\n");
+
+    _main_context_t *context = args;
+    context->exit_flag = 1;
 }
 
 static void _signal_user_cb(void *args)
 {
     LOGE("------user cb\n");
+
+    _main_context_t *context = args;
+    context->exit_flag = 1;
 }
 
 static void _module_destroy(_main_context_t **context_pp)
@@ -111,7 +119,7 @@ int main(int argc, char *argv[])
 
     LOGE("version: %s, data: %s, time: %s \n", "0.1.0", __DATE__, __TIME__);
 
-    while (1) {
+    while (!context->exit_flag) {
         sleep(1);
     }
 
