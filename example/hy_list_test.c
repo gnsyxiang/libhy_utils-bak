@@ -35,17 +35,114 @@
 
 typedef struct {
     char name[HY_STRING_BUF_MAX_LEN_32];
-    int32_t id;
+    hy_s32_t id;
 
     struct hy_list_head list;
 } _student_t;
 
 typedef struct {
     void *log_handle;
+    void *signal_handle;
 
     struct hy_list_head list;
+    hy_u32_t list_cnt;
+
     hy_s32_t exit_flag;
 } _main_context_t;
+
+static struct hy_list_head *_get_node_ptr(struct hy_list_head *list, hy_s32_t index)
+{
+    struct hy_list_head *tmp = list;
+    for (int i = 0; i <= index; ++i) {
+        tmp = tmp->next;
+    }
+    return tmp;
+}
+
+static hy_u32_t _get_node_data(struct hy_list_head *list, hy_u32_t index)
+{
+    struct hy_list_head *tmp = _get_node_ptr(list, index);
+    return (list_entry(tmp, _student_t, list))->id;
+}
+
+#if 0
+static void _set_node_data(struct hy_list_head *list, hy_u32_t index, hy_s32_t id)
+{
+    struct hy_list_head *tmp = _get_node_ptr(list, index);
+    (list_entry(tmp, _student_t, list))->id = id;
+}
+#endif
+
+static void _swap_node_prt(struct hy_list_head *list, hy_s32_t a, hy_s32_t b)
+{
+    struct hy_list_head *tmp_a = _get_node_ptr(list, a);
+    struct hy_list_head *tmp_b = _get_node_ptr(list, b);
+
+    struct hy_list_head tmp = {NULL, NULL};
+    list_add_tail(&tmp, tmp_a);
+    list_del(tmp_a);
+    list_add_tail(tmp_a, tmp_b);
+    list_del(tmp_b);
+    list_add_tail(tmp_b, &tmp);
+    list_del(&tmp);
+}
+
+static hy_u32_t _get_partition(struct hy_list_head *list, hy_s32_t low, hy_s32_t high)
+{
+    hy_s32_t tmp_id = 0;
+    hy_s32_t pivot_data = _get_node_data(list, low);
+
+    while (low < high) {
+        tmp_id = _get_node_data(list, high);
+        while (low < high && tmp_id >= pivot_data) {
+            high--;
+            tmp_id = _get_node_data(list, high);
+        }
+
+        if (low != high) {
+            _swap_node_prt(list, low, high);
+        }
+
+        tmp_id = _get_node_data(list, low);
+        while (low < high && tmp_id <= pivot_data) {
+            low++;
+            tmp_id = _get_node_data(list, low);
+        }
+
+        if (low != high) {
+            _swap_node_prt(list, high, low);
+        }
+    }
+
+    return low;
+}
+
+static void _sort(struct hy_list_head *list, hy_s32_t low, hy_s32_t high)
+{
+    if (low < high) {
+        hy_s32_t pivot_point = _get_partition(list, low, high);
+
+        _sort(list, low, pivot_point - 1);
+        _sort(list, pivot_point + 1, high);
+    }
+}
+
+static void _dump_list(struct hy_list_head *list, const char *tag)
+{
+    LOGD("%s: \n", tag);
+
+    _student_t *pos;
+    list_for_each_entry(pos, list, list) {
+        LOGI("name: %s, id: %d \n", pos->name, pos->id);
+    }
+}
+
+static void _quick_sort(_main_context_t *context)
+{
+    _dump_list(&context->list, "before");
+    _sort(&context->list, 0, context->list_cnt);
+    _dump_list(&context->list, "after");
+}
 
 static void _signal_error_cb(void *args)
 {
@@ -127,38 +224,55 @@ int main(int argc, char *argv[])
 
     LOGI("version: %s, data: %s, time: %s \n", "0.1.0", __DATE__, __TIME__);
 
+    // 初始化
+    // INIT_LIST_HEAD
+    // HY_LIST_HEAD
+
+    // 曾
+    // list_add
+    // list_add_tail
+
+    // 删
+    // list_del
+
+    // 改
+
+    // 查
+    // list_for_each
+    // list_for_each_prev
+    // list_for_each_safe
+    // list_for_each_prev_safe
+    // list_for_each_entry
+    // list_for_each_entry_safe
+
     INIT_LIST_HEAD(&context->list);
 
     int32_t i;
-    char buf[HY_STRING_BUF_MAX_LEN_32];
     #define STUDENT_CNT (5)
     _student_t student[STUDENT_CNT];
+    hy_s32_t id[STUDENT_CNT] = {5,4,3,2,1};
     for (i = 0; i < STUDENT_CNT; ++i) {
-        HY_MEMSET(buf, HY_STRING_BUF_MAX_LEN_32);
-        snprintf(buf, HY_STRING_BUF_MAX_LEN_32, "student%d", i);
-        HY_STRNCPY(student[i].name, buf, HY_STRLEN(buf));
-        student[i].id = i;
+        _student_t *st = &student[i];
 
-        list_add_tail(&student[i].list, &context->list);
-    }
+        HY_MEMSET(st->name, HY_STRING_BUF_MAX_LEN_32);
+        snprintf(st->name, HY_STRING_BUF_MAX_LEN_32, "student%d", i);
+        student[i].id = id[i];
 
-    _student_t *pos, *n;
-    list_for_each_entry(pos, &context->list, list) {
-        if (pos) {
-            LOGI("name: %s, id: %d \n", pos->name, pos->id);
-        }
-    }
-
-    list_for_each_entry_safe(pos, n, &context->list, list) {
-        LOGI("name: %s, id: %d \n", pos->name, pos->id);
-
-        list_del(&pos->list);
+        context->list_cnt++;
+        list_add_tail(&st->list, &context->list);
     }
 
     _quick_sort(context);
 
     while (!context->exit_flag) {
         sleep(1);
+    }
+
+    _student_t *pos, *n;
+    list_for_each_entry_safe(pos, n, &context->list, list) {
+        LOGI("name: %s, id: %d \n", pos->name, pos->id);
+
+        list_del(&pos->list);
     }
 
     _module_destroy(&context);
